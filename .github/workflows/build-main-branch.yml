@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Buld SL ETL using mvn
+name: Build SL ETL using mvn
 
 # Controls when the workflow will run
 on:
