@@ -28,4 +28,4 @@ jobs:
           server-username: ${{ secrets.OSSRH_USERNAME }}
           server-password: ${{ secrets.OSSRH_TOKEN }}
       - name: Publish package
-        run: mvn clean deploy -U -DdeployRelease -Dgpg.passphrase=${server-username} -Dgpg.keyname=${server-password}
+        run: mvn clean deploy -f ../pom.xml -U -DdeployRelease -Dgpg.passphrase=${server-username} -Dgpg.keyname=${server-password}
