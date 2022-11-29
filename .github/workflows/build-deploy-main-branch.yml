@@ -22,4 +22,4 @@ jobs:
       - name: Checkout main branch
         uses: actions/checkout@v3
       - name: Publish package
-        run: mvn clean deploy -U -DdeployRelease -Dgpg.passphrase=${secrets.OSS_SERVER_USERNAME} -Dgpg.keyname=${secrets.OSS_SERVER_PSWD}
+        run: mvn clean deploy -U -DdeployRelease -Dgpg.passphrase=${{secrets.OSS_SERVER_USERNAME}} -Dgpg.keyname=${{secrets.OSS_SERVER_PSWD}}
