@@ -19,13 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Set up Maven Central Repository
-        uses: actions/setup-java@v3
-        with:
-          java-version: '8'
-          distribution: 'adopt'
-          server-id: ossrh
-          server-username: ${{ secrets.OSSRH_USERNAME }}
-          server-password: ${{ secrets.OSSRH_TOKEN }}
+      - name: Checkout main branch
+        uses: actions/checkout@v3
       - name: Publish package
-        run: mvn clean deploy -f ../../pom.xml -U -DdeployRelease -Dgpg.passphrase=${server-username} -Dgpg.keyname=${server-password}
+        run: mvn clean deploy -U -DdeployRelease -Dgpg.passphrase=${server-username} -Dgpg.keyname=${server-password}
