@@ -15,14 +15,13 @@ jobs:
       - name: Run maven clean install
         run: mvn clean install
 
-name: Publish package to the Maven Central Repository
-on:
   release:
-    types: [created]
+    runs-on: ubuntu-latest
     needs: build
 
-jobs:
   publish:
+    runs-on: ubuntu-latest
+    needs: build
     steps:
       - name: Set up Maven Central Repository
         uses: actions/setup-java@v3
