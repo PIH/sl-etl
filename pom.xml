@@ -52,11 +52,11 @@
     </repositories>
 
     <properties>
-        <dataExportSqlDir>${project.build.directory}/openmrs-config-zl/reports/reportdescriptors/dataexports/sql/</dataExportSqlDir>
-        <liquibaseSourceDir>${project.build.directory}/openmrs-config-zl/pih/liquibase/sql/</liquibaseSourceDir>
+        <dataExportSqlDir>${project.build.directory}/openmrs-config-pihsl/reports/reportdescriptors/dataexports/sql/</dataExportSqlDir>
+        <liquibaseSourceDir>${project.build.directory}/openmrs-config-pihsl/pih/liquibase/sql/</liquibaseSourceDir>
         <liquibaseDestDir>${project.build.directory}/sl-etl/jobs/sql/utils/</liquibaseDestDir>
         <petlJobExtractionSqlDir>${project.build.directory}/sl-etl/jobs/sql/extractions/</petlJobExtractionSqlDir>
-        <configZlVersion>1.40.0-SNAPSHOT</configZlVersion>
+        <configPIHSLVersion>1.10.0-SNAPSHOT</configPIHSLVersion>
     </properties>
 
     <build>
@@ -76,11 +76,11 @@
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>org.pih.openmrs</groupId>
-                                    <artifactId>openmrs-config-zl</artifactId>
-                                    <version>${configZlVersion}</version>
+                                    <artifactId>openmrs-config-pihsl</artifactId>
+                                    <version>${configPIHSLVersion}</version>
                                     <type>zip</type>
                                     <overWrite>false</overWrite>
-                                    <outputDirectory>${project.build.directory}/openmrs-config-zl</outputDirectory>
+                                    <outputDirectory>${project.build.directory}/openmrs-config-pihsl</outputDirectory>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
