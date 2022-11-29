@@ -1,0 +1,36 @@
+name: Build SL ETL using mvn
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v3
+
+      - name: Run maven clean install
+        run: mvn clean install
+
+name: Publish package to the Maven Central Repository
+on:
+  release:
+    types: [created]
+    needs: build
+
+jobs:
+  publish:
+    steps:
+      - name: Set up Maven Central Repository
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'adopt'
+          server-id: ossrh
+          server-username: ${{ secrets.OSSRH_USERNAME }}
+          server-password: ${{ secrets.OSSRH_TOKEN }}
+      - name: Publish package
+        run: mvn clean deploy -U -DdeployRelease -Dgpg.passphrase=${server-username} -Dgpg.keyname=${server-password}
