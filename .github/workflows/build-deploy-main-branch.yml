@@ -15,10 +15,6 @@ jobs:
       - name: Run maven clean install
         run: mvn clean install
 
-  release:
-    runs-on: ubuntu-latest
-    needs: build
-
   publish:
     runs-on: ubuntu-latest
     needs: build
