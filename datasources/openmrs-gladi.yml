@@ -1,0 +1,7 @@
+databaseType: "mysql"
+host: ${datasources.openmrs.gladi.host}
+port: ${datasources.openmrs.gladi.port}
+databaseName: ${datasources.openmrs.gladi.databaseName}
+user: ${datasources.openmrs.gladi.user}
+password: ${datasources.openmrs.gladi.password}
+options: ${datasources.openmrs.gladi.options}

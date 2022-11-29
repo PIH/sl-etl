@@ -1,0 +1,7 @@
+databaseType: "mysql"
+host: ${datasources.openmrs.kgh_test.host}
+port: ${datasources.openmrs.kgh_test.port}
+databaseName: ${datasources.openmrs.kgh_test.databaseName}
+user: ${datasources.openmrs.kgh_test.user}
+password: ${datasources.openmrs.kgh_test.password}
+options: ${datasources.openmrs.kgh_test.options}

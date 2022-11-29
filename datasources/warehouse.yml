@@ -1,0 +1,6 @@
+databaseType: "sqlserver"
+host: ${datasources.warehouse.host}
+port: ${datasources.warehouse.port}
+databaseName: ${datasources.warehouse.databaseName}
+user: ${datasources.warehouse.user}
+password: ${datasources.warehouse.password}

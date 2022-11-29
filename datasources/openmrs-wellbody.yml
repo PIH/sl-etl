@@ -1,0 +1,7 @@
+databaseType: "mysql"
+host: ${datasources.openmrs.wellbody.host}
+port: ${datasources.openmrs.wellbody.port}
+databaseName: ${datasources.openmrs.wellbody.databaseName}
+user: ${datasources.openmrs.wellbody.user}
+password: ${datasources.openmrs.wellbody.password}
+options: ${datasources.openmrs.wellbody.options}
