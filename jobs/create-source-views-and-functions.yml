@@ -1,0 +1,29 @@
+# Template that takes in the following parameters
+
+# ${siteName}
+
+# The purpose of this job is to ensure views, functions, and other database objects exist on the source system
+# to facilitate queries.
+
+# Note: Each file executed here is added during the build process, as they are copied from the report config
+# You can see the setup of this in the pom.xml file.
+
+type: "job-pipeline"
+description: "Create source views and functions for ${siteName}"
+configuration:
+  jobs:
+    - type: "sql-execution"
+      description: "Create source views for ${siteName}"
+      configuration:
+        datasource: "openmrs-${siteName}.yml"
+        delimiter: ";"
+        scripts:
+          - "sql/utils/create_views.sql"
+    - type: "sql-execution"
+      description: "Create functions and metadata for ${siteName}"
+      configuration:
+        datasource: "openmrs-${siteName}.yml"
+        delimiter: "#"
+        scripts:
+          - "sql/utils/create_functions.sql"
+          - "sql/utils/global_metadata.sql"

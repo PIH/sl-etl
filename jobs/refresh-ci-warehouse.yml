@@ -1,0 +1,17 @@
+type: "iterating-job"
+description: "Refreshing OpenMRS Data for ${siteName}"
+schedule:
+  cron: "${executeCron.refreshCiDW}"
+errorHandling:
+  maxAttempts: 10
+  retryInterval: 15
+  retryIntervalUnit: "MINUTES"
+configuration:
+  maxConcurrentJobs: 1
+  iterations:
+    - siteName: "gladi"
+      partitionNum: "1"
+    - siteName: "kgh"
+      partitionNum: "2"
+  jobTemplate:
+    path: "refresh-base-tables.yml"
