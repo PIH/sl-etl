@@ -15,3 +15,5 @@ configuration:
           path: "import-to-table-partition.yml"
         iterations:
           - tableName: "outpatient_patients"
+          - tableName: "users"
+          - tableName: "user_roles"
