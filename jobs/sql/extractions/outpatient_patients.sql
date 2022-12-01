@@ -285,16 +285,3 @@ family_planning ,
 disposition_comment ,
 next_visit_date 
 from outpatient_patients;
-
-
-
-
-
-
-
-
-
-
-
-
-);

@@ -14,4 +14,4 @@ configuration:
         jobTemplate:
           path: "import-to-table-partition.yml"
         iterations:
-          - tableName: "outpatient_patients.sql"
+          - tableName: "outpatient_patients"
