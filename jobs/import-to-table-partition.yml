@@ -15,7 +15,6 @@ configuration:
     datasource: "openmrs-${siteName}.yml"
     query:  "sql/extractions/${tableName}.sql"
     context: "sql/utils/context.sql"
-    conditional: "${conditional}"
   load:
     datasource: "warehouse.yml"
     table: "${tableName}"
