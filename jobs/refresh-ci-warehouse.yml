@@ -11,7 +11,7 @@ configuration:
   iterations:
     - siteName: "gladi"
       partitionNum: "1"
-    - siteName: "kgh"
+    - siteName: "kgh_test"
       partitionNum: "2"
   jobTemplate:
     path: "refresh-base-tables.yml"
