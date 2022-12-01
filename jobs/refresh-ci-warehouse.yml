@@ -1,5 +1,5 @@
 type: "iterating-job"
-description: "Refreshing OpenMRS Data for ${siteName}"
+description: "Refreshing OpenMRS Data for CI Sites"
 schedule:
   cron: "${executeCron.refreshCiDW}"
 errorHandling:
