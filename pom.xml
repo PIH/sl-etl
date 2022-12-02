@@ -6,7 +6,7 @@
     <name>SL ETL</name>
     <description>ETL Project for Partners In Health Sierra Leone OpenMRS instances</description>
     <url>https://github.com/PIH/sl-etl</url>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
 
     <developers>
