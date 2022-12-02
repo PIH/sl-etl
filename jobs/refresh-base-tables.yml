@@ -17,3 +17,17 @@ configuration:
           - tableName: "outpatient_patients"
           - tableName: "users"
           - tableName: "user_roles"
+          - tableName: "user_logins"
+          - tableName: "summary_db_restore"
+
+    - type: "job-pipeline"
+      description: "Derive analysis tables"
+      configuration:
+        jobs:
+          - type: "iterating-job"
+            description: "Create static tables"
+            configuration:
+              jobTemplate:
+                path: "create-derived-table-in-warehouse.yml"
+              iterations:
+                - tableName: "dim_patients_Initial_Load"
