@@ -23,28 +23,25 @@ CREATE TEMPORARY TABLE  dim_patients (
 wellbody_emr_id varchar(50),
 kgh_emr_id varchar(50),
 patient_id int, 
-
 reg_loc_id int,
 reg_date date,
-
 name varchar(50),
 family_name varchar(50),
 dob date,
-dob_estimated boolean,
+dob_estimated bit,
 gender varchar(2),
-dead boolean,
+dead bit,
 death_date date,
 cause_of_death varchar(100),
-
-ncd_enrolled boolean,
+ncd_enrolled bit,
 ncd_last_encounter_date date,
-echo_enrolled boolean,
+echo_enrolled bit,
 echo_last_encounter_date date,
-hiv_enrolled boolean,
+hiv_enrolled bit,
 hiv_last_encounter_date date,
 valid_from date,
 valid_to date,
-recent_flag boolean
+recent_flag bit
 );
  
 -- --------- Identifications --------------------------------------------------------
