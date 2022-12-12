@@ -18,7 +18,6 @@ SELECT encounter_type_id  INTO @etype_hivf_id FROM encounter_type et WHERE et.uu
 
 -- ------------------------- Get Fresh Data ---------------------------------------
 
-DROP TABLE IF EXISTS dim_patients;
 CREATE TEMPORARY TABLE  dim_patients (
 wellbody_emr_id varchar(50),
 kgh_emr_id varchar(50),
