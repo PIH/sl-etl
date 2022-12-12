@@ -3,7 +3,6 @@ SELECT patient_identifier_type_id INTO @identifier_type FROM patient_identifier_
 SELECT patient_identifier_type_id INTO @kgh_identifier_type FROM patient_identifier_type pit WHERE uuid ='c09a1d24-7162-11eb-8aa6-0242ac110002';
 
 
-drop table if exists all_encounters;
 create temporary table all_encounters(
 encounter_id int,
 patient_id int, 
