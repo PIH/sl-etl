@@ -1,5 +1,4 @@
 create table all_programs(
-patient_id int, 
 wellbody_emr_id varchar(50),
 kgh_emr_id varchar(50),
 program_name varchar(50),
