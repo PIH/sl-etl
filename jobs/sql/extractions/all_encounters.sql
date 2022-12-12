@@ -1,3 +1,4 @@
+-- ---- All Encounters
 SELECT patient_identifier_type_id INTO @identifier_type FROM patient_identifier_type pit WHERE uuid ='1a2acce0-7426-11e5-a837-0800200c9a66';
 SELECT patient_identifier_type_id INTO @kgh_identifier_type FROM patient_identifier_type pit WHERE uuid ='c09a1d24-7162-11eb-8aa6-0242ac110002';
 
@@ -10,18 +11,18 @@ wellbody_emr_id varchar(50),
 kgh_emr_id varchar(50),
 encounter_type varchar(50),
 encounter_datetime datetime,
-year int,
-month int,
+encounter_year int,
+encounter_month int,
 created_by varchar(30)
 );
 
-insert into all_encounters(encounter_id,patient_id, encounter_type, encounter_datetime, year, month, created_by)
+insert into all_encounters(encounter_id,patient_id, encounter_type, encounter_datetime, encounter_year, encounter_month, created_by)
 select e.encounter_id,
 	e.patient_id,
 	et.name encounter_type,
 	e.encounter_datetime,
-	year(e.encounter_datetime) as year,
-	month(e.encounter_datetime) as month,
+	year(e.encounter_datetime) as encounter_year,
+	month(e.encounter_datetime) as encounter_month,
 	u.username as created_by
 from encounter e
 left outer join encounter_type et on e.encounter_type =et.encounter_type_id 
@@ -56,7 +57,7 @@ wellbody_emr_id,
 kgh_emr_id,
 encounter_type,
 encounter_datetime,
-year,
-month,
+encounter_year,
+encounter_month,
 created_by
 from all_encounters;
