@@ -19,6 +19,9 @@ configuration:
           - tableName: "user_roles"
           - tableName: "user_logins"
           - tableName: "summary_db_restore"
+          - tableName: "all_encounters"
+          - tableName: "all_programs"
+          - tableName: "dim_patients"
 
     - type: "job-pipeline"
       description: "Derive analysis tables"
