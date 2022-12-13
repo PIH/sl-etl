@@ -7,3 +7,4 @@ date_completed date,
 final_program_status varchar(100),
 created_by varchar(50)
 );
+
