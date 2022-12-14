@@ -14,7 +14,6 @@ configuration:
         jobTemplate:
           path: "import-to-table-partition.yml"
         iterations:
-          - tableName: "outpatient_patients"
           - tableName: "users"
           - tableName: "user_roles"
           - tableName: "user_logins"
@@ -22,3 +21,4 @@ configuration:
           - tableName: "all_encounters"
           - tableName: "all_programs"
           - tableName: "dim_patients"
+          - tableName: "outpatient_patients"
