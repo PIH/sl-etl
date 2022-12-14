@@ -1,4 +1,5 @@
-CREATE TABLE  dim_patients (
+CREATE TABLE dim_patients
+(
 wellbody_emr_id varchar(50),
 kgh_emr_id varchar(50),
 patient_id int,
