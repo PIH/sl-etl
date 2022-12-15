@@ -46,213 +46,313 @@ from encounter e where encounter_type = 40 and e.voided=0;
 
 
 UPDATE outpatient_patients dp 
-SET dp.wellbody_emr_id= (
- SELECT identifier
+inner join 
+ (
+ SELECT identifier,patient_id
  FROM patient_identifier 
  WHERE identifier_type =@identifier_type
- AND patient_id=dp.patient_id
  AND voided=0
- ORDER BY preferred desc, date_created desc limit 1
-);
+ group by patient_id
+) x 
+on  x.patient_id=dp.patient_id
+SET dp.wellbody_emr_id= x.identifier;
+
 
 UPDATE outpatient_patients dp 
-SET dp.kgh_emr_id= (
- SELECT identifier
+inner join 
+ (
+ SELECT identifier,patient_id
  FROM patient_identifier 
  WHERE identifier_type =@kgh_identifier_type
- AND patient_id=dp.patient_id
  AND voided=0
- ORDER BY preferred desc, date_created desc limit 1
-);
+ group by patient_id
+) x 
+on  x.patient_id=dp.patient_id
+SET dp.kgh_emr_id= x.identifier;
+
 
 Update outpatient_patients dp 
-set dp.weight_loss = (
-	select max(case when o.value_coded=1407 then true else false end) as weight_loss
+inner join (
+	select true as weight_loss, -- max(case when o.value_coded=1407 then true else false end) as weight_loss, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-);
+	where value_coded=1407
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.weight_loss = x.weight_loss;
+
 
 Update outpatient_patients dp 
-set dp.obesity = (
-	select max(case when o.value_coded=753 then true else false end) as weight_loss
+inner join (
+	select true as obesity, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-);
+	where value_coded=753
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.obesity = x.obesity;
+
 
 Update outpatient_patients dp 
-set dp.jaundice  = (
-	select max(case when o.value_coded=759 then true else false end) as weight_loss
+inner join (
+	select true as jaundice, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-);
+	where value_coded=759
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.jaundice = x.jaundice;
+
 
 Update outpatient_patients dp 
-set dp.depression  = (
-	select max(case when o.value_coded=717 then true else false end) as weight_loss
+inner join (
+	select true as depression, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-);
+	where value_coded=717
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.depression = x.depression;
 
 Update outpatient_patients dp 
-set dp.rash = (
-	select max(case when o.value_coded=260 then true else false end) as weight_loss
+inner join (
+	select true as rash, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-);
+	where value_coded=260
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.rash = x.rash;
 
 Update outpatient_patients dp 
-set dp.pallor  = (
-	select max(case when o.value_coded=726 then true else false end) as weight_loss
+inner join (
+	select true as pallor, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-);
+	where value_coded=726
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.pallor = x.pallor;
 
 Update outpatient_patients dp 
-set dp.cardiac_murmur = (
-	select max(case when o.value_coded=750 then true else false end) as weight_loss
+inner join (
+	select true as cardiac_murmur, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-);
+	where value_coded=750
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.cardiac_murmur = x.cardiac_murmur;
 
 
 Update outpatient_patients dp 
-set dp.tachycardia  = (
-	select max(case when o.value_coded=740 then true else false end) as weight_loss
+inner join (
+	select true as tachycardia, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-);
+	where value_coded=740
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.tachycardia = x.tachycardia;
+
 
 Update outpatient_patients dp 
-set dp.splenomegaly  = (
-	select max(case when o.value_coded=651 then true else false end) as weight_loss
+inner join (
+	select true as splenomegaly, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-);
+	where value_coded=651
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.splenomegaly = x.splenomegaly;
+
 
 Update outpatient_patients dp 
-set dp.hepatomegaly  = (
-	select max(case when o.value_coded=650 then true else false end) as weight_loss
+inner join (
+	select true as hepatomegaly, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-);
+	where value_coded=650
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.hepatomegaly = x.hepatomegaly;
+
 
 Update outpatient_patients dp 
-set dp.ascites  = (
-	select max(case when o.value_coded=658 then true else false end) as weight_loss
+inner join (
+	select true as ascites, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-);
+	where value_coded=658
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.ascites = x.ascites;
 
 Update outpatient_patients dp 
-set dp.abdominal_mass  = (
-	select max(case when o.value_coded=664 then true else false end) as weight_loss
+inner join (
+	select true as abdominal_mass, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-);
+	where value_coded=664
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.abdominal_mass = x.abdominal_mass;
+
+
 
 Update outpatient_patients dp 
-set dp.abdominal_pain  = (
-	select max(case when o.value_coded=374 then true else false end) as weight_loss
+inner join (
+	select true as abdominal_pain, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-);
+	where value_coded=374
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.abdominal_pain = x.abdominal_pain;
+
 
 Update outpatient_patients dp 
-set dp.seizure  = (
-	select max(case when o.value_coded=335 then true else false end) as weight_loss
+inner join (
+	select true as seizure, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-);
+	where value_coded=335
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.seizure = x.seizure;
+
 
 Update outpatient_patients dp 
-set dp.hemiplegia  = (
-	select max(case when o.value_coded=711 then true else false end) as weight_loss
+inner join (
+	select true as hemiplegia, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-);
+	where value_coded=711
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.hemiplegia = x.hemiplegia;
+
 
 Update outpatient_patients dp 
-set dp.effusion_of_joint  = (
-	select max(case when o.value_coded=683 then true else false end) as weight_loss
+inner join (
+	select true as effusion_of_joint, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-);
+	where value_coded=683
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.effusion_of_joint = x.effusion_of_joint;
+
 
 Update outpatient_patients dp 
-set dp.oedema  = (
-	select max(case when o.value_coded=684 then true else false end) as weight_loss
+inner join (
+	select true as oedema, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-);
+	where value_coded=684
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.oedema = x.oedema;
+
 
 Update outpatient_patients dp 
-set dp.muscle_pain  = (
-	select max(case when o.value_coded=2292 then true else false end) as weight_loss
+inner join (
+	select true as muscle_pain, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-);
+	where value_coded=2292
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.muscle_pain = x.muscle_pain;
 
 Update outpatient_patients dp 
-set dp.hiv_testing  = (
+inner join 
+(
 	select max(case when o.value_coded=1 then true 
 					when o.value_coded=2 then false 
-					else false end) as hiv_testing
+					else false end) as hiv_testing,encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-	and o.concept_id= 1382
-);
+	where o.concept_id= 1382
+	group by encounter_id, person_id 
+) x  
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.hiv_testing=x.hiv_testing;
 
 Update outpatient_patients dp 
-set dp.family_planning  = (
+inner join 
+(
 	select max(case when o.value_coded=1 then true 
 					when o.value_coded=2 then false 
-					else false end) as hiv_testing
+					else false end) as family_planning,encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-	and o.concept_id= 3781
-);
+	where o.concept_id= 3781
+	group by encounter_id, person_id 
+) x  
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.family_planning=x.family_planning;
 
 
 Update outpatient_patients dp 
-set dp.disposition_comment = (
-	select value_text
+inner join (
+	select value_text as disposition_comment, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-	and o.concept_id= 1400
-	order by o.obs_datetime desc 
-	limit 1
-);
-	
+	where o.concept_id= 1400
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.disposition_comment = x.disposition_comment;
+
 Update outpatient_patients dp 
-set dp.next_visit_date  = (
-	select distinct cast(value_datetime as date)
+inner join (
+	select distinct cast(value_datetime as date) as next_visit_date, 
+	encounter_id, person_id
 	from obs o
-	where o.encounter_id = dp.encounter_id  
-	and o.person_id = dp.patient_id 
-	and o.concept_id= 2924
-	order by o.obs_datetime desc 
-	limit 1);
+	where o.concept_id= 2924
+	group by encounter_id, person_id 
+) x 
+on  x.encounter_id = dp.encounter_id  
+and x.person_id = dp.patient_id 
+set dp.next_visit_date = x.next_visit_date;
 
 
 select 
