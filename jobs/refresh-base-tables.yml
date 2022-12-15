@@ -20,5 +20,4 @@ configuration:
           - tableName: "summary_db_restore"
           - tableName: "all_encounters"
           - tableName: "all_programs"
-          - tableName: "dim_patients"
           - tableName: "outpatient_patients"
