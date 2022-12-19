@@ -8,7 +8,7 @@ from encounter_type et where uuid='873f968a-73a8-4f9c-ac78-9f4778b751b6';
 -- ------------------------- Get Fresh Data ---------------------------------------
 
 DROP TABLE IF EXISTS all_patients;
-CREATE TEMPORARY TABLE  all_patients 
+CREATE TEMPORARY TABLE  all_patients
 (
 wellbody_emr_id varchar(50),
 kgh_emr_id varchar(50),

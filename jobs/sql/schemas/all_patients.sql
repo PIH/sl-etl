@@ -1,4 +1,4 @@
-CREATE TABLE  all_patients 
+CREATE TABLE all_patients
 (
 wellbody_emr_id varchar(50),
 kgh_emr_id varchar(50),
