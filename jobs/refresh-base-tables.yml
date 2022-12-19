@@ -21,3 +21,4 @@ configuration:
           - tableName: "all_encounters"
           - tableName: "all_programs"
           - tableName: "outpatient_patients"
+          - tableName: "all_patients"
