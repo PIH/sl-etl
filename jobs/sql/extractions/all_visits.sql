@@ -7,18 +7,18 @@ FROM patient_identifier_type pit WHERE uuid ='c09a1d24-7162-11eb-8aa6-0242ac1100
 drop temporary table if exists temp_visits;
 create temporary table temp_visits
 (
-patient_id			int(11),
+patient_id			int,
 emr_id				varchar(50),
-visit_id			int(11),
+visit_id			int,
 visit_date_started	datetime,
 visit_date_stopped	datetime,
 visit_date_entered	datetime,
-visit_creator		int(11),
+visit_creator		int,
 visit_user_entered	varchar(255),
-visit_type_id		int(11),
+visit_type_id		int,
 visit_type			varchar(255),
-checkin_encounter_id	int(11),	
-location_id			int(11),
+checkin_encounter_id	int,	
+location_id			int,
 visit_location		varchar(255),
 index_asc			int,
 index_desc			int
