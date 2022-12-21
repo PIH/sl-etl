@@ -22,3 +22,4 @@ configuration:
           - tableName: "all_programs"
           - tableName: "outpatient_patients"
           - tableName: "all_patients"
+          - tableName: "all_visits"
