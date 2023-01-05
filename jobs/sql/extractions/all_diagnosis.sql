@@ -3,7 +3,8 @@
 
 
 drop temporary table if exists all_diagnosis;
-create temporary table all_diagnosis(
+create temporary table all_diagnosis
+(
 patient_id int,
 patient_primary_id varchar(50),
 loc_registered varchar(255),

@@ -1,4 +1,5 @@
-create table all_diagnosis(
+create table all_diagnosis
+(
 patient_id int,
 patient_primary_id varchar(50),
 loc_registered varchar(255),
