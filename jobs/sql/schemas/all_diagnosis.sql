@@ -35,6 +35,6 @@ date_created datetime,
 retrospective int,
 visit_id int,
 birthdate datetime,
-birthdate_estimated boolean,
+birthdate_estimated bit,
 encounter_type varchar(255)
 );
