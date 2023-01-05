@@ -40,7 +40,7 @@ date_created datetime,
 retrospective int,
 visit_id int,
 birthdate datetime,
-birthdate_estimated boolean,
+birthdate_estimated bit,
 encounter_type varchar(255)
 );
 
@@ -95,7 +95,7 @@ gender				varchar(50),
 department			varchar(255),
 locality			varchar(255),
 birthdate			datetime,
-birthdate_estimated		boolean
+birthdate_estimated		bit
 );
    
 insert into temp_dx_patient(patient_id)
@@ -131,7 +131,7 @@ CREATE TEMPORARY TABLE temp_dx_encounter
 	retrospective					int(1),
 	visit_id					int(11),
 	birthdate					datetime,
-	birthdate_estimated				boolean,
+	birthdate_estimated				bit,
 	encounter_type					varchar(255)
     );
    
