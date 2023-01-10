@@ -1,7 +1,7 @@
 create table all_visits
 (
 emr_id				varchar(50),
-visit_id			int,
+visit_id			varchar(50),
 visit_date_started	datetime,
 visit_date_stopped	datetime,
 visit_date_entered	datetime,
