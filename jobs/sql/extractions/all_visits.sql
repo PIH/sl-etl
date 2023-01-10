@@ -1,4 +1,4 @@
-
+set @partition = '${partitionNum}';
 SELECT patient_identifier_type_id INTO @identifier_type
 FROM patient_identifier_type pit WHERE uuid ='1a2acce0-7426-11e5-a837-0800200c9a66';
 SELECT patient_identifier_type_id INTO @kgh_identifier_type 
@@ -36,7 +36,7 @@ create index temp_visits_vi on temp_visits(visit_id);
 DROP TEMPORARY TABLE IF EXISTS temp_identifiers;
 CREATE TEMPORARY TABLE temp_identifiers
 (
-patient_id						INT(11),
+patient_id						INT,
 emr_id							VARCHAR(25)
 );
 
@@ -47,7 +47,7 @@ update temp_identifiers t
 set emr_id = (
 select distinct identifier
 from patient_identifier 
-where identifier_type = @identifier_type
+where identifier_type = CASE WHEN @partition=1 THEN @identifier_type WHEN @partition=2 THEN @kgh_identifier_type END 
 and voided = 0
 and patient_id = t.patient_id
 and preferred=1);
@@ -71,7 +71,7 @@ set tv.visit_location = location_name(location_id);
 DROP TEMPORARY TABLE IF EXISTS temp_users;
 CREATE TEMPORARY TABLE temp_users
 (
-creator						INT(11),
+creator						INT,
 creator_name				VARCHAR(255)
 );
 
@@ -91,8 +91,8 @@ set tv.visit_user_entered = tu.creator_name;
 
 drop table if exists int_asc;
 create table int_asc
-select * from temp_visits vs 
-ORDER BY emr_id asc, visit_date_started  asc, visit_id asc;
+select emr_id, visit_date_started, visit_id from temp_visits vs 
+ORDER BY emr_id  asc, visit_date_started  asc, visit_id asc;
 
 
 set @row_number := 0;
@@ -127,7 +127,7 @@ set es.index_asc =x.index_asc;
 
 drop table if exists int_desc;
 create table int_desc
-select * from temp_visits vs 
+select emr_id, visit_date_started, visit_id from temp_visits vs 
 ORDER BY emr_id asc, visit_date_started  desc, visit_id desc;
 
 
@@ -159,9 +159,9 @@ set es.index_desc = x.index_desc;
 
 
 
-SELECT
+select
 emr_id,
-visit_id,
+concat(@partition,"-",visit_id),
 visit_date_started,
 visit_date_stopped,
 visit_date_entered,
@@ -170,4 +170,5 @@ visit_type,
 visit_location,
 index_asc,
 index_desc
-FROM temp_visits;
+from temp_visits
+order by patient_id desc, visit_date_started asc;
