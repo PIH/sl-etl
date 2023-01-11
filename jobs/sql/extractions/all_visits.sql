@@ -170,5 +170,4 @@ visit_type,
 visit_location,
 index_asc,
 index_desc
-from temp_visits
-order by patient_id desc, visit_date_started asc;
+from temp_visits;
