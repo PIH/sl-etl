@@ -1,4 +1,5 @@
 -- ---- All Encounters
+set @partition = '${partitionNum}';
 SELECT patient_identifier_type_id INTO @identifier_type FROM patient_identifier_type pit WHERE uuid ='1a2acce0-7426-11e5-a837-0800200c9a66';
 SELECT patient_identifier_type_id INTO @kgh_identifier_type FROM patient_identifier_type pit WHERE uuid ='c09a1d24-7162-11eb-8aa6-0242ac110002';
 
@@ -51,7 +52,7 @@ delete from all_encounters
 where wellbody_emr_id is null and kgh_emr_id is null;
 
 select 
-encounter_id,
+concat(@partition,"-",encounter_id),
 wellbody_emr_id,
 kgh_emr_id,
 encounter_type,
