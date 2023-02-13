@@ -24,3 +24,4 @@ configuration:
           - tableName: "all_patients"
           - tableName: "all_visits"
           - tableName: "all_diagnosis"
+          - tableName: "all_medication_prescribed"
