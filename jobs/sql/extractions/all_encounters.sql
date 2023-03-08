@@ -37,27 +37,10 @@ left outer join encounter_type et on e.encounter_type =et.encounter_type_id
 left outer join users u on e.creator =u.user_id;
 
 UPDATE all_encounters ae
-SET ae.wellbody_emr_id= (
- SELECT identifier
- FROM patient_identifier 
- WHERE identifier_type =@identifier_type
- AND patient_id=ae.patient_id
- AND voided=0
- ORDER BY preferred desc, date_created desc limit 1
-);
+SET ae.wellbody_emr_id= patient_identifier(ae.patient_id,'1a2acce0-7426-11e5-a837-0800200c9a66');
 
 UPDATE all_encounters ae 
-SET ae.kgh_emr_id= (
- SELECT identifier
- FROM patient_identifier 
- WHERE identifier_type =@kgh_identifier_type
- AND patient_id=ae.patient_id
- AND voided=0
- ORDER BY preferred desc, date_created desc limit 1
-);
-
-delete from all_encounters 
-where wellbody_emr_id is null and kgh_emr_id is null;
+SET ae.kgh_emr_id= patient_identifier(ae.patient_id,'c09a1d24-7162-11eb-8aa6-0242ac110002');
 
 select 
 concat(@partition,"-",encounter_id) encounter_id,
@@ -65,6 +48,7 @@ concat(@partition,"-",patient_id) patient_id,
 visit_id,
 wellbody_emr_id,
 kgh_emr_id,
+COALESCE(wellbody_emr_id, kgh_emr_id) emr_id,
 encounter_type,
 encounter_datetime,
 date_entered,
