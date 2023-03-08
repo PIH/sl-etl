@@ -1,7 +1,8 @@
 create table outpatient_patients (
 wellbody_emr_id varchar(50),
 kgh_emr_id varchar(50),
-patient_id int,
+emr_id varchar(50),
+patient_id varchar(100),
 encounter_id int,
 visit_date date,
 visit_type varchar(50),

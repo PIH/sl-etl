@@ -1,5 +1,6 @@
 
 -- --------- outpatient table 
+set @partition = '${partitionNum}';
 SELECT patient_identifier_type_id INTO @identifier_type FROM patient_identifier_type pit WHERE uuid ='1a2acce0-7426-11e5-a837-0800200c9a66';
 SELECT patient_identifier_type_id INTO @kgh_identifier_type FROM patient_identifier_type pit WHERE uuid ='c09a1d24-7162-11eb-8aa6-0242ac110002';
 SELECT patient_identifier_type_id INTO @hiv_identifier_type FROM patient_identifier_type pit WHERE uuid ='139766e8-15f5-102d-96e4-000c29c2a5d7';
@@ -358,7 +359,8 @@ set dp.next_visit_date = x.next_visit_date;
 select 
 wellbody_emr_id,
 kgh_emr_id,
-patient_id, 
+COALESCE(wellbody_emr_id, kgh_emr_id) emr_id,
+concat(@partition,"-",patient_id) patient_id,
 encounter_id,
 visit_date,
 visit_type,

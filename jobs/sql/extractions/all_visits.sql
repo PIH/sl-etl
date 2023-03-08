@@ -160,6 +160,7 @@ set es.index_desc = x.index_desc;
 
 
 select
+concat(@partition,"-",patient_id) patient_id,
 emr_id,
 concat(@partition,"-",visit_id),
 visit_date_started,
