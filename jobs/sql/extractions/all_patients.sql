@@ -16,6 +16,7 @@ kgh_emr_id varchar(50),
 patient_id int, 
 reg_location varchar(50),
 reg_date date,
+user_entered varchar(50),
 fist_encounter_date date,
 last_encounter_date date, 
 name varchar(50),
@@ -46,6 +47,7 @@ SELECT
     e.encounter_datetime AS encounter_datetime,
     e.encounter_id AS encounter_id,
     e.encounter_type AS encounter_type,
+    u.username,
     l.name AS name
 FROM
     ((openmrs.encounter e
@@ -53,7 +55,9 @@ JOIN openmrs.tbl_first_enc X ON
     (((X.patient_id = e.patient_id)
         AND (X.encounter_datetime = e.encounter_datetime))))
 JOIN openmrs.location l ON
-    ((l.location_id = e.location_id)));
+    ((l.location_id = e.location_id)))
+LEFT OUTER JOIN users u ON e.creator =u.user_id ;
+
    
 -- --------- Identifications --------------------------------------------------------
 
@@ -146,6 +150,15 @@ on dp.patient_id= x.patient_id
 set dp.reg_date = x.encdate
 where dp.reg_date is null;
 
+
+update all_patients dp 
+inner join (
+	select patient_id,username
+	from tbl_first_enc_details 
+) x 
+on dp.patient_id= x.patient_id
+set dp.user_entered = x.username;
+
 -- --------- Demographical ---------------------------------------------------------
 
 UPDATE all_patients de 
@@ -179,7 +192,8 @@ kgh_emr_id,
 COALESCE(wellbody_emr_id, kgh_emr_id) emr_id,
 concat(@partition,"-",patient_id) patient_id,
 reg_location,
-reg_date,
+reg_date as date_registration_entered,
+user_entered,
 fist_encounter_date,
 last_encounter_date,
 name,
