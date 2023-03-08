@@ -7,22 +7,30 @@ DROP temporary TABLE IF EXISTS all_encounters;
 create temporary table all_encounters(
 encounter_id int,
 patient_id int, 
+visit_id int,
 wellbody_emr_id varchar(50),
 kgh_emr_id varchar(50),
 encounter_type varchar(50),
 encounter_datetime datetime,
 encounter_year int,
 encounter_month int,
-created_by varchar(30)
+date_entered date,
+created_by varchar(30),
+index_asc int, 
+index_desc int
 );
 
-insert into all_encounters(encounter_id,patient_id, encounter_type, encounter_datetime, encounter_year, encounter_month, created_by)
+
+insert into all_encounters(encounter_id,patient_id, visit_id, encounter_type, encounter_datetime, 
+		encounter_year, encounter_month, date_entered, created_by)
 select e.encounter_id,
 	e.patient_id,
+	e.visit_id,
 	et.name encounter_type,
 	e.encounter_datetime,
 	year(e.encounter_datetime) as encounter_year,
 	month(e.encounter_datetime) as encounter_month,
+	e.date_created,
 	u.username as created_by
 from encounter e
 left outer join encounter_type et on e.encounter_type =et.encounter_type_id 
@@ -52,12 +60,15 @@ delete from all_encounters
 where wellbody_emr_id is null and kgh_emr_id is null;
 
 select 
-concat(@partition,"-",encounter_id),
+concat(@partition,"-",encounter_id) encounter_id,
+concat(@partition,"-",patient_id) patient_id,
+visit_id,
 wellbody_emr_id,
 kgh_emr_id,
 encounter_type,
 encounter_datetime,
-encounter_year,
-encounter_month,
-created_by
+date_entered,
+created_by AS user_entered,
+index_asc,
+index_desc
 from all_encounters;
