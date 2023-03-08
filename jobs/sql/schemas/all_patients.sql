@@ -2,7 +2,8 @@ CREATE TABLE all_patients
 (
 wellbody_emr_id varchar(50),
 kgh_emr_id varchar(50),
-patient_id int, 
+emr_id varchar(50),
+patient_id varchar(100), 
 reg_location varchar(50),
 reg_date date,
 fist_encounter_date date,

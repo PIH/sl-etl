@@ -1,5 +1,6 @@
 create table all_visits
 (
+patient_id            varchar(100),
 emr_id				varchar(50),
 visit_id			varchar(50),
 visit_date_started	datetime,
