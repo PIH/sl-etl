@@ -189,8 +189,8 @@ tt.dob_estimated=st.birthdate_estimated;
 SELECT 
 wellbody_emr_id,
 kgh_emr_id,
-COALESCE(wellbody_emr_id, kgh_emr_id) emr_id,
-concat(@partition,"-",patient_id) patient_id,
+COALESCE(wellbody_emr_id, kgh_emr_id)  emr_id,
+concat(@partition,"-",patient_id)  patient_id,
 reg_location,
 reg_date as date_registration_entered,
 user_entered,
