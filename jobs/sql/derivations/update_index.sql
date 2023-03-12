@@ -1,5 +1,5 @@
 -- update index asc/desc on all_encounters table
-select  patient_id, encounter_datetime,
+select  patient_id, encounter_datetime,encounter_type_id,
 ROW_NUMBER() over (PARTITION by patient_id order by  encounter_type_id asc, encounter_datetime asc) "index_asc",
 ROW_NUMBER() over (PARTITION by patient_id order by encounter_type_id desc, encounter_datetime DESC) "index_desc"
 into #all_encounters_indexes
