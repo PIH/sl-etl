@@ -1,6 +1,6 @@
 SET @locale = GLOBAL_PROPERTY_VALUE('default_locale', 'en');
 SET sql_safe_updates = 0;
- 
+
 SELECT patient_identifier_type_id INTO @zlId FROM patient_identifier_type WHERE uuid IN ('a541af1e-105c-40bf-b345-ba1fd6a59b85' ,'1a2acce0-7426-11e5-a837-0800200c9a66','0bc545e0-f401-11e4-b939-0800200c9a66');
 SELECT person_attribute_type_id INTO @unknownPt FROM person_attribute_type WHERE uuid='8b56eac7-5c76-4b9c-8c6f-1deab8d3fc47';
 SELECT encounter_type_id INTO @labResultEnc FROM encounter_type WHERE uuid= '4d77916a-0620-11e5-a6c0-1697f925ec7b';
@@ -13,6 +13,7 @@ SELECT concept_id INTO @result_date FROM concept WHERE UUID = '68d6bd27-37ff-4d7
 SELECT concept_id INTO @test_location FROM concept WHERE UUID = GLOBAL_PROPERTY_VALUE('labworkflowowa.locationOfLaboratory', 'Unknown Location'); -- test location may differ by implementation
 SELECT concept_id INTO @test_status FROM concept WHERE UUID = '7e0cf626-dbe8-42aa-9b25-483b51350bf8'; 
 SELECT concept_id INTO @collection_date_estimated FROM concept WHERE UUID = '87f506e3-4433-40ec-b16c-b3c65e402989'; 
+
 
 -- this temp table stores specimen collection encounter-level information
 DROP TEMPORARY TABLE IF EXISTS temp_laborders_spec;
