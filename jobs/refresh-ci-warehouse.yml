@@ -15,14 +15,3 @@ configuration:
       partitionNum: "2"
   jobTemplate:
     path: "refresh-base-tables.yml"
-type: "job-pipeline"
-description: "Derive analysis tables"
-configuration:
-  jobs:
-    - type: "iterating-job"
-      description: "Create final derived tables"
-      configuration:
-        jobTemplate:
-          path: "create-derived-table-in-warehouse.yml"
-        iterations:
-          - tableName: "update_index"
