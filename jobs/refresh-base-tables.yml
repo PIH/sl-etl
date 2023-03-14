@@ -25,3 +25,4 @@ configuration:
           - tableName: "all_visits"
           - tableName: "all_diagnosis"
           - tableName: "all_medication_prescribed"
+          - tableName: "labs_order_report"
