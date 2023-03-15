@@ -146,6 +146,8 @@ update temp_dx_encounter set provider = provider(encounter_id);
 update temp_dx_encounter set age_at_encounter = age_at_enc(patient_id, encounter_id);
 
 
+
+
 update temp_dx_encounter t
 inner join encounter e on e.encounter_id  = t.encounter_id
 inner join users u on u.user_id = e.creator 
