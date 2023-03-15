@@ -151,10 +151,11 @@ inner join encounter e on e.encounter_id  = t.encounter_id
 inner join users u on u.user_id = e.creator 
 set t.entered_by = person_name(u.person_id),
 	t.visit_id = e.visit_id,
-	t.encounter_type = encounterName(e.encounter_type);
+	t.encounter_type = encounterName(e.encounter_type),
+	t.date_created=e.date_created;
 
 
-       
+
  -- diagnosis info
 DROP TEMPORARY TABLE IF EXISTS temp_obs;
 create temporary table temp_obs 
