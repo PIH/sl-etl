@@ -6,7 +6,7 @@ CREATE TABLE labs_order_results
   encounter_location VARCHAR(255),
   unknown_patient VARCHAR(50),
   gender VARCHAR(50),
-  age_at_enc INT(11),
+  age_at_enc INT,
   department VARCHAR(255),
   commune VARCHAR(255),
   section VARCHAR(255),

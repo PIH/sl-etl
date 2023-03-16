@@ -1,6 +1,5 @@
 CREATE TABLE labs_order_report
 (
-    patient_id      INT,
     wellbody_emr_id          VARCHAR(255),
     kgh_emr_id          VARCHAR(255),
     loc_registered  VARCHAR(255),
