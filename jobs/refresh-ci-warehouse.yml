@@ -1,24 +1,25 @@
-type: "iterating-job"
-description: "Refreshing OpenMRS Data for CI Sites"
+type: "job-pipeline"
+description: "Refreshing OpenMRS Data for SL CI Sites"
 schedule:
   cron: "${executeCron.refreshCiDW}"
-errorHandling:
-  maxAttempts: 10
-  retryInterval: 15
-  retryIntervalUnit: "MINUTES"
-configuration:
-  maxConcurrentJobs: 1
-  iterations:
-    - siteName: "gladi"
-      partitionNum: "1"
-    - siteName: "kgh_test"
-      partitionNum: "2"
-  jobTemplate:
-    path: "refresh-base-tables.yml"
-type: "job-pipeline"
-description: "Derive analysis tables"
 configuration:
   jobs:
+    - type: "iterating-job"
+      description: "Refreshing OpenMRS Data for SL CI sites"
+      configuration:
+        maxConcurrentJobs: 5  # Import into up to 5 sites concurrently
+        errorHandling:
+          maxAttempts: 3
+          retryInterval: 60
+          retryIntervalUnit: "MINUTES"
+        iterations:
+          - siteName: "gladi"
+            partitionNum: "1"
+          - siteName: "kgh_test"
+            partitionNum: "2"
+        jobTemplate:
+          path: "refresh-base-tables.yml"
+
     - type: "iterating-job"
       description: "Create final derived tables"
       configuration:
