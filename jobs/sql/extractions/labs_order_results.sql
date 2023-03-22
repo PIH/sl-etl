@@ -1,6 +1,8 @@
 SET @locale = GLOBAL_PROPERTY_VALUE('default_locale', 'en');
 SET sql_safe_updates = 0;
 
+set @partition = '${partitionNum}';
+
 SELECT patient_identifier_type_id INTO @zlId FROM patient_identifier_type WHERE uuid IN ('a541af1e-105c-40bf-b345-ba1fd6a59b85' ,'1a2acce0-7426-11e5-a837-0800200c9a66','0bc545e0-f401-11e4-b939-0800200c9a66');
 SELECT person_attribute_type_id INTO @unknownPt FROM person_attribute_type WHERE uuid='8b56eac7-5c76-4b9c-8c6f-1deab8d3fc47';
 SELECT encounter_type_id INTO @labResultEnc FROM encounter_type WHERE uuid= '4d77916a-0620-11e5-a6c0-1697f925ec7b';
@@ -191,7 +193,9 @@ SET t.units = cu.units
 ;
 
 -- select  all output:
-SELECT t.wellbody_emr_id, 
+SELECT 
+       concat(@partition,"-",t.patient_id)  patient_id,
+       t.wellbody_emr_id, 
        t.kgh_emr_id,
        t.loc_registered,
        t.encounter_location,
