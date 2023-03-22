@@ -2,7 +2,7 @@ CREATE TABLE dim_patients (
 wellbody_emr_id varchar(50),
 kgh_emr_id varchar(50),
 patient_id varchar(100), 
-reg_loc_id int,
+reg_location varchar(50),
 reg_date date,
 name varchar(50),
 family_name varchar(50),
