@@ -2,6 +2,8 @@
 SET @locale = GLOBAL_PROPERTY_VALUE('default_locale', 'en');
 SET sql_safe_updates = 0;
 
+set @partition = '${partitionNum}';
+
 SELECT order_type_id INTO @testOrder FROM order_type WHERE uuid = '52a447d3-a64a-11e3-9aeb-50e549534c5e';
 SELECT encounter_type_id INTO @specimenCollEnc FROM encounter_type WHERE uuid = '39C09928-0CAB-4DBA-8E48-39C631FA4286';
 
@@ -116,7 +118,7 @@ SET ae.kgh_emr_id= patient_identifier(ae.patient_id,'c09a1d24-7162-11eb-8aa6-024
 
 UPDATE temp_report SET gender = GENDER(patient_id);
 UPDATE temp_report SET loc_registered = LOC_REGISTERED(patient_id);
-UPDATE temp_report SET age_at_enc = AGE_AT_ENC(patient_id,order_encounter_id );
+UPDATE temp_report SET age_at_enc = AGE_AT_ENC(patient_id,order_encounter_id);
 UPDATE temp_report SET unknown_patient = IF(UNKNOWN_PATIENT(patient_id) IS NULL,NULL,'1'); 
 UPDATE temp_report SET patient_address = PERSON_ADDRESS(patient_id);
 UPDATE temp_report SET orderable = IFNULL(CONCEPT_NAME(order_concept_id, @locale),CONCEPT_NAME(order_concept_id, 'en'));
@@ -155,6 +157,7 @@ set collection_date_estimated = concept_name(o.value_coded, @locale);
 
 -- final output
 SELECT 
+concat(@partition,"-",patient_id)  patient_id,
 wellbody_emr_id    ,
 kgh_emr_id ,
 loc_registered,
@@ -175,6 +178,4 @@ specimen_collection_datetime,
 collection_date_estimated,
 test_location,
 result_date
-FROM temp_report
-WHERE wellbody_emr_id IS NOT NULL AND 
-kgh_emr_id IS NOT NULL ;
+FROM temp_report;
