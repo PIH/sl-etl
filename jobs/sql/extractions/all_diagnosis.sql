@@ -1,6 +1,7 @@
 -- set @startDate = '2021-01-01';
 -- set @endDate = '2021-01-31';
 
+set @partition = '${partitionNum}';
 
 drop temporary table if exists all_diagnosis;
 create temporary table all_diagnosis
@@ -230,7 +231,7 @@ update temp_dx_concept set oncology = concept_in_set(diagnosis_concept, concept_
 
 -- select final output
 select 
-p.patient_id,
+concat(@partition,"-",p.patient_id)  patient_id,
 p.patient_primary_id,
 p.loc_registered,
 p.unknown_patient,
