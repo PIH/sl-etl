@@ -68,7 +68,7 @@ FROM
 WHERE o.order_type_id =@testOrder
       AND order_action = 'NEW';
 
---- REMOVE TEST PATIENTS
+-- REMOVE TEST PATIENTS
 DELETE
 FROM temp_report
 WHERE patient_id IN
@@ -109,20 +109,46 @@ UPDATE temp_report t
   LEFT OUTER JOIN temp_spec ts ON ts.order_number = t.order_number 
   SET  t.specimen_encounter_id = ts.specimen_encounter_id;
 
+
+DROP TABLE IF EXISTS dist_patients;
+CREATE TEMPORARY TABLE dist_patients (
+patient_id int, 
+wellbody_emr_id          VARCHAR(255),
+kgh_emr_id          VARCHAR(255),
+gender varchar(20),
+loc_registered  VARCHAR(255),
+unknown_patient char(1),
+patient_address varchar(1000)
+);
+
+create index dist_patients_pi on dist_patients(patient_id);
+
+INSERT INTO dist_patients(patient_id)
+SELECT DISTINCT patient_id FROM temp_report;
+
 -- Individual columns are populated here:
-UPDATE temp_report ae
-SET ae.wellbody_emr_id= patient_identifier(ae.patient_id,'1a2acce0-7426-11e5-a837-0800200c9a66');
+UPDATE dist_patients dp
+SET dp.wellbody_emr_id= patient_identifier(patient_id,'1a2acce0-7426-11e5-a837-0800200c9a66');
 
-UPDATE temp_report ae 
-SET ae.kgh_emr_id= patient_identifier(ae.patient_id,'c09a1d24-7162-11eb-8aa6-0242ac110002');
+UPDATE dist_patients dp
+SET dp.kgh_emr_id= patient_identifier(patient_id,'c09a1d24-7162-11eb-8aa6-0242ac110002');
 
+UPDATE dist_patients SET gender = GENDER(patient_id);
+UPDATE dist_patients SET loc_registered = LOC_REGISTERED(patient_id);
+UPDATE dist_patients SET unknown_patient = IF(UNKNOWN_PATIENT(patient_id) IS NULL,NULL,'1'); 
+UPDATE dist_patients SET patient_address = PERSON_ADDRESS(patient_id);
 
+UPDATE temp_report tr
+LEFT OUTER JOIN dist_patients dp ON tr.patient_id=dp.patient_id
+SET 
+tr.wellbody_emr_id=dp.wellbody_emr_id,
+tr.kgh_emr_id=dp.kgh_emr_id,
+tr.gender=dp.gender,
+tr.loc_registered=dp.loc_registered,
+tr.unknown_patient=dp.unknown_patient,
+tr.patient_address=dp.patient_address;
 
-UPDATE temp_report SET gender = GENDER(patient_id);
-UPDATE temp_report SET loc_registered = LOC_REGISTERED(patient_id);
 UPDATE temp_report SET age_at_enc = AGE_AT_ENC(patient_id,order_encounter_id);
-UPDATE temp_report SET unknown_patient = IF(UNKNOWN_PATIENT(patient_id) IS NULL,NULL,'1'); 
-UPDATE temp_report SET patient_address = PERSON_ADDRESS(patient_id);
 UPDATE temp_report SET orderable = IFNULL(CONCEPT_NAME(order_concept_id, @locale),CONCEPT_NAME(order_concept_id, 'en'));
 -- status is derived by the order fulfiller status and other fields
 UPDATE temp_report t SET status =
