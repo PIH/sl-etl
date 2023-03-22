@@ -116,6 +116,8 @@ SET ae.wellbody_emr_id= patient_identifier(ae.patient_id,'1a2acce0-7426-11e5-a83
 UPDATE temp_report ae 
 SET ae.kgh_emr_id= patient_identifier(ae.patient_id,'c09a1d24-7162-11eb-8aa6-0242ac110002');
 
+
+
 UPDATE temp_report SET gender = GENDER(patient_id);
 UPDATE temp_report SET loc_registered = LOC_REGISTERED(patient_id);
 UPDATE temp_report SET age_at_enc = AGE_AT_ENC(patient_id,order_encounter_id);
