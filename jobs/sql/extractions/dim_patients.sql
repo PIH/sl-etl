@@ -156,7 +156,7 @@ valid_to=NULL, recent_flag=TRUE;
 
 
 UPDATE dim_patients de 
-SET de.reg_loc_id =lkp_location(de.patient_id);
+SET de.reg_loc_id =loc_registered(de.patient_id);
 
 
 SELECT 
