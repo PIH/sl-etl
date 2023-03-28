@@ -88,14 +88,10 @@ patient_identifier(patient_id,'c09a1d24-7162-11eb-8aa6-0242ac110002'),
 location_name(location_id)
 FROM encounter e
 WHERE e.encounter_type = @specimen_collection AND e.voided = 0;
--- AND (@startDate IS NULL OR DATE(e.encounter_datetime) >= DATE(@startDate))
--- AND (@endDate IS NULL OR DATE(e.encounter_datetime) <= DATE(@endDate));
 
 
-
--- updates order number 
 UPDATE temp_laborders_spec t
-INNER JOIN obs sco ON sco.encounter_id = t.encounter_id AND sco.concept_id = @test_order AND sco.voided = 0
+INNER JOIN obs sco ON sco.encounter_id = t.encounter_id AND sco.concept_id = concept_from_mapping('PIH','10781') AND sco.voided = 0
 SET order_number = sco.value_text;
 
 -- updates concept id and lab_id of orderable
@@ -104,6 +100,7 @@ INNER JOIN orders o ON o.order_number = t.order_number
 SET t.concept_id = o.concept_id,
     t.lab_id = o.accession_number
 ;
+
 
  -- this adds the standalone lab results encounters into the temp table 
 INSERT INTO temp_laborders_spec (encounter_id,encounter_datetime,patient_id,wellbody_emr_id ,
@@ -116,8 +113,6 @@ patient_identifier(patient_id,'c09a1d24-7162-11eb-8aa6-0242ac110002'),
 location_name(location_id)
 FROM encounter e
 WHERE e.encounter_type = @labResultEnc AND e.voided = 0;
--- AND (@startDate IS NULL OR DATE(e.encounter_datetime) >= DATE(@startDate))
--- AND (@endDate IS NULL OR DATE(e.encounter_datetime) <= DATE(@endDate));
 
 -- emr id location 
 UPDATE temp_laborders_spec ts 
@@ -186,6 +181,7 @@ INNER JOIN obs res ON res.encounter_id = ts.encounter_id
   AND (res.value_numeric IS NOT NULL OR res.value_text IS NOT NULL OR res.value_coded IS NOT NULL)
 ;
 
+
 -- update test units (where they exist)
 UPDATE temp_labresults t
 INNER JOIN concept_numeric cu ON cu.concept_id = t.test_concept_id
@@ -202,11 +198,6 @@ SELECT
        t.unknown_patient,
        t.gender,
        t.age_at_enc,
-       t.department,
-       t.commune,
-       t.section,
-       t.locality,
-       t.street_landmark,
        t.order_number,
        t.orderable,
        -- only return test name is test was performed:
