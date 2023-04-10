@@ -27,3 +27,4 @@ configuration:
           - tableName: "all_medication_prescribed"
           - tableName: "labs_order_report"
           - tableName: "labs_order_results"
+          - tableName: "dim_patients"

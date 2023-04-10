@@ -1,6 +1,8 @@
 SET @locale = GLOBAL_PROPERTY_VALUE('default_locale', 'en');
 SET sql_safe_updates = 0;
 
+set @partition = '${partitionNum}';
+
 SELECT patient_identifier_type_id INTO @zlId FROM patient_identifier_type WHERE uuid IN ('a541af1e-105c-40bf-b345-ba1fd6a59b85' ,'1a2acce0-7426-11e5-a837-0800200c9a66','0bc545e0-f401-11e4-b939-0800200c9a66');
 SELECT person_attribute_type_id INTO @unknownPt FROM person_attribute_type WHERE uuid='8b56eac7-5c76-4b9c-8c6f-1deab8d3fc47';
 SELECT encounter_type_id INTO @labResultEnc FROM encounter_type WHERE uuid= '4d77916a-0620-11e5-a6c0-1697f925ec7b';
@@ -21,16 +23,17 @@ CREATE TEMPORARY TABLE temp_laborders_spec
 (
   order_number VARCHAR(50),
   lab_id VARCHAR(255),	
-  concept_id INT(11),
-  encounter_id INT(11),
+  concept_id INT,
+  encounter_id INT,
   encounter_datetime  DATETIME,
   encounter_location VARCHAR(255),
-  patient_id INT(11),
-  emr_id VARCHAR(50),
+  patient_id INT ,
+  wellbody_emr_id    VARCHAR(255),
+  kgh_emr_id        VARCHAR(255),
   loc_registered VARCHAR(255),
   unknown_patient VARCHAR(50),
   gender VARCHAR(50),
-  age_at_enc INT(11),
+  age_at_enc INT,
   department VARCHAR(255),
   commune VARCHAR(255),
   section VARCHAR(255),
@@ -44,13 +47,14 @@ CREATE TEMPORARY TABLE temp_laborders_spec
 DROP TEMPORARY TABLE IF EXISTS temp_labresults;
 CREATE TEMPORARY TABLE temp_labresults
 (
-  patient_id INT(11),
-  emr_id VARCHAR(50),
+  patient_id INT,
+  wellbody_emr_id    VARCHAR(255),
+  kgh_emr_id        VARCHAR(255),
   encounter_location VARCHAR(255),
   loc_registered VARCHAR(255),
   unknown_patient VARCHAR(50),
   gender VARCHAR(50),
-  age_at_enc INT(11),
+  age_at_enc INT,
   department VARCHAR(255),
   commune VARCHAR(255),
   section VARCHAR(255),
@@ -66,7 +70,7 @@ CREATE TEMPORARY TABLE temp_labresults
   results_entry_date DATETIME,
   result VARCHAR(255),
   units VARCHAR(255),
-  test_concept_id INT(11),
+  test_concept_id INT,
   reason_not_performed TEXT,
   result_coded_answer VARCHAR(255),
   result_numeric_answer DOUBLE,
@@ -74,22 +78,20 @@ CREATE TEMPORARY TABLE temp_labresults
 );
  
  -- this loads all specimen encounters (from the lab application) into a temp table 
-INSERT INTO temp_laborders_spec (encounter_id,encounter_datetime,patient_id,emr_id, encounter_location)
+INSERT INTO temp_laborders_spec (encounter_id,encounter_datetime,patient_id,  wellbody_emr_id ,
+  kgh_emr_id, encounter_location)
 SELECT e.encounter_id,
 e.encounter_datetime,
 e.patient_id,
-PATIENT_IDENTIFIER(e.patient_id, METADATA_UUID('org.openmrs.module.emrapi', 'emr.primaryIdentifierType')),
+patient_identifier(patient_id,'1a2acce0-7426-11e5-a837-0800200c9a66'),
+patient_identifier(patient_id,'c09a1d24-7162-11eb-8aa6-0242ac110002'),
 location_name(location_id)
 FROM encounter e
 WHERE e.encounter_type = @specimen_collection AND e.voided = 0;
--- AND (@startDate IS NULL OR DATE(e.encounter_datetime) >= DATE(@startDate))
--- AND (@endDate IS NULL OR DATE(e.encounter_datetime) <= DATE(@endDate));
 
 
-
--- updates order number 
 UPDATE temp_laborders_spec t
-INNER JOIN obs sco ON sco.encounter_id = t.encounter_id AND sco.concept_id = @test_order AND sco.voided = 0
+INNER JOIN obs sco ON sco.encounter_id = t.encounter_id AND sco.concept_id = concept_from_mapping('PIH','10781') AND sco.voided = 0
 SET order_number = sco.value_text;
 
 -- updates concept id and lab_id of orderable
@@ -99,17 +101,18 @@ SET t.concept_id = o.concept_id,
     t.lab_id = o.accession_number
 ;
 
+
  -- this adds the standalone lab results encounters into the temp table 
-INSERT INTO temp_laborders_spec (encounter_id,encounter_datetime,patient_id,emr_id, encounter_location)
+INSERT INTO temp_laborders_spec (encounter_id,encounter_datetime,patient_id,wellbody_emr_id ,
+  kgh_emr_id, encounter_location)
 SELECT e.encounter_id,
 e.encounter_datetime,
 e.patient_id,
-PATIENT_IDENTIFIER(e.patient_id, METADATA_UUID('org.openmrs.module.emrapi', 'emr.primaryIdentifierType')),
+patient_identifier(patient_id,'1a2acce0-7426-11e5-a837-0800200c9a66'),
+patient_identifier(patient_id,'c09a1d24-7162-11eb-8aa6-0242ac110002'),
 location_name(location_id)
 FROM encounter e
 WHERE e.encounter_type = @labResultEnc AND e.voided = 0;
--- AND (@startDate IS NULL OR DATE(e.encounter_datetime) >= DATE(@startDate))
--- AND (@endDate IS NULL OR DATE(e.encounter_datetime) <= DATE(@endDate));
 
 -- emr id location 
 UPDATE temp_laborders_spec ts 
@@ -144,9 +147,10 @@ INNER JOIN obs res_date ON res_date.voided = 0 AND res_date.encounter_id = ts.en
 SET ts.results_date = res_date.value_datetime;
 
 -- This query loads all specimen encounter-level information from above and observations from results entered  
-INSERT INTO temp_labresults (patient_id,emr_id,encounter_location, loc_registered, unknown_patient, gender, age_at_enc, department, commune, section, locality, street_landmark,order_number,orderable,specimen_collection_date, results_date, results_entry_date,test_concept_id,test, lab_id, LOINC,result_coded_answer,result_numeric_answer,result_text_answer)
+INSERT INTO temp_labresults (patient_id,wellbody_emr_id, kgh_emr_id, encounter_location, loc_registered, unknown_patient, gender, age_at_enc, department, commune, section, locality, street_landmark,order_number,orderable,specimen_collection_date, results_date, results_entry_date,test_concept_id,test, lab_id, LOINC,result_coded_answer,result_numeric_answer,result_text_answer)
 SELECT ts.patient_id,
-ts.emr_id,
+ts.wellbody_emr_id, 
+ts.kgh_emr_id,
 ts.encounter_location,
 ts.loc_registered, 
 ts.unknown_patient, 
@@ -177,6 +181,7 @@ INNER JOIN obs res ON res.encounter_id = ts.encounter_id
   AND (res.value_numeric IS NOT NULL OR res.value_text IS NOT NULL OR res.value_coded IS NOT NULL)
 ;
 
+
 -- update test units (where they exist)
 UPDATE temp_labresults t
 INNER JOIN concept_numeric cu ON cu.concept_id = t.test_concept_id
@@ -184,17 +189,15 @@ SET t.units = cu.units
 ;
 
 -- select  all output:
-SELECT t.emr_id,
+SELECT 
+       concat(@partition,"-",t.patient_id)  patient_id,
+       t.wellbody_emr_id, 
+       t.kgh_emr_id,
        t.loc_registered,
        t.encounter_location,
        t.unknown_patient,
        t.gender,
        t.age_at_enc,
-       t.department,
-       t.commune,
-       t.section,
-       t.locality,
-       t.street_landmark,
        t.order_number,
        t.orderable,
        -- only return test name is test was performed:

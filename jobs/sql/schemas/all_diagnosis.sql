@@ -1,6 +1,6 @@
 create table all_diagnosis
 (
-patient_id int,
+patient_id varchar(100),
 emr_id varchar(50),
 loc_registered varchar(255),
 unknown_patient varchar(50),
