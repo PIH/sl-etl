@@ -178,16 +178,16 @@ create index temp_obs_ci1 on temp_obs(obs_group_id, concept_id);
  left outer join concept_name cn on cn.concept_name_id  = o.value_coded_name_id 
  set t.diagnosis_entered = IFNULL(cn.name,IFNULL( concept_name(o.value_coded,'en'),o_non.value_text)), 
  	 t.diagnosis_concept = o.value_coded,
-     t.diagnosis_coded_fr = concept_name(o.value_coded,'fr'),
+     t.diagnosis_coded_fr = concept_name(o.value_coded,'en'),
      t.coded = IF(o.value_coded is null, 0,1);
 
 update temp_diagnoses t
 inner join temp_obs o on o.obs_group_id = t.obs_id and o.concept_id = concept_from_mapping( 'PIH','7537')
-set t.dx_order = concept_name(o.value_coded, @locale);
+set t.dx_order = concept_name(o.value_coded, 'en');
 
 update temp_diagnoses t
 inner join temp_obs o on o.obs_group_id = t.obs_id and o.concept_id = concept_from_mapping( 'PIH','1379')
-set t.certainty = concept_name(o.value_coded, @locale);
+set t.certainty = concept_name(o.value_coded, 'en');
 
 -- diagnosis concept-level info
 DROP TEMPORARY TABLE IF EXISTS temp_dx_concept;
