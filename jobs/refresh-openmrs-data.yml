@@ -1,11 +1,11 @@
 type: "job-pipeline"
-description: "Refreshing OpenMRS Data for SL Prod Sites"
+description: "Refreshing OpenMRS Data for SL Sites"
 schedule:
   cron: "${executeCron.refreshOpenmrsData}"
 configuration:
   jobs:
     - type: "iterating-job"
-      description: "Refreshing OpenMRS Data for SL Prod sites"
+      description: "Refreshing OpenMRS Data for SL sites"
       configuration:
         maxConcurrentJobs: 2  # Import into up to 2 sites concurrently
         errorHandling:
