@@ -28,3 +28,4 @@ configuration:
           - tableName: "labs_order_report"
           - tableName: "labs_order_results"
           - tableName: "dim_patients"
+          - tableName: "mch_maternity_delivery_register"
