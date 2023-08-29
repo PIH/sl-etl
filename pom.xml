@@ -164,6 +164,10 @@
                                     <sourceFile>${dataExportSqlDir}/all_medication_prescribed.sql</sourceFile>
                                     <destinationFile>${petlJobExtractionSqlDir}/all_medication_prescribed.sql</destinationFile>
                                 </fileSet>
+                                <fileSet>
+                                    <sourceFile>${dataExportSqlDir}/triage.sql</sourceFile>
+                                    <destinationFile>${petlJobExtractionSqlDir}/triage_encounters.sql</destinationFile>
+                                </fileSet>                                
                             </fileSets>
                         </configuration>
                     </execution>
