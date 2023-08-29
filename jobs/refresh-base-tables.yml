@@ -30,3 +30,4 @@ configuration:
           - tableName: "dim_patients"
           - tableName: "mch_maternity_delivery_register"
           - tableName: "mch_maternity_form"
+          - tableName: "triage_encounters"
