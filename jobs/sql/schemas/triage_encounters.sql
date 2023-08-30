@@ -40,5 +40,6 @@ Pain                     varchar(255),
 Other_Symptom            varchar(255), 
 Clinical_Impression      varchar(255), 
 Pregnancy_Test           varchar(255), 
-Glucose_Value            float         
+Glucose_Value            float,
+Referral_Destination     varchar(255)
 );
