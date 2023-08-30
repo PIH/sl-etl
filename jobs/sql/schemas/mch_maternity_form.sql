@@ -63,4 +63,5 @@ med_freq  varchar(100),
 med_duration  varchar(100),
 med_duration_unit  varchar(100),
 med_admin_instructions  varchar(500)
-);
+)
+;
