@@ -5,11 +5,11 @@ provider varchar(30),
 location varchar(30),
 form_date date,
 delivery_date date,
-estimated_delivery_date date, -- NULL 
-gestational_age int, -- NULL 
+estimated_delivery_date date, 
+gestational_age int, 
 birth_weight float,
 estimated_blood_loss float,
-delivery_type bit, -- NOT available 
+delivery_type bit, 
 vaginal_delivery bit,
 breech bit,
 perineal_tear varchar(50),
