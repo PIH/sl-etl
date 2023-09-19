@@ -37,7 +37,8 @@ select e.encounter_id,
 	u.username as created_by
 from encounter e
 left outer join encounter_type et on e.encounter_type =et.encounter_type_id 
-left outer join users u on e.creator =u.user_id;
+left outer join users u on e.creator =u.user_id
+WHERE e.voided =0;
 
 UPDATE all_encounters ae
 SET ae.wellbody_emr_id= patient_identifier(ae.patient_id,'1a2acce0-7426-11e5-a837-0800200c9a66');
