@@ -32,3 +32,5 @@ configuration:
           - tableName: "triage_encounters"
           - tableName: "all_medications_prescribed"
           - tableName: "all_medication_dispensing"
+          - tableName: "all_mh_encounters"
+          - tableName: "all_mh_program"

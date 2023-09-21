@@ -1,0 +1,33 @@
+
+create table all_mh_program
+(
+patient_id int,
+patient_program_id int,
+prog_location_id int,
+emr_id varchar(255),
+gender varchar(50),
+age double,
+assigned_chw text,
+location_when_registered_in_program varchar(255),
+date_enrolled date,
+date_completed date,
+number_of_days_in_care double,
+program_status_outcome varchar(255),
+encounter_id int,
+encounter_datetime datetime,
+latest_diagnosis_encounter_id int,
+latest_diagnosis text,
+latest_seizure_number double,
+latest_seizure_date date,
+previous_seizure_number double,
+previous_seizure_date date,
+baseline_seizure_number double,
+baseline_seizure_date date,
+latest_medication_given text,
+latest_medication_date date,
+last_visit_date date,
+next_scheduled_visit_date date,
+patient_came_within_14_days_appt varchar(50),
+three_months_since_latest_return_date varchar(50),
+six_months_since_latest_return_date varchar(50)
+);
