@@ -64,7 +64,7 @@ create index temp_encounter_ci1 on temp_encounter(encounter_id);
 
 DROP TABLE IF EXISTS temp_obs;
 CREATE TEMPORARY TABLE temp_obs AS 
-SELECT o.person_id, o.obs_id , o.obs_group_id , o.obs_datetime ,o.date_created , o.encounter_id, o.value_coded, o.concept_id, o.value_numeric , o.voided 
+SELECT o.person_id, o.obs_id , o.obs_group_id , o.obs_datetime ,o.date_created , o.encounter_id, o.value_coded, o.concept_id, o.value_numeric , o.voided ,o.value_drug 
 FROM temp_encounter te  INNER JOIN  obs o ON te.encounter_id=o.encounter_id 
 WHERE o.voided =0;
 
@@ -74,7 +74,7 @@ create index temp_obs_ci2 on temp_obs(obs_group_id,concept_id);
 INSERT INTO all_medication_prescribed(order_type,patient_id,encounter_id,visit_id,obs_group_id,order_created_date)
 SELECT 
 DISTINCT
-'Old Forum' AS order_type,
+'Old Form' AS order_type,
 patient_id,
 e.encounter_id,
 e.encounter_id AS visit_id, 
@@ -85,10 +85,11 @@ WHERE o.concept_id=concept_from_mapping('PIH','10742');
 
 UPDATE all_medication_prescribed SET user_entered=encounter_creator(encounter_id);
 
-UPDATE  all_medication_prescribed tgt  
+UPDATE  all_medication_prescribed tgt
 INNER JOIN temp_obs o ON o.obs_group_id= tgt.obs_group_id   
 and o.concept_id = concept_from_mapping('PIH','1282')
-SET order_drug= concept_name(value_coded, 'en'); -- 1 MINUTE
+SET order_drug= concept_name(value_coded, 'en'),
+product_code =  openboxesCode(o.value_drug) ;
 
 UPDATE  all_medication_prescribed tgt  
 INNER JOIN temp_obs o ON o.obs_group_id= tgt.obs_group_id   
