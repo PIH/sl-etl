@@ -2,7 +2,7 @@ create table all_mh_program
 (
 emr_id varchar(255),
 gender varchar(50),
-age double,
+age int,
 assigned_chw text,
 province varchar(500),
 city_village varchar(500),
