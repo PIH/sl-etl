@@ -14,5 +14,5 @@ quantity_per_dose float,
 dose_unit varchar(50),
 frequency varchar(50),
 quantity_dispensed int,
-instructions varchar(500)
+instructions text
 );
