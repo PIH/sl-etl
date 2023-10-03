@@ -34,3 +34,4 @@ configuration:
           - tableName: "all_medication_dispensing"
           - tableName: "all_mh_encounters"
           - tableName: "all_mh_program"
+          - tableName: "all_vitals"
