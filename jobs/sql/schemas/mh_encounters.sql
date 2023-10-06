@@ -1,4 +1,4 @@
-create table all_mh_encounters
+create table mh_encounters
 (
     emr_id varchar(50),
     location_registered varchar(255),

@@ -1,4 +1,4 @@
-create table all_mh_program
+create table mh_program
 (
 emr_id varchar(255),
 gender varchar(50),
