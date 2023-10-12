@@ -50,5 +50,7 @@ liver_disease_controlled          varchar(255),
 sickle_cell_type                  varchar(255), 
 next_appointment_date             datetime,     
 disposition                       varchar(255), 
-transfer_site                     varchar(255)  
+transfer_site                     varchar(255),
+index_asc                         int,
+index_desc                        int
 );
