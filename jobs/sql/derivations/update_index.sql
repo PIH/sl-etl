@@ -1,5 +1,5 @@
 -- update index asc/desc on all_encounters table
-
+drop table if exists #all_encounters_indexes;
 select  patient_id, encounter_datetime,encounter_type_id,
 ROW_NUMBER() over (PARTITION by patient_id, encounter_type_id order by  encounter_datetime asc) "index_asc",
 ROW_NUMBER() over (PARTITION by patient_id, encounter_type_id order by  encounter_datetime DESC) "index_desc"
@@ -13,3 +13,18 @@ from all_encounters av
 inner join #all_encounters_indexes avi on avi.patient_id = av.patient_id
 and avi.encounter_type_id = av.encounter_type_id
 and avi.encounter_datetime = av.encounter_datetime;
+
+-- update index asc/desc on ncd_visit table
+drop table if exists #ncd_visit_indexes;
+select  patient_id, encounter_datetime,
+ROW_NUMBER() over (PARTITION by patient_id order by  encounter_datetime asc) "index_asc",
+ROW_NUMBER() over (PARTITION by patient_id order by  encounter_datetime DESC) "index_desc"
+into #ncd_visit_indexes
+from ncd_visit nv;
+
+update nv
+set nv.index_asc = nvi.index_asc,
+	nv.index_desc = nvi.index_desc 
+from ncd_visit nv
+inner join #ncd_visit_indexes nvi on nvi.patient_id = nv.patient_id
+and nvi.encounter_datetime = nv.encounter_datetime;
