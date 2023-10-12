@@ -61,9 +61,9 @@ create temporary table temp_ncd
  liver_indicators_obs_group        int(11),      
  liver_disease_controlled          varchar(255), 
  sickle_cell_type                  varchar(255), 
- next_appointment_date             datetime,     
+ next_appointment_date             date,     
  disposition                       varchar(255), 
- transfer_site                     varchar(255)  
+ transfer_site                     varchar(255)
 );
 	
 insert into temp_ncd
@@ -82,7 +82,7 @@ select
 	e.date_created ,
 	e.visit_id ,
 	e.creator ,
-	e.encounter_type ,
+	e.location_id ,
 	e.encounter_type 
 from encounter e
 where e.voided = 0
@@ -130,7 +130,7 @@ where o.voided = 0
 ;
 
 update temp_ncd t
-set next_appointment_date = obs_value_datetime_from_temp(encounter_id, 'PIH','5096');
+set next_appointment_date = DATE(obs_value_datetime_from_temp(encounter_id, 'PIH','5096'));
 
 update temp_ncd t
 set disposition = obs_value_coded_list_from_temp(encounter_id, 'PIH','8620',@locale);
@@ -233,6 +233,9 @@ set diabetes_indicators_obs_group = obs_id_from_temp(encounter_id,'PIH','14469',
 
 update temp_ncd t
 set  diabetes_control = obs_from_group_id_value_coded_list_from_temp(diabetes_indicators_obs_group, 'PIH','11506',@locale);
+
+update temp_ncd t
+set diabetes_on_insulin = value_coded_as_boolean(obs_id_from_temp(encounter_id, 'PIH','6756',0));
 
 set @dx = concept_from_mapping('PIH','3064');
 set @type_1_dm = concept_from_mapping('PIH','6691');
@@ -372,5 +375,7 @@ liver_disease_controlled,
 sickle_cell_type,
 next_appointment_date,
 disposition,
-transfer_site
+transfer_site,
+null index_asc,
+null  index_desc
 from temp_ncd order by date_created desc;
