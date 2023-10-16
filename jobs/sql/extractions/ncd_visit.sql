@@ -63,7 +63,9 @@ create temporary table temp_ncd
  sickle_cell_type                  varchar(255), 
  next_appointment_date             date,     
  disposition                       varchar(255), 
- transfer_site                     varchar(255)
+ transfer_site                     varchar(255),
+ index_asc                         int, 
+ index_desc                        int
 );
 	
 insert into temp_ncd
@@ -133,7 +135,12 @@ update temp_ncd t
 set next_appointment_date = DATE(obs_value_datetime_from_temp(encounter_id, 'PIH','5096'));
 
 update temp_ncd t
-set disposition = obs_value_coded_list_from_temp(encounter_id, 'PIH','8620',@locale);
+set disposition = 
+	CASE obs_value_coded_list_from_temp(encounter_id, 'PIH','8620',@locale)
+		WHEN concept_name(concept_from_mapping('PIH','2224'),@locale) then 'Laboratory tests outstanding'
+		WHEN concept_name(concept_from_mapping('PIH','12358'),@locale) then 'No action taken'
+		ELSE obs_value_coded_list_from_temp(encounter_id, 'PIH','8620',@locale)
+	END;
 
 update temp_ncd t
 set social_support = value_coded_as_boolean(obs_id_from_temp(encounter_id, 'PIH','14443',0));
@@ -166,7 +173,13 @@ set glucose_fingerstick =
 		if(obs_single_value_coded_from_temp(encounter_id, 'PIH','6689','PIH','1066')=@yes, 'RBG',null));
 
 update temp_ncd t
-set bmi = obs_value_coded_list_from_temp(encounter_id, 'PIH','14126','en');
+set bmi = 
+	CASE obs_value_coded_list_from_temp(encounter_id, 'PIH','14126',@locale)
+		WHEN concept_name(concept_from_mapping('PIH','7507'),@locale) then 'Moderate obese'
+		WHEN concept_name(concept_from_mapping('PIH','14455'),@locale) then 'Severe obese'
+		ELSE obs_value_coded_list_from_temp(encounter_id, 'PIH','14126',@locale)
+	END;
+
 
 update temp_ncd t
 set obesity = 
@@ -262,7 +275,16 @@ update temp_ncd t
 set hypertension_type = obs_value_coded_list_from_temp(encounter_id, 'PIH','11940',@locale);
 
 update temp_ncd t
-set hypertension_stage = obs_value_coded_list_from_temp(encounter_id, 'PIH','12699',@locale);
+set hypertension_stage = 
+	CASE obs_value_coded_list_from_temp(encounter_id, 'PIH','12699',@locale)
+		WHEN concept_name(concept_from_mapping('PIH','12697'),@locale) then 'Pre-HTN'
+		WHEN concept_name(concept_from_mapping('PIH','12698'),@locale) then '1 (Mild)'
+		WHEN concept_name(concept_from_mapping('PIH','12695'),@locale) then '2 (Moderate)'		
+		ELSE obs_value_coded_list_from_temp(encounter_id, 'PIH','12699',@locale)
+	END;
+
+-- select obs_value_coded_list_from_temp(646965, 'PIH','12699',@locale);
+
 
 update temp_ncd t
 set rheumatic_heart_disease = 
@@ -376,6 +398,6 @@ sickle_cell_type,
 next_appointment_date,
 disposition,
 transfer_site,
-null index_asc,
-null  index_desc
+index_asc,
+index_desc
 from temp_ncd order by date_created desc;
