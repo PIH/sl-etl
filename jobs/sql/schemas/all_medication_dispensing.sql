@@ -1,5 +1,6 @@
 CREATE TABLE all_medication_dispensing
 (
+form varchar(10),
 emr_id varchar(50),
 encounter_id varchar(50),
 encounter_datetime datetime,
@@ -14,5 +15,6 @@ quantity_per_dose float,
 dose_unit varchar(50),
 frequency varchar(50),
 quantity_dispensed int,
-instructions text
-);
+instructions varchar(500)
+)
+;
