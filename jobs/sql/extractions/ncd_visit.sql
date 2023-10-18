@@ -32,7 +32,7 @@ create temporary table temp_ncd
  obesity                           bit,          
  hospitalizations_since_last_visit varchar(255), 
  number_hospitalizations           double,       
- discharge_date                    datetime,     
+ discharge_date                    date,     
  number_days_hospitalized          double,       
  diabetes                          bit,          
  hypertension                      bit,          
@@ -193,7 +193,7 @@ update temp_ncd t
 set number_hospitalizations = obs_value_numeric_from_temp(encounter_id, 'PIH','12594');
 
 update temp_ncd t
-set discharge_date = obs_value_datetime_from_temp(encounter_id, 'PIH','3800');
+set discharge_date = DATE(obs_value_datetime_from_temp(encounter_id, 'PIH','3800'));
 
 update temp_ncd t
 set number_days_hospitalized = obs_value_numeric_from_temp(encounter_id, 'PIH','2872');
