@@ -27,4 +27,4 @@ configuration:
           path: "create-derived-table-in-warehouse.yml"
         iterations:
           - tableName: "update_index"
-          - tableName: "drop_old_tables.sql"
+          - tableName: "drop_old_tables"
