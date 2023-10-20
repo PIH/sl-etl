@@ -7,7 +7,7 @@ configuration:
     - type: "iterating-job"
       description: "Refreshing OpenMRS Data for SL sites"
       configuration:
-        maxConcurrentJobs: 2  # Import into up to 2 sites concurrently
+        maxConcurrentJobs: 2 # Import into up to 2 sites concurrently
         errorHandling:
           maxAttempts: 3
           retryInterval: 60
@@ -28,3 +28,4 @@ configuration:
         iterations:
           - tableName: "update_index"
           - tableName: "drop_old_tables"
+          - tableName: "dim_date"
