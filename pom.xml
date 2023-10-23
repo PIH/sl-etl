@@ -56,7 +56,7 @@
         <liquibaseSourceDir>${project.build.directory}/openmrs-config-pihsl/pih/liquibase/sql/</liquibaseSourceDir>
         <liquibaseDestDir>${project.build.directory}/sl-etl/jobs/sql/utils/</liquibaseDestDir>
         <petlJobExtractionSqlDir>${project.build.directory}/sl-etl/jobs/sql/extractions/</petlJobExtractionSqlDir>
-        <configPIHSLVersion>1.18.0-SNAPSHOT</configPIHSLVersion>
+        <configPIHSLVersion>1.21.0-SNAPSHOT</configPIHSLVersion>
     </properties>
 
     <build>
@@ -168,10 +168,14 @@
                                     <sourceFile>${dataExportSqlDir}/triage.sql</sourceFile>
                                     <destinationFile>${petlJobExtractionSqlDir}/triage_encounters.sql</destinationFile>
                                 </fileSet>                                
-                                 <fileSet>
+                                <fileSet>
                                     <sourceFile>${dataExportSqlDir}/all_medication_dispensing.sql</sourceFile>
                                     <destinationFile>${petlJobExtractionSqlDir}/all_medication_dispensing.sql</destinationFile>
-                                </fileSet>      
+                                </fileSet>
+                                <fileSet>
+                                    <sourceFile>${dataExportSqlDir}/ncd_visit.sql</sourceFile>
+                                    <destinationFile>${petlJobExtractionSqlDir}/ncd_visit.sql</destinationFile>
+                                </fileSet>        
 			    </fileSets>
                         </configuration>
                     </execution>
