@@ -430,12 +430,4 @@ SET IsHolidayUSA = CASE WHEN HolidayUSA  IS NULL THEN 0 WHEN HolidayUSA  IS NOT 
 -- ------------------------------------------------------------------------------------
 
 DROP TABLE IF EXISTS Dim_Date;
-EXEC sp_rename 'Dim_Date_Staging', 'fecha';
-
-EXEC sp_rename 'dbo.fecha.Date', 'fecha', 'COLUMN';
-EXEC sp_rename 'dbo.fecha.DayOfMonth', 'dia', 'COLUMN';
-EXEC sp_rename 'dbo.fecha.Month', 'mes', 'COLUMN';
-EXEC sp_rename 'dbo.fecha.Year', 'ano', 'COLUMN';
-EXEC sp_rename 'dbo.fecha.Quarter', 'trimestre _calendario', 'COLUMN';
-EXEC sp_rename 'dbo.fecha.Fiscal_Quarter', 'trimestre _fiscal', 'COLUMN';
-EXEC sp_rename 'dbo.fecha.FirstDayOfMonth', 'primer_dia_del_mes', 'COLUMN';
+EXEC sp_rename 'Dim_Date_Staging', 'Dim_Date';
