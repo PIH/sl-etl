@@ -176,6 +176,10 @@
                                     <sourceFile>${dataExportSqlDir}/ncd_visit.sql</sourceFile>
                                     <destinationFile>${petlJobExtractionSqlDir}/ncd_visit.sql</destinationFile>
                                 </fileSet>        
+                                <fileSet>
+                                    <sourceFile>${dataExportSqlDir}/summary_db_restore.sql</sourceFile>
+                                    <destinationFile>${petlJobExtractionSqlDir}/summary_db_restore.sqll</destinationFile>
+                                </fileSet>                                   
 			    </fileSets>
                         </configuration>
                     </execution>
