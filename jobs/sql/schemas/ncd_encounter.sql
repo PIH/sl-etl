@@ -1,4 +1,4 @@
-create table ncd_visit
+create table ncd_encounter
 (
 patient_id                        varchar(50),  
 emr_id                            varchar(50),  
