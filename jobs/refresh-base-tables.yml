@@ -35,5 +35,5 @@ configuration:
           - tableName: "mh_encounters"
           - tableName: "mh_program"
           - tableName: "all_vitals"
-          - tableName: "ncd_visit"
+          - tableName: "ncd_encounter"
           - tableName: "ncd_patient"
