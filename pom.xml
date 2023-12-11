@@ -173,7 +173,7 @@
                                     <destinationFile>${petlJobExtractionSqlDir}/all_medication_dispensing.sql</destinationFile>
                                 </fileSet>
                                 <fileSet>
-                                    <sourceFile>${dataExportSqlDir}/ncd_visit.sql</sourceFile>
+                                    <sourceFile>${dataExportSqlDir}/ncd_encounter.sql</sourceFile>
                                     <destinationFile>${petlJobExtractionSqlDir}/ncd_visit.sql</destinationFile>
                                 </fileSet>
                                 <fileSet>
