@@ -174,7 +174,7 @@
                                 </fileSet>
                                 <fileSet>
                                     <sourceFile>${dataExportSqlDir}/ncd_encounter.sql</sourceFile>
-                                    <destinationFile>${petlJobExtractionSqlDir}/ncd_visit.sql</destinationFile>
+                                    <destinationFile>${petlJobExtractionSqlDir}/ncd_encounter.sql</destinationFile>
                                 </fileSet>
                                 <fileSet>
                                     <sourceFile>${dataExportSqlDir}/ncd_patient.sql</sourceFile>
