@@ -37,3 +37,4 @@ configuration:
           - tableName: "all_vitals"
           - tableName: "ncd_encounter"
           - tableName: "ncd_patient"
+          - tableName: "ncd_program"
