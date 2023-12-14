@@ -179,6 +179,10 @@
                                 <fileSet>
                                     <sourceFile>${dataExportSqlDir}/ncd_patient.sql</sourceFile>
                                     <destinationFile>${petlJobExtractionSqlDir}/ncd_patient.sql</destinationFile>
+                                </fileSet>
+                                <fileSet>
+                                    <sourceFile>${dataExportSqlDir}/ncd_program.sql</sourceFile>
+                                    <destinationFile>${petlJobExtractionSqlDir}/ncd_program.sql</destinationFile>
                                 </fileSet>        
                                 <fileSet>
                                     <sourceFile>${dataExportSqlDir}/summary_db_restore.sql</sourceFile>
