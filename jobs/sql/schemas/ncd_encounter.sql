@@ -77,6 +77,8 @@ symptoms_2x_week_asthma            varchar(3),
 inhaler_for_symptoms_2x_week_asthma varchar(3),
 activity_limitation_asthma			varchar(60), 
 asthma_control_GINA               varchar(20),
+echocardiogram_date				    date,
+hospitalization_DKA				    bit,
 index_asc                         int,
 index_desc                        int
 );

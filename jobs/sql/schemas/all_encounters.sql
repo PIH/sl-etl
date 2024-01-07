@@ -1,6 +1,6 @@
 create table all_encounters
 (
-encounter_id int,
+encounter_id varchar(100),
 patient_id varchar(100),
 visit_id int,
 wellbody_emr_id varchar(50),
