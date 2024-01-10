@@ -32,8 +32,9 @@ other_ncd_type varchar(500),
 most_recent_visit_date date,
 first_ncd_visit_date date,
 disposition varchar(50),
-missed_school bit,
+ever_missed_school bit,
 cardiomyopathy bit,
 most_recent_hba1c_value int,
-most_recent_hba1c_date date
+most_recent_hba1c_date date,
+most_recent_echocardiogram_date date
 );
