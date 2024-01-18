@@ -29,3 +29,4 @@ configuration:
           - tableName: "update_index"
           - tableName: "drop_old_tables"
           - tableName: "dim_date"
+          - tableName: "drug_categories"
