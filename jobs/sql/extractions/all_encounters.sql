@@ -50,7 +50,7 @@ UPDATE all_encounters ae
 SET ae.encounter_provider=provider(ae.encounter_id);
 
 select 
-concat(@partition,"-",encounter_id) as encounter_id,,
+concat(@partition,"-",encounter_id) as encounter_id,
 concat(@partition,"-",patient_id)  as patient_id,
 visit_id,
 wellbody_emr_id,
