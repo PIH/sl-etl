@@ -9,18 +9,10 @@ emrid varchar(30),
 provider varchar(30),
 location varchar(30),
 form_date date,
-delivery_date date,
 estimated_delivery_date date, 
-gestational_age int, 
 birth_weight float,
 estimated_blood_loss float,
-delivery_type boolean,
-vaginal_delivery boolean,
-breech boolean,
 perineal_tear varchar(50),
-apgar_score_onemin varchar(50),
-apgar_score_5min int,
-apgar_score_10min varchar(50),
 GBV_victim boolean,
 chorioamnionitis boolean,
 severe_preeclampsia boolean,
@@ -60,14 +52,30 @@ clinical_note varchar(500),
 primary_diagnosis boolean,
 confirmed_diagnoses boolean,
 counselled_HIV_testing varchar(100),
-med_name  varchar(100),
-med_dose  varchar(10),
-med_dose_unit  varchar(100),
-med_route  varchar(100),
-med_freq  varchar(100),
-med_duration  varchar(100),
-med_duration_unit  varchar(100),
-med_admin_instructions  varchar(500)
+admission_datetime datetime,
+gravida int,
+parity int,
+labour_datetime datetime,
+presentation_position varchar(100),
+presentation_other varchar(250),
+delivery_datetime datetime,
+gestational_age float,
+delivery_type varchar(100),
+delivery_outcome varchar(100),
+partograph varchar(3),
+uterotonic varchar(50),
+newborn_sex varchar(10),
+apgar_score_onemin float,
+apgar_score_5min float,
+apgar_score_10min float,
+breastfeeding varchar(3),
+pac_type varchar(250),
+fp_counselling varchar(10),
+family_planning varchar(10),
+maternal_outcome_date date,
+maternal_disposition varchar(100),
+hcw_delivery varchar(100),
+hcw_type varchar(100)
 );
 
 DROP TABLE IF EXISTS temp_encounter;
@@ -87,29 +95,19 @@ where o.voided = 0;
 
 create index temp_obs_ci3 on temp_obs(encounter_id, concept_id,value_coded);
 
-DROP TEMPORARY TABLE if exists temp_order;
-CREATE TEMPORARY TABLE temp_order
-SELECT o.order_id, o.encounter_id, o.patient_id, drugName(do.drug_inventory_id) drug_name , do.dose , do.dose_units, do.quantity, do.quantity_units , 
-	   do.route, do.duration , do.duration_units , do.frequency 
-FROM orders o INNER JOIN temp_encounter t on o.encounter_id = t.encounter_id
-INNER JOIN drug_order do ON do.order_id = o.order_id 
-WHERE o.voided =0;
-
-INSERT INTO mch_maternity_form(patient_id, emrid, encounter_id,location,provider,form_date)
+INSERT INTO mch_maternity_form(patient_id, emrid, encounter_id,location,provider,form_date)-- ,obs_id,obs_group_id,concept_id )
 SELECT e.patient_id,patient_identifier(e.patient_id,'1a2acce0-7426-11e5-a837-0800200c9a66'), e.encounter_id,
        encounter_location_name(e.encounter_id),provider(e.encounter_id), encounter_date
+      --  ,o.obs_id, o.obs_group_id,o.concept_id
 FROM temp_encounter e;
 
 -- Diagnosis Attributes
-UPDATE mch_maternity_form SET delivery_date=obs_value_datetime_from_temp(encounter_id,'PIH','5599');
 UPDATE mch_maternity_form SET birth_weight=obs_value_numeric_from_temp(encounter_id,'PIH','11067');
-UPDATE mch_maternity_form SET vaginal_delivery=CASE WHEN obs_value_coded_list_from_temp(encounter_id,'PIH','11663','en') IS NOT NULL THEN TRUE ELSE FALSE END;
-UPDATE mch_maternity_form SET delivery_type=CASE WHEN obs_value_coded_list_from_temp(encounter_id,'PIH','11663','en') IS NOT NULL THEN TRUE ELSE FALSE END;
-UPDATE mch_maternity_form SET breech=CASE WHEN obs_value_coded_list_from_temp(encounter_id,'PIH','10751','en') IS NOT NULL THEN TRUE ELSE FALSE END;
 UPDATE mch_maternity_form SET perineal_tear=obs_value_coded_list_from_temp(encounter_id,'PIH','12369','en');
-UPDATE mch_maternity_form SET apgar_score_onemin=obs_value_coded_list_from_temp(encounter_id,'PIH','12377','en');
-UPDATE mch_maternity_form SET apgar_score_10min=obs_value_coded_list_from_temp(encounter_id,'PIH','12378','en');
+UPDATE mch_maternity_form SET apgar_score_onemin=obs_value_numeric_from_temp(encounter_id,'PIH','14419');
+UPDATE mch_maternity_form SET apgar_score_10min=obs_value_numeric_from_temp(encounter_id,'PIH','14785');
 UPDATE mch_maternity_form SET apgar_score_5min=obs_value_numeric_from_temp(encounter_id,'PIH','14417');
+
 
 -- Findings Mother
 UPDATE mch_maternity_form SET GBV_victim=answer_exists_in_encounter_temp(encounter_id,'PIH','3064','PIH','11550');
@@ -155,9 +153,10 @@ create temporary table temp_mh_diagnosis
 select
        concept_name(value_coded,'en') AS diagnosis,
        obs_group_id,
-       @row_number:=if((@person_id=person_id) AND (@encounter_id=encounter_id), @row_number + 1, 1) RANK,
+       @row_number:=if((@person_id=person_id) AND (@encounter_id=encounter_id) /*AND (@obs_group_id=obs_group_id)*/, @row_number + 1, 1) RANK,
        @person_id:=person_id person_id,
        @encounter_id:=encounter_id encounter_id
+       -- ,@obs_group_id:=obs_group_id
 from   temp_obs 
 where  concept_id = concept_from_mapping('PIH','3064')--  AND person_id=114910
 order by person_id, encounter_id, obs_group_id, date_created asc;
@@ -182,50 +181,51 @@ where o.rank = 1;
 UPDATE mch_maternity_form SET clinical_note=obs_value_text_from_temp(encounter_id,'PIH','1364');
 UPDATE mch_maternity_form SET counselled_HIV_testing=obs_value_coded_list_from_temp(encounter_id,'PIH','11381','en');
 
-SET @row_number=0;
-drop table if exists temp_drug_order;
-create temporary table temp_drug_order
-select
-       @row_number:=if((@patient_id=patient_id) AND (@encounter_id=encounter_id), @row_number + 1, 1) RANK,
-       @patient_id:=patient_id patient_id,
-       @encounter_id:=encounter_id encounter_id,
-       @order_id:=order_id order_id,
-       drug_name , dose , dose_units, quantity, quantity_units , 
-	   route, duration , duration_units , frequency 
-from   temp_order
-order by patient_id, encounter_id, order_id;
-create index temp_drug_order_idx1 on temp_drug_order(patient_id,encounter_id,order_id,rank);
+UPDATE mch_maternity_form SET admission_datetime=obs_value_datetime_from_temp(encounter_id,'PIH','12240');
+UPDATE mch_maternity_form SET gravida=obs_value_numeric_from_temp(encounter_id,'PIH','5624');
+UPDATE mch_maternity_form SET parity=obs_value_numeric_from_temp(encounter_id,'PIH','1053');
 
-UPDATE mch_maternity_form t
-INNER JOIN temp_drug_order o ON t.encounter_id=o.encounter_id
-SET med_name=o.drug_name, 
-med_dose=o.dose,
-med_dose_unit=concept_name(o.dose_units,'en'),
-med_route=concept_name(o.route,'en'),
-med_freq=concept_name(o.frequency,'en'),
-med_duration=o.duration,
-med_duration_unit=concept_name(o.duration_units,'en');
+UPDATE mch_maternity_form SET gestational_age=obs_value_numeric_from_temp(encounter_id,'PIH','14390');
+UPDATE mch_maternity_form SET labour_datetime=obs_value_datetime_from_temp(encounter_id,'PIH','14377');
+UPDATE mch_maternity_form SET presentation_position=obs_value_coded_list_from_temp(encounter_id,'PIH','13047','en');
+UPDATE mch_maternity_form SET presentation_other=obs_value_text_from_temp(encounter_id,'PIH','14414');
 
-UPDATE mch_maternity_form SET med_admin_instructions=obs_value_text_from_temp(encounter_id,'PIH','10637');
+-- Delivery Attributes
+UPDATE mch_maternity_form SET delivery_datetime=obs_value_datetime_from_temp(encounter_id,'PIH','5599');
+UPDATE mch_maternity_form SET delivery_type=obs_value_coded_list_from_temp(encounter_id,'PIH','11663','en');
+UPDATE mch_maternity_form SET delivery_outcome=obs_value_coded_list_from_temp(encounter_id,'PIH','13561','en');
+UPDATE mch_maternity_form SET partograph=obs_value_coded_list_from_temp(encounter_id,'PIH','13964','en');
+UPDATE mch_maternity_form SET uterotonic=obs_value_coded_list_from_temp(encounter_id,'PIH','14373','en');
 
+-- New Born Condition Attributes
+UPDATE mch_maternity_form SET newborn_sex=obs_value_coded_list_from_temp(encounter_id,'PIH','13055','en');
+UPDATE mch_maternity_form SET breastfeeding=obs_value_coded_list_from_temp(encounter_id,'PIH','14372','en');
+
+UPDATE mch_maternity_form SET fp_counselling=obs_value_coded_list_from_temp(encounter_id,'PIH','12241','en');
+UPDATE mch_maternity_form SET family_planning=obs_value_coded_list_from_temp(encounter_id,'PIH','13564','en');
+
+UPDATE mch_maternity_form SET maternal_outcome_date=obs_value_datetime_from_temp(encounter_id,'PIH','3800') ;
+UPDATE mch_maternity_form SET maternal_disposition=obs_value_coded_list_from_temp(encounter_id,'PIH','8620','en');
+
+UPDATE mch_maternity_form SET hcw_delivery=obs_value_text_from_temp(encounter_id,'PIH','6592');
+UPDATE mch_maternity_form SET hcw_type=obs_value_coded_list_from_temp(encounter_id,'PIH','14411','en');
+
+DROP TABLE IF EXISTS pac_type_values;
+CREATE TEMPORARY TABLE pac_type_values
+SELECT encounter_id,value_coded_name(obs_id,'en') name FROM temp_obs
+WHERE concept_id=concept_from_mapping('PIH','14376');
 
 SELECT 
 emrid,
 provider,
 location,
 form_date,
-delivery_date,
-estimated_delivery_date,
-gestational_age,
+estimated_delivery_date, -- NULL 
 birth_weight,
 estimated_blood_loss,
-delivery_type,
-vaginal_delivery,
-breech,perineal_tear,
-apgar_score_onemin,
-apgar_score_5min,
-apgar_score_10min,
-GBV_victim,chorioamnionitis,
+perineal_tear,
+GBV_victim,
+chorioamnionitis,
 severe_preeclampsia,
 eclampsia,
 prolonged_labor,
@@ -263,12 +263,30 @@ clinical_note,
 primary_diagnosis,
 confirmed_diagnoses,
 counselled_HIV_testing,
-med_name,
-med_dose,
-med_dose_unit,
-med_route,
-med_freq,
-med_duration,
-med_duration_unit,
-med_admin_instructions
-FROM mch_maternity_form;
+admission_datetime,
+gravida,
+parity,
+labour_datetime,
+presentation_position,
+presentation_other,
+delivery_datetime,
+gestational_age,
+delivery_type,
+delivery_outcome,
+partograph,
+uterotonic,
+newborn_sex,
+apgar_score_onemin,
+apgar_score_5min,
+apgar_score_10min,
+breastfeeding,
+p.name AS pac_type,
+fp_counselling,
+family_planning,
+maternal_outcome_date,
+maternal_disposition,
+hcw_delivery,
+hcw_type
+FROM mch_maternity_form t
+INNER JOIN pac_type_values p
+ON t.encounter_id =p.encounter_id;
