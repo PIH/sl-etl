@@ -5,6 +5,8 @@
 type: "job-pipeline"
 description: "Refreshing base tables for ${siteName} using partition ${partitionNum}"
 configuration:
+  datasources:
+    - "openmrs-${siteName}.yml"
   jobs:
     - path: "create-source-views-and-functions.yml"
     - type: "iterating-job"
