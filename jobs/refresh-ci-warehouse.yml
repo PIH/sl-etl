@@ -1,19 +1,11 @@
 type: "job-pipeline"
-description: "Refreshing OpenMRS Data for SL Sites"
-schedule:
-  cron: "${executeCron.refreshCiDW}"
+description: "Refreshing OpenMRS Data for CI"
 configuration:
   jobs:
     - type: "iterating-job"
-      description: "Refreshing OpenMRS Data for SL sites"
+      description: "Refreshing OpenMRS Data for KGH Test"
       configuration:
-        maxConcurrentJobs: 2
-        errorHandling:
-          maxAttempts: 3
-          retryInterval: 60
-          retryIntervalUnit: "MINUTES"
         iterations:
-          - siteName: "wellbody"
           - siteName: "kgh"
         jobTemplate:
           path: "refresh-${siteName}.yml"
