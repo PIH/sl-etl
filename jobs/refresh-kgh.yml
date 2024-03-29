@@ -1,0 +1,8 @@
+type: "iterating-job"
+description: "Refresh KGH Data"
+configuration:
+  iterations:
+    - siteName: "kgh"
+      partitionNum: "2"
+  jobTemplate:
+    path: "refresh-base-tables.yml"

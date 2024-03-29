@@ -1,0 +1,8 @@
+type: "iterating-job"
+description: "Refresh Wellbody Data"
+configuration:
+  iterations:
+    - siteName: "wellbody"
+      partitionNum: "1"
+  jobTemplate:
+    path: "refresh-base-tables.yml"

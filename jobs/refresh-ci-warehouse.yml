@@ -7,18 +7,16 @@ configuration:
     - type: "iterating-job"
       description: "Refreshing OpenMRS Data for SL sites"
       configuration:
-        maxConcurrentJobs: 2 # Import into up to 2 sites concurrently
+        maxConcurrentJobs: 2
         errorHandling:
           maxAttempts: 3
           retryInterval: 60
           retryIntervalUnit: "MINUTES"
         iterations:
           - siteName: "wellbody"
-            partitionNum: "1"
           - siteName: "kgh"
-            partitionNum: "2"
         jobTemplate:
-          path: "refresh-base-tables.yml"
+          path: "refresh-${siteName}.yml"
 
     - type: "iterating-job"
       description: "Create final derived tables"
