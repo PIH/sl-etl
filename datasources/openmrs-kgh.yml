@@ -5,3 +5,4 @@ databaseName: ${datasources.openmrs.kgh.databaseName}
 user: ${datasources.openmrs.kgh.user}
 password: ${datasources.openmrs.kgh.password}
 options: ${datasources.openmrs.kgh.options}
+containerName: ${datasources.openmrs.kgh.containerName}

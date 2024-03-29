@@ -5,3 +5,4 @@ databaseName: ${datasources.openmrs.wellbody.databaseName}
 user: ${datasources.openmrs.wellbody.user}
 password: ${datasources.openmrs.wellbody.password}
 options: ${datasources.openmrs.wellbody.options}
+containerName: ${datasources.openmrs.wellbody.containerName}
