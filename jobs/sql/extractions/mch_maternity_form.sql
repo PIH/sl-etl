@@ -47,10 +47,9 @@ congenital_malformation boolean,
 premature_rupture_membranes boolean,
 meconium_aspiration boolean,
 exit_date date,
-presumed_or_confirmed_diagnosis varchar(100),
 clinical_note varchar(500),
-primary_diagnosis boolean,
-confirmed_diagnoses boolean,
+primary_diagnosis varchar(1000),
+confirmed_diagnoses varchar(1000),
 counselled_HIV_testing varchar(100),
 admission_datetime datetime,
 gravida int,
@@ -164,19 +163,25 @@ create index temp_mh_diagnosis_idx1 on temp_mh_diagnosis(encounter_id,rank);
 
 
 update mch_maternity_form e
-    inner join temp_mh_diagnosis o on e.encounter_id = o.encounter_id
-set e.presumed_or_confirmed_diagnosis = o.diagnosis
-where o.rank = 1;
+set e.primary_diagnosis = (
+	SELECT 
+	group_concat(distinct obs_from_group_id_value_coded_list(obs_group_id, 'PIH','DIAGNOSIS','en') separator ' | ')	
+	FROM temp_obs
+	WHERE concept_id = concept_from_mapping('PIH','7537')
+	AND value_coded = concept_from_mapping('PIH','7534')
+	AND encounter_id= e.encounter_id 
+);
 
 update mch_maternity_form e
-    inner join temp_mh_diagnosis o on e.encounter_id = o.encounter_id
-set e.primary_diagnosis = CASE WHEN obs_from_group_id_value_coded_list_from_temp(o.obs_group_id, 'PIH', '7537', 'en') IS NOT NULL THEN TRUE ELSE FALSE END 
-where o.rank = 1;
+set e.confirmed_diagnoses = (
+	SELECT 
+	group_concat(distinct obs_from_group_id_value_coded_list(obs_group_id, 'PIH','DIAGNOSIS','en') separator ' | ')	
+	FROM temp_obs
+	WHERE concept_id = concept_from_mapping('PIH','1379')
+	AND value_coded = concept_from_mapping('PIH','1345')
+	AND encounter_id= e.encounter_id 
+);
 
-update mch_maternity_form e
-    inner join temp_mh_diagnosis o on e.encounter_id = o.encounter_id
-set e.confirmed_diagnoses = CASE WHEN obs_from_group_id_value_coded_list_from_temp(o.obs_group_id, 'PIH', '1379', 'en') IS NOT NULL THEN TRUE ELSE FALSE END 
-where o.rank = 1;
 
 UPDATE mch_maternity_form SET clinical_note=obs_value_text_from_temp(encounter_id,'PIH','1364');
 UPDATE mch_maternity_form SET counselled_HIV_testing=obs_value_coded_list_from_temp(encounter_id,'PIH','11381','en');
@@ -258,7 +263,6 @@ congenital_malformation,
 premature_rupture_membranes,
 meconium_aspiration,
 exit_date,
-presumed_or_confirmed_diagnosis,
 clinical_note,
 primary_diagnosis,
 confirmed_diagnoses,
