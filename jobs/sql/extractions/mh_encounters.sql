@@ -32,6 +32,10 @@ create temporary table temp_mh
     alcohol_duration double,
     marijuana_history varchar(255),
     marijuana_duration double,
+    kush_history varchar(255),
+    kush_duration double,
+    tramadol_history varchar(255),
+    tramadol_duration double,    
     other_drug_history varchar(255),
     other_drug_duration double,
     other_drug_name varchar(255),
@@ -274,6 +278,10 @@ update temp_mh set alcohol_history = obs_value_coded_list(encounter_id, 'PIH','1
 update temp_mh set alcohol_duration = obs_value_numeric(encounter_id, 'PIH','2241');
 update temp_mh set marijuana_history = obs_value_coded_list(encounter_id, 'PIH','12391',@locale);
 update temp_mh set marijuana_duration = obs_value_numeric(encounter_id, 'PIH','13239');
+update temp_mh set kush_history = obs_value_coded_list(encounter_id, 'PIH','20106',@locale);
+update temp_mh set kush_duration = obs_value_numeric(encounter_id, 'PIH','20109');
+update temp_mh set tramadol_history = obs_value_coded_list(encounter_id, 'PIH','20107',@locale);
+update temp_mh set tramadol_duration = obs_value_numeric(encounter_id, 'PIH','20110');
 update temp_mh set other_drug_history = obs_value_coded_list(encounter_id, 'PIH','2546',@locale);
 update temp_mh set other_drug_duration = obs_value_numeric(encounter_id, 'PIH','12997');
 update temp_mh set other_drug_name = obs_value_text(encounter_id, 'PIH','6489');
@@ -604,6 +612,10 @@ select
     alcohol_duration,
     marijuana_history,
     marijuana_duration,
+    kush_history,
+    kush_duration,
+    tramadol_history,
+    tramadol_duration, 
     other_drug_history,
     other_drug_duration,
     other_drug_name,
