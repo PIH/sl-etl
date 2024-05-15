@@ -28,3 +28,19 @@ set nv.index_asc = nvi.index_asc,
 from ncd_encounter nv
 inner join #ncd_encounter_indexes nvi on nvi.patient_id = nv.patient_id
 and nvi.encounter_datetime = nv.encounter_datetime;
+
+
+-- update index asc/desc on scbu_register_encounter table
+drop table if exists #scbu_encounter_indexes;
+select  emr_id, encounter_datetime,
+ROW_NUMBER() over (PARTITION by emr_id order by  encounter_datetime asc) "index_asc",
+ROW_NUMBER() over (PARTITION by emr_id order by  encounter_datetime DESC) "index_desc"
+into #scbu_encounter_indexes
+from scbu_register_encounter nv;
+
+update nv
+set nv.index_asc = nvi.index_asc,
+	nv.index_desc = nvi.index_desc 
+from scbu_register_encounter nv
+inner join #scbu_encounter_indexes nvi on nvi.patient_id = nv.patient_id
+and nvi.encounter_datetime = nv.encounter_datetime;
