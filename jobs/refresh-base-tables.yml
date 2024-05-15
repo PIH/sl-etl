@@ -40,3 +40,4 @@ configuration:
           - tableName: "ncd_encounter"
           - tableName: "ncd_patient"
           - tableName: "ncd_program"
+          - tableName: "scbu_register_encounter"
