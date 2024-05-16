@@ -41,3 +41,4 @@ configuration:
           - tableName: "ncd_patient"
           - tableName: "ncd_program"
           - tableName: "scbu_register_encounter"
+          - tableName: "maternal_discharge_encounter"
