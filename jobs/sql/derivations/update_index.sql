@@ -42,5 +42,5 @@ update nv
 set nv.index_asc = nvi.index_asc,
 	nv.index_desc = nvi.index_desc 
 from scbu_register_encounter nv
-inner join #scbu_encounter_indexes nvi on nvi.patient_id = nv.patient_id
+inner join #scbu_encounter_indexes nvi on nvi.emr_id = nv.emr_id
 and nvi.encounter_datetime = nv.encounter_datetime;
