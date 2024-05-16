@@ -44,3 +44,18 @@ set nv.index_asc = nvi.index_asc,
 from scbu_register_encounter nv
 inner join #scbu_encounter_indexes nvi on nvi.emr_id = nv.emr_id
 and nvi.encounter_datetime = nv.encounter_datetime;
+
+-- update index asc/desc on maternal_discharge_encounter table
+drop table if exists #disch_encounter_indexes;
+select  emr_id, encounter_datetime,
+ROW_NUMBER() over (PARTITION by emr_id order by  encounter_datetime asc) "index_asc",
+ROW_NUMBER() over (PARTITION by emr_id order by  encounter_datetime DESC) "index_desc"
+into #disch_encounter_indexes
+from maternal_discharge_encounter nv;
+
+update nv
+set nv.index_asc = nvi.index_asc,
+	nv.index_desc = nvi.index_desc 
+from maternal_discharge_encounter nv
+inner join #disch_encounter_indexes nvi on nvi.emr_id = nv.emr_id
+and nvi.encounter_datetime = nv.encounter_datetime;
