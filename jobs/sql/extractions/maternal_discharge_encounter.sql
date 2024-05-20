@@ -64,7 +64,6 @@ UPDATE temp_disch_encs
 SET followup_clinic=obs_value_coded_list_from_temp(encounter_id, 'PIH','1272','en');
 
 SELECT 
-patient_id,
 emr_id,
 encounter_id,
 visit_id,
