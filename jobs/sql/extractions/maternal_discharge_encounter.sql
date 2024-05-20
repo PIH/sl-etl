@@ -77,4 +77,5 @@ transfer_location,
 followup_clinic,
 index_asc,
 index_desc
-FROM temp_disch_encs;
+FROM temp_disch_encs
+;
