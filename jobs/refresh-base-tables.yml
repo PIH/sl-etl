@@ -42,3 +42,4 @@ configuration:
           - tableName: "ncd_program"
           - tableName: "scbu_register_encounter"
           - tableName: "maternal_discharge_encounter"
+          - tableName: "labor_progress_encounter"
