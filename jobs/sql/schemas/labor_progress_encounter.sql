@@ -1,6 +1,5 @@
 create table labor_progress_encounter
 (
-patient_id          int,
 emr_id              varchar(255),
 encounter_id        int,
 visit_id            int,
