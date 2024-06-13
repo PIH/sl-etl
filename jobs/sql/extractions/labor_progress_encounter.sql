@@ -17,7 +17,7 @@ provider             varchar(255),
 admission_date datetime,
 gravida INT,
 partiy INT,
-gestational_age decimal,
+gestational_age decimal(5,2),
 gestational_age_source varchar(255),
 temperature decimal,
 heart_rate INT,
@@ -50,7 +50,6 @@ disposition varchar(255),
 transfer_in varchar(255),
 transfer_out varchar(255),
 transfer_location varchar(255),
-followup_clinic varchar(255),
 death_date datetime,
 partogram_uploaded varchar(255),
 index_asc INT,
@@ -114,7 +113,7 @@ SET o2_saturation=obs_value_numeric_from_temp(encounter_id, 'PIH','5092');
 
 
 UPDATE temp_labor_encs
-SET pregnancy_complications=obs_value_coded_list_from_temp(encounter_id, 'PIH','3334','en');
+SET pregnancy_complications=obs_value_coded_list_from_temp(encounter_id, 'PIH','6644','en');
 UPDATE temp_labor_encs
 SET labor_start=obs_value_datetime_from_temp(encounter_id, 'PIH','14377');
 UPDATE temp_labor_encs
@@ -253,9 +252,8 @@ number_previous_csections,
 overall_condition,
 disposition,
 transfer_location,
-followup_clinic,
 death_date,
-CASE WHEN partogram_uploaded IS NOT NULL THEN 1 ELSE 0 END AS partogram_uploaded,
+CASE WHEN partogram_uploaded IS NOT NULL THEN TRUE ELSE FALSE END AS partogram_uploaded,
 index_asc,
 index_desc
 FROM temp_labor_encs;
