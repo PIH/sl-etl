@@ -74,3 +74,19 @@ set nv.index_asc = nvi.index_asc,
 from labor_progress_encounter nv
 inner join #lp_encounter_indexes nvi on nvi.emr_id = nv.emr_id
 and nvi.encounter_datetime = nv.encounter_datetime;
+
+-- update index asc/desc on delivery_summary_encounter table
+drop table if exists #dl_encounter_indexes;
+select  emr_id, encounter_datetime, birthdate, 
+ROW_NUMBER() over (PARTITION by emr_id order by  encounter_datetime ASC, birthdate ASC) "index_asc",
+ROW_NUMBER() over (PARTITION by emr_id order by  encounter_datetime DESC, birthdate DESC) "index_desc"
+into #dl_encounter_indexes
+from delivery_summary_encounter nv;
+
+update nv
+set nv.index_asc = nvi.index_asc,
+	nv.index_desc = nvi.index_desc 
+from delivery_summary_encounter nv
+inner join #dl_encounter_indexes nvi on nvi.emr_id = nv.emr_id
+and nvi.encounter_datetime = nv.encounter_datetime
+AND nvi.birthdate = nv.birthdate;

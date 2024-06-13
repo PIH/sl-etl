@@ -43,3 +43,4 @@ configuration:
           - tableName: "scbu_register_encounter"
           - tableName: "maternal_discharge_encounter"
           - tableName: "labor_progress_encounter"
+          - tableName: "delivery_summary_encounter"
