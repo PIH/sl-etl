@@ -59,3 +59,18 @@ set nv.index_asc = nvi.index_asc,
 from maternal_discharge_encounter nv
 inner join #disch_encounter_indexes nvi on nvi.emr_id = nv.emr_id
 and nvi.encounter_datetime = nv.encounter_datetime;
+
+-- update index asc/desc on labor_progress_encounter table
+drop table if exists #lp_encounter_indexes;
+select  emr_id, encounter_datetime,
+ROW_NUMBER() over (PARTITION by emr_id order by  encounter_datetime asc) "index_asc",
+ROW_NUMBER() over (PARTITION by emr_id order by  encounter_datetime DESC) "index_desc"
+into #lp_encounter_indexes
+from labor_progress_encounter nv;
+
+update nv
+set nv.index_asc = nvi.index_asc,
+	nv.index_desc = nvi.index_desc 
+from labor_progress_encounter nv
+inner join #lp_encounter_indexes nvi on nvi.emr_id = nv.emr_id
+and nvi.encounter_datetime = nv.encounter_datetime;

@@ -42,9 +42,8 @@ number_previous_csections INT,
 overall_condition varchar(255),
 disposition varchar(255),
 transfer_location varchar(255),
-followup_clinic varchar(255),
 death_date datetime,
-partogram_uploaded varchar(255),
+partogram_uploaded bit,
 index_asc INT,
 index_desc INT
 );
