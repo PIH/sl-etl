@@ -65,6 +65,7 @@ CREATE TEMPORARY TABLE temp_labresults
   test VARCHAR(255),
   lab_id VARCHAR(255),	
   LOINC VARCHAR(255),	
+  encounter_id int(11),
   specimen_collection_date DATETIME,
   results_date DATETIME,
   results_entry_date DATETIME,
@@ -147,7 +148,7 @@ INNER JOIN obs res_date ON res_date.voided = 0 AND res_date.encounter_id = ts.en
 SET ts.results_date = res_date.value_datetime;
 
 -- This query loads all specimen encounter-level information from above and observations from results entered  
-INSERT INTO temp_labresults (patient_id,wellbody_emr_id, kgh_emr_id, encounter_location, loc_registered, unknown_patient, gender, age_at_enc, department, commune, section, locality, street_landmark,order_number,orderable,specimen_collection_date, results_date, results_entry_date,test_concept_id,test, lab_id, LOINC,result_coded_answer,result_numeric_answer,result_text_answer)
+INSERT INTO temp_labresults (patient_id,wellbody_emr_id, kgh_emr_id, encounter_location, loc_registered, unknown_patient, gender, age_at_enc, department, commune, section, locality, street_landmark,encounter_id, order_number,orderable,specimen_collection_date, results_date, results_entry_date,test_concept_id,test, lab_id, LOINC,result_coded_answer,result_numeric_answer,result_text_answer)
 SELECT ts.patient_id,
 ts.wellbody_emr_id, 
 ts.kgh_emr_id,
@@ -161,6 +162,7 @@ ts.commune,
 ts.section, 
 ts.locality, 
 ts.street_landmark,
+ts.encounter_id,
 ts.order_number, 
 IFNULL(CONCEPT_NAME(ts.concept_id,@locale),CONCEPT_NAME(ts.concept_id,'en')), 
 res.obs_datetime, 
@@ -198,6 +200,7 @@ SELECT
        t.unknown_patient,
        t.gender,
        t.age_at_enc,
+       concat(@partition,"-",t.encounter_id)  encounter_id,
        t.order_number,
        t.orderable,
        -- only return test name is test was performed:
