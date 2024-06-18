@@ -120,7 +120,6 @@ SET delivery_method=obs_from_group_id_value_coded_list_from_temp(obs_group_id, '
 
 SELECT 
 emr_id as mother_emr_id,
-null as emr_id,
 encounter_id,
 visit_id,
 encounter_datetime,

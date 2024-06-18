@@ -1,7 +1,6 @@
 create table delivery_summary_encounter
 (
 mother_emr_id              varchar(255),
-emr_id              varchar(255),
 encounter_id        int,
 visit_id            int,
 encounter_datetime datetime,
