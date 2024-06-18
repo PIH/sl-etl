@@ -1,6 +1,6 @@
 -- set @startDate='2021-01-01';
 -- set @endDate='2023-05-22';
-
+set @partition = '${partitionNum}';
 set @locale = global_property_value('default_locale', 'en');
 select encounter_type_id into @mhIntake from encounter_type where uuid = 'a8584ab8-cc2a-11e5-9956-625662870761';
 select encounter_type_id into @mhFollowup from encounter_type where uuid = '9d701a81-bb83-40ea-9efc-af50f05575f2';
@@ -593,9 +593,9 @@ select
     location_registered,
     age_at_encounter,
     address,
-    encounter_id,
+    concat(@partition,"-",encounter_id)  "encounter_id",
     encounter_type,
-    visit_id,
+    concat(@partition,"-",visit_id)  "visit_id",
     encounter_datetime,
     provider,
     referred_by_community,
