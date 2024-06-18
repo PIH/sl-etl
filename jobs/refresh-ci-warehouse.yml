@@ -20,3 +20,4 @@ configuration:
           - tableName: "drop_old_tables"
           - tableName: "dim_date"
           - tableName: "drug_categories"
+          - tableName: "ncd_monthly_summary"
