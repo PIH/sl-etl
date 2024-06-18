@@ -1,68 +1,69 @@
 drop table if exists ncd_monthly_summary_staging;
 create table ncd_monthly_summary_staging
-(emr_id varchar(20),
-gender varchar(50),
-dob date,
-date_enrolled date,
-date_completed date, 
-outcome varchar(255),
-latest_ncd_encounter_id varchar(50),
-latest_ncd_encounter_datetime datetime,
-ever_missed_school bit,
-latest_days_lost_schooling_this_quarter float,
-total_days_lost_schooling_this_quarter float,                   
-social_support_this_quarter bit,
-on_insulin_latest_encounter bit,
-home_glucometer bit,
-latest_a1c_test_date datetime,
-latest_a1c_result varchar(255),
-latest_echocardiogram_date date,
-cardiomyopathy bit, 
-on_beta_blocker bit,
-on_ace_inhibitor bit,
-secondary_antibiotic_prophylaxis bit,
-latest_inr_datetime datetime,
-latest_warfarin_prescription_datetime datetime,
-latest_nyha_classification varchar(255),
-latest_referred_to_surgery_datetime datetime,
-on_hydroxurea_latest_visit bit,
-latest_penicillen_prescription_datetime datetime,
-latest_folic_acid_prescription_datetime datetime,
-latest_transfusion_date date,
-latest_number_hospitalizations_last_12_months float,
-latest_number_hospitalizations_datetime datetime,
-latest_on_saba_datetime datetime,
-latest_on_oral_salbutamol_datetime datetime,
-latest_on_steroid_inhaler_datetime datetime,
-nighttime_waking_asthma bit,
-asthma_control_GINA varchar(255),
-latest_APRI_datetime datetime,
-latest_HBsAg_datetime datetime,
-latest_esophageal_varices_prophylaxis_datetime datetime,
-latest_electrolytes_panel_datetime datetime,
-latest_diastolic_bp float,
-latest_systolic_bp float,
-latest_seizure_frequency_datetime datetime,
-latest_seizure_frequency float,
-latest_anti_epilepsy_prescription_datetime datetime,
-last_diabetes_type varchar(255), 
-type_1_diabetes bit,
-type_2_diabetes bit,
-gestational_diabetes bit,
-diabetes bit,
-hypertension bit,
-heart_failure bit,
-chronic_lung_disease bit,
-chronic_kidney_disease bit,
-liver_disease bit,
-palliative_care bit,
-sickle_cell bit,
-rheumatic_heart_disease bit,
-congenital_heart_disease bit,
-first_day_of_quarter date,
-reporting_date date);
+(emr_id                                        varchar(20),  
+gender                                         varchar(50),  
+dob                                            date,         
+date_enrolled                                  date,         
+date_completed                                 date,          
+outcome                                        varchar(255), 
+latest_ncd_encounter_id                        varchar(50),  
+latest_ncd_encounter_datetime                  datetime,     
+ever_missed_school                             bit,          
+latest_days_lost_schooling_this_quarter        float,        
+total_days_lost_schooling_this_quarter         float,         
+social_support_this_quarter                    bit,          
+on_insulin_latest_encounter                    bit,          
+home_glucometer                                bit,          
+latest_a1c_test_date                           datetime,     
+latest_a1c_result                              varchar(255), 
+latest_echocardiogram_date                     date,         
+cardiomyopathy                                 bit,           
+on_beta_blocker                                bit,          
+on_ace_inhibitor                               bit,          
+secondary_antibiotic_prophylaxis               bit,          
+latest_inr_datetime                            datetime,     
+latest_warfarin_prescription_datetime          datetime,     
+latest_nyha_classification                     varchar(255), 
+latest_referred_to_surgery_datetime            datetime,     
+on_hydroxurea_latest_visit                     bit,          
+latest_penicillen_prescription_datetime        datetime,     
+latest_folic_acid_prescription_datetime        datetime,     
+latest_transfusion_date                        date,         
+latest_number_hospitalizations_last_12_months  float,        
+latest_number_hospitalizations_datetime        datetime,     
+latest_on_saba_datetime                        datetime,     
+latest_on_oral_salbutamol_datetime             datetime,     
+latest_on_steroid_inhaler_datetime             datetime,     
+nighttime_waking_asthma                        bit,          
+asthma_control_GINA                            varchar(255), 
+latest_APRI_datetime                           datetime,     
+latest_HBsAg_datetime                          datetime,     
+latest_esophageal_varices_prophylaxis_datetime datetime,     
+latest_electrolytes_panel_datetime             datetime,     
+latest_diastolic_bp                            float,        
+latest_systolic_bp                             float,        
+latest_seizure_frequency_datetime              datetime,     
+latest_seizure_frequency                       float,        
+latest_anti_epilepsy_prescription_datetime     datetime,     
+last_diabetes_type                             varchar(255),  
+type_1_diabetes                                bit,          
+type_2_diabetes                                bit,          
+gestational_diabetes                           bit,          
+diabetes                                       bit,          
+hypertension                                   bit,          
+heart_failure                                  bit,          
+chronic_lung_disease                           bit,          
+chronic_kidney_disease                         bit,          
+liver_disease                                  bit,          
+palliative_care                                bit,          
+sickle_cell                                    bit,          
+rheumatic_heart_disease                        bit,          
+congenital_heart_disease                       bit,          
+first_day_of_quarter                           date,         
+reporting_date                                 date          
+);
 
--- create list of monthends
+-- create list of monthends (since 2023)
 drop table if exists #month_ends;
 select distinct LastDayOfMonth as reporting_date 
 into #month_ends from Dim_Date dd 
@@ -90,13 +91,14 @@ and (date_completed is null or
 	((YEAR(np.date_completed) >= YEAR(reporting_date))
 		and (MONTH(np.date_completed) >= MONTH(reporting_date))))   
 ;
-
+-- add first day of quarter to each row
 update t 
 set t.first_day_of_quarter = 
 	(select max(FirstDayOfQuarter) from Dim_Date d 
 	where d.FirstDayOfQuarter < t.reporting_date)
 from ncd_monthly_summary_staging t;
 
+-- set latest ncd encounter before reporting date for each row
 update t 
 set latest_ncd_encounter_id = e.encounter_id,
 	latest_ncd_encounter_datetime = e.encounter_datetime
@@ -107,22 +109,7 @@ inner join ncd_encounter e on e.encounter_id =
 	and e2.encounter_datetime <= t.reporting_date)
 ;	
 
--- data from ncd_patient
-update t 
-set t.diabetes = e.diabetes,
-	t.hypertension = e.hypertension,
-	t.heart_failure = e.heart_failure,
-	t.chronic_lung_disease = e.chronic_lung_disease,
-	t.liver_disease = e.liver_cirrhosis_hepb,
-	t.palliative_care = e.palliative_care,
-	t.sickle_cell = e.sickle_cell,
-	t.rheumatic_heart_disease = e.rheumatic_heart_disease,
-	t.congenital_heart_disease = e.congenital_heart_disease,
-	t.cardiomyopathy = e.cardiomyopathy
-from ncd_monthly_summary_staging t
-inner join ncd_patient e on e.emr_id = t.emr_id;
-
--- data from latest ncd_encounter
+-- update data that is needed from the latest ncd encounter
 update t 
 set t.diabetes = e.diabetes,
 	t.hypertension = e.hypertension,
@@ -144,7 +131,22 @@ from ncd_monthly_summary_staging t
 inner join ncd_encounter e on e.encounter_id = t.latest_ncd_encounter_id
 ;
 
--- diabetes types
+-- update data needed from ncd_patient
+update t 
+set t.diabetes = e.diabetes,
+	t.hypertension = e.hypertension,
+	t.heart_failure = e.heart_failure,
+	t.chronic_lung_disease = e.chronic_lung_disease,
+	t.liver_disease = e.liver_cirrhosis_hepb,
+	t.palliative_care = e.palliative_care,
+	t.sickle_cell = e.sickle_cell,
+	t.rheumatic_heart_disease = e.rheumatic_heart_disease,
+	t.congenital_heart_disease = e.congenital_heart_disease,
+	t.cardiomyopathy = e.cardiomyopathy
+from ncd_monthly_summary_staging t
+inner join ncd_patient e on e.emr_id = t.emr_id;
+
+-- update diabetes type from the last time that question was answered before the reporting date
 update t 
 set t.last_diabetes_type = e.diabetes_type
 from ncd_monthly_summary_staging t
@@ -155,6 +157,7 @@ inner join ncd_encounter e on e.encounter_id =
 	and e2.diabetes_type is not null
 	order by encounter_datetime desc, encounter_id desc);
 
+-- decode diabetes type into booleans
 update t
 set type_1_diabetes = iif(last_diabetes_type = 'Type 1 diabetes',1,null)
 from ncd_monthly_summary_staging t;
@@ -167,7 +170,7 @@ update t
 set gestational_diabetes = iif(last_diabetes_type = 'Gestational diabetes',1,null)
 from ncd_monthly_summary_staging t;
 
--- missed school
+-- set missed school to true if it had ever been set before the reporting date
 update t 
 set t.ever_missed_school =  1
 from ncd_monthly_summary_staging t
@@ -177,7 +180,7 @@ where EXISTS
 	and e.encounter_datetime <= t.reporting_date
 	and e.missed_school = 1);
 
--- days lost schooling 
+-- update latest_days_lost_schooling_this_quarter from the last time that question was answered before the reporting date
 update t 
 set t.latest_days_lost_schooling_this_quarter = e.days_lost_schooling
 from ncd_monthly_summary_staging t
@@ -188,6 +191,7 @@ inner join ncd_encounter e on e.encounter_id =
 	and e2.days_lost_schooling is not null
 	order by encounter_datetime desc, encounter_id desc);
 
+-- sum days lost schooling this quarter from the beginning of the quarter until the reporting date
 update t
 set t.total_days_lost_schooling_this_quarter =
 	(select SUM(days_lost_schooling) from ncd_encounter e 
@@ -196,7 +200,7 @@ set t.total_days_lost_schooling_this_quarter =
 	and e.encounter_datetime >= first_day_of_quarter)
 from ncd_monthly_summary_staging t;
 
--- social support
+-- set update social_support_this_quarter to true if it had been checked since the beginning of the quarter to the reporting date
 update t 
 set t.social_support_this_quarter =  1
 from ncd_monthly_summary_staging t
@@ -207,7 +211,7 @@ where EXISTS
 	and e.encounter_datetime >= first_day_of_quarter
 	and e.social_support = 1);
 
--- on_insulin_latest_encounter
+-- update on_insulin_latest_encounter based on whether insulin was prescribed (all_medications_prescribed) on the latest ncd encounter 
 update t 
 set t.on_insulin_latest_encounter = 1
 from ncd_monthly_summary_staging t
@@ -215,13 +219,17 @@ where EXISTS
 	(select 1 from all_medications_prescribed m
 	where m.encounter_id = t.latest_ncd_encounter_id
 	and m.order_drug in
-	('Insulin, Solution for injection, Glargine, 100IU/mL, 3mL prefilled pen (Lantus Solostar)',
-	'Insulin, Solution for injection, Glulsine, 100 IU/mL, 3mL prefilled pen (Apidra Solostar)',
-	'Insulin, Solution for injection, Neutral human, 70/30 (Mixtard), 100IU/mL, 10mL vial',
-	'Insulin, Solution for injection, Neutral human, 70/30 (Mixtard), 100IU/mL, 3mL prefilled pen',
-	'Insulin, Solution for injection, Neutral human, Regular (Rapid-Acting), 100IU/mL, 10mL vial'));
+	('Insulin, lente',
+	'Insulin (Mixtard) 70/30',
+	'Rapid insulin',
+	'Insulin glargine',
+	'Insulin, zinc, human',
+	'Insulin, human, regular',
+	'Insulin, Isophane, human',
+	'Insulin',
+	'Insulin glulisine'));
 
--- home glucometer
+-- set missed home_glucometer to true if it had ever been set before the reporting date
 update t 
 set t.home_glucometer =  1
 from ncd_monthly_summary_staging t
@@ -231,7 +239,7 @@ where EXISTS
 	and e.encounter_datetime <= t.reporting_date
 	and e.diabetes_home_glucometer = 1);
 
--- A1C
+-- set a1c result and test date based on the last time there was a test result before the reporting date
 update t 
 set t.latest_a1c_test_date = e.specimen_collection_date,
 	t.latest_a1c_result = e.result
@@ -243,7 +251,7 @@ inner join labs_order_results e on e.encounter_id =
 	and e2.test = 'HbA1c'
 	order by specimen_collection_date desc, encounter_id desc);
 
--- echocardiogram
+-- set latest_echocardiogram_date to the most recent echocardiogram date entered on encounters before the reporting date
 update t
 set t.latest_echocardiogram_date =
 	(select MAX(echocardiogram_datetime) from ncd_encounter e 
@@ -251,7 +259,7 @@ set t.latest_echocardiogram_date =
 	and e.encounter_datetime <= t.reporting_date)
 from ncd_monthly_summary_staging t;
 
--- INR
+-- set latest_inr_datetime to the last time there was a test result before the reporting date
 update t 
 set t.latest_inr_datetime = e.specimen_collection_date
 from ncd_monthly_summary_staging t
@@ -262,7 +270,7 @@ inner join labs_order_results e on e.encounter_id =
 	and e2.test = 'International Normalized Ratio'
 	order by specimen_collection_date desc, encounter_id desc);
 
--- Warfarin
+-- set latest_warfarin_prescription_datetime to the latest date warfarin was prescribed (all_medications_prescribed)
 update t 
 set t.latest_warfarin_prescription_datetime = m.order_date_activated
 from ncd_monthly_summary_staging t
@@ -270,10 +278,10 @@ inner join all_medications_prescribed m on m.encounter_id =
 	(select top 1 m2.encounter_id from all_medications_prescribed m2
 	where m2.emr_id = t.emr_id
 	and m2.order_date_activated <= t.reporting_date
-	and m2.order_drug = 'Warfarin sodium'
+	and m2.order_drug in ('Warfarin sodium', 'Warfarin')
 	order by order_date_activated desc, encounter_id desc);
 
--- referred to surgery
+-- set latest_referred_to_surgery_datetime to the datetime the last time referred to surgery for heart failure was checked on an ncd encounter
 update t 
 set latest_referred_to_surgery_datetime = e.encounter_datetime
 from ncd_monthly_summary_staging t
@@ -283,7 +291,7 @@ inner join ncd_encounter e on e.encounter_id =
 	and e2.encounter_datetime <= t.reporting_date
 	and e2.referred_to_surgery_for_heart_failure is not null);
 
--- penicillen
+-- set latest_penicillen_prescription_datetime to the latest date penicillen was prescribed (all_medications_prescribed) 
 update t 
 set t.latest_penicillen_prescription_datetime = m.order_date_activated
 from ncd_monthly_summary_staging t
@@ -292,12 +300,15 @@ inner join all_medications_prescribed m on m.encounter_id =
 	where m2.emr_id = t.emr_id
 	and m2.order_date_activated <= t.reporting_date
 	and m2.order_drug in (
-	'Benzathine benzylpenicillin, Powder for solution for injection, 2.4 MIU vial',
-	'Benzylpenicillin procaine, Powder for solution for injection, 4 MIU vial',
-	'Phenoxymethylpenicillin (Penicillin V), 250mg tablet')	
+	'Penicillin',
+	'Phenoxymethylpenicillin',
+	'Benzylpenicillin',
+	'Benzathine penicillin',
+	'Benzylpenicillin procaine',
+	'Benzylpenicillin Sodium')	
 	order by order_date_activated desc, encounter_id desc);
 
--- folic acid
+--set latest_folic_acid_prescription_datetime to the latest date folic acid was prescribed (all_medications_prescribed) 
 update t 
 set t.latest_folic_acid_prescription_datetime = m.order_date_activated
 from ncd_monthly_summary_staging t
@@ -310,8 +321,7 @@ inner join all_medications_prescribed m on m.encounter_id =
 	'Ferrous sulphate + Folic acid')
 	order by order_date_activated desc, encounter_id desc);
 
- -- transfusion date
-
+-- -- set latest_transfusion_date to the most recent transfusion date entered on ncd encounters before the reporting date
 update t
 set t.latest_transfusion_date =
 	(select MAX(transfusion_date) from ncd_encounter e 
@@ -319,7 +329,7 @@ set t.latest_transfusion_date =
 	and e.encounter_datetime <= t.reporting_date)
 from ncd_monthly_summary_staging t;
 
--- number hospitalizations
+-- update number of hospitalizations column based on last time question was answered on ncd encounter before the reporting date 
 update t 
 set latest_number_hospitalizations_last_12_months = e.number_hospitalizations_last_12_months,
 	latest_number_hospitalizations_datetime = e.encounter_datetime
@@ -330,7 +340,7 @@ inner join ncd_encounter e on e.encounter_id =
 	and e2.encounter_datetime <= t.reporting_date
 	and e2.number_hospitalizations_last_12_months is not null);
 
--- on saba
+-- update latest_on_saba_datetime to latest time this option was checked on ncd encounter (before reporting date)
 update t 
 set latest_on_saba_datetime = e.encounter_datetime
 from ncd_monthly_summary_staging t
@@ -340,7 +350,7 @@ inner join ncd_encounter e on e.encounter_id =
 	and e2.encounter_datetime <= t.reporting_date
 	and e2.on_saba is not null);
 
--- latest_on_oral_salbutamol_datetime - encounter datetime of latest time this option was checked (before reporting date)
+-- update latest_on_oral_salbutamol_datetime to latest time this option was checked on ncd encounter (before reporting date)
 update t 
 set latest_on_oral_salbutamol_datetime = e.encounter_datetime
 from ncd_monthly_summary_staging t
@@ -350,7 +360,7 @@ inner join ncd_encounter e on e.encounter_id =
 	and e2.encounter_datetime <= t.reporting_date
 	and e2.on_oral_salbutamol = 1);
 
--- on_steroid_inhaler
+-- update latest_on_steroid_inhaler_datetime to latest time this option was checked on ncd encounter (before reporting date)
 update t 
 set latest_on_steroid_inhaler_datetime = e.encounter_datetime
 from ncd_monthly_summary_staging t
@@ -360,7 +370,7 @@ inner join ncd_encounter e on e.encounter_id =
 	and e2.encounter_datetime <= t.reporting_date
 	and e2.on_steroid_inhaler = 1);
 
--- APRI
+-- set latest_APRI_datetime to the last time there was a test result before the reporting date
 update t 
 set t.latest_APRI_datetime = e.specimen_collection_date
 from ncd_monthly_summary_staging t
@@ -371,7 +381,7 @@ inner join labs_order_results e on e.encounter_id =
 	and e2.test = 'APRI score'
 	order by specimen_collection_date desc, encounter_id desc);
 
--- latest HBsAg datetime
+-- set latest_HBsAg_datetime to the last time there was a test result before the reporting date
 update t 
 set t.latest_HBsAg_datetime = e.specimen_collection_date
 from ncd_monthly_summary_staging t
@@ -382,7 +392,7 @@ inner join labs_order_results e on e.encounter_id =
 	and e2.test = 'Hepatitis B surface antigen test'
 	order by specimen_collection_date desc, encounter_id desc);
 
--- latest_esophageal_varices_prophylaxis_datetime
+-- update latest_esophageal_varices_prophylaxis_datetime to latest time this was answered yes on ncd encounter (before reporting date)
 update t 
 set latest_esophageal_varices_prophylaxis_datetime = e.encounter_datetime
 from ncd_monthly_summary_staging t
@@ -392,7 +402,7 @@ inner join ncd_encounter e on e.encounter_id =
 	and e2.encounter_datetime <= t.reporting_date
 	and e2.on_esophageal_varices_prophylaxis = 'Yes');
 
--- latest electrolytes panel datetime
+-- set latest_electrolytes_panel_datetime to the last time the electrolytes (i-Stat) panel was ordered before the reporting date
 update t 
 set t.latest_electrolytes_panel_datetime = e.order_datetime
 from ncd_monthly_summary_staging t
@@ -405,7 +415,7 @@ inner join labs_order_report e on e.order_number =
 	order by order_datetime desc, order_number desc);
 
 
--- latest BP
+-- update the BP info to the values collected (all_vitals) most recently before the reporting date
 update t 
 set latest_diastolic_bp = bp_diastolic,
 	latest_systolic_bp = bp_systolic
@@ -417,6 +427,7 @@ inner join all_vitals e on e.encounter_id =
 	and e2.bp_systolic is not null
 	order by encounter_datetime desc, encounter_id desc);
 
+-- update seizure frequency columns based on last time that question was answered on mh encounter before the reporting date 
 update t 
 set latest_seizure_frequency = seizure_frequency,
 	latest_seizure_frequency_datetime = e.encounter_datetime
@@ -428,6 +439,8 @@ inner join mh_encounters e on e.encounter_id =
 	and e2.seizure_frequency is not null
 	order by encounter_datetime desc, encounter_id desc);
 
+--set latest_anti_epilepsy_prescription_datetime to the latest date an anti epilepsy drug was prescribed (all_medications_prescribed)
+-- NOTE:  NEED LIST OF DRUGS 
 update t 
 set t.latest_anti_epilepsy_prescription_datetime = m.order_date_activated
 from ncd_monthly_summary_staging t
@@ -439,7 +452,7 @@ inner join all_medications_prescribed m on m.encounter_id =
 	'Gabapentin')	
 	order by order_date_activated desc, encounter_id desc)
 	
--- data from all_patients
+-- dob and gender data from all_patients
 update t 
 set t.dob = p.dob,
 	t.gender = p.gender
