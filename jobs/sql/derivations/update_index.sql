@@ -90,3 +90,18 @@ from delivery_summary_encounter nv
 inner join #dl_encounter_indexes nvi on nvi.emr_id = nv.emr_id
 and nvi.encounter_datetime = nv.encounter_datetime
 AND nvi.birthdate = nv.birthdate;
+
+-- update index asc/desc on anc_encounter table
+drop table if exists #lp_encounter_indexes;
+select  emr_id, encounter_datetime,
+ROW_NUMBER() over (PARTITION by emr_id order by  encounter_datetime asc) "index_asc",
+ROW_NUMBER() over (PARTITION by emr_id order by  encounter_datetime DESC) "index_desc"
+into #anc_encounter_indexes
+from anc_encounter nv;
+
+update nv
+set nv.index_asc = nvi.index_asc,
+	nv.index_desc = nvi.index_desc 
+from anc_encounter nv
+inner join #anc_encounter_indexes nvi on nvi.emr_id = nv.emr_id
+and nvi.encounter_datetime = nv.encounter_datetime;
