@@ -1,0 +1,25 @@
+create table labor_summary_encounter
+(
+emr_id              varchar(255),
+encounter_id        int,
+visit_id            int,
+encounter_datetime datetime,
+encounter_location varchar(255),
+datetime_created datetime,
+user_entered     varchar(255),
+provider             varchar(255),
+labor_start         datetime,
+induced_labor       bit,
+induction_time      datetime,
+method_of_induction varchar(255),
+duration_first_stage    decimal(8,3),
+second_stage_start     varchar(255),
+multiple_birth        bit,
+amtsl                  bit,
+visual_inspection_placenta_completeness    varchar(255),
+birth_attendant    varchar(255),
+perineal_tear    varchar(255),
+perineal_tear_procedure    varchar(255),
+index_asc INT,
+index_desc INT
+);
