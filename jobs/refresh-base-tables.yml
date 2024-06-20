@@ -45,3 +45,4 @@ configuration:
           - tableName: "labor_progress_encounter"
           - tableName: "delivery_summary_encounter"
           - tableName: "anc_encounter"
+          - tableName: "labor_summary_encounter"
