@@ -117,8 +117,8 @@ SET delivery_method=obs_from_group_id_value_coded_list_from_temp(obs_group_id, '
 -- TODO: Retrieve baby EMR ID based on reference to baby patient stored in this same obs group when implemented
 
 SELECT
-mother_emr_id,
 baby_emr_id as emr_id,
+mother_emr_id,
 encounter_id,
 visit_id,
 encounter_datetime,
