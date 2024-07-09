@@ -36,7 +36,7 @@ SELECT
     e.patient_id AS patient_id,
     min(e.encounter_datetime) AS encounter_datetime
 FROM
-    openmrs.encounter e
+    encounter e
 GROUP BY
     e.patient_id;
  
@@ -50,11 +50,11 @@ SELECT
     u.username,
     l.name AS name
 FROM
-    ((openmrs.encounter e
-JOIN openmrs.tbl_first_enc X ON
+    ((encounter e
+JOIN tbl_first_enc X ON
     (((X.patient_id = e.patient_id)
         AND (X.encounter_datetime = e.encounter_datetime))))
-JOIN openmrs.location l ON
+JOIN location l ON
     ((l.location_id = e.location_id)))
 LEFT OUTER JOIN users u ON e.creator =u.user_id ;
 
