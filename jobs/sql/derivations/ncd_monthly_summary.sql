@@ -87,9 +87,14 @@ select
 	np.final_program_status,
 	r.reporting_date
 from ncd_program np, #month_ends r
-where CAST(np.date_enrolled as DATE) <= r.reporting_date
-and (np.date_completed is null or CAST(np.date_completed as DATE) >= r.reporting_date)
-;
+where (YEAR(np.date_enrolled) <= YEAR(reporting_date))
+  and (MONTH(np.date_enrolled) <= MONTH(reporting_date))
+  and (date_completed is null or
+       ((YEAR(np.date_completed) >= YEAR(reporting_date))
+           and (MONTH(np.date_completed) >= MONTH(reporting_date))))  ;
+
+-- If the enrollment has not completed for the month then ensure the date_completed and outcome are not included that month
+update ncd_monthly_summary_staging set date_completed = null, outcome = null where date_completed > reporting_date;
 
 -- add first day of quarter to each row
 update t 
