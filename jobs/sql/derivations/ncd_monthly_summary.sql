@@ -74,27 +74,48 @@ and LastDayOfMonth <= GETDATE()
 ;
 
 -- enter a row for every month-end the patient was active in the program
-insert into ncd_monthly_summary_staging
-	(emr_id,
-	date_enrolled,
-	date_completed,
-	outcome,
-	reporting_date)
-select
-	np.emr_id,
-	np.date_enrolled,
-	np.date_completed,
-	np.final_program_status,
-	r.reporting_date
-from ncd_program np, #month_ends r
-where (YEAR(np.date_enrolled) <= YEAR(reporting_date))
-  and (MONTH(np.date_enrolled) <= MONTH(reporting_date))
-  and (date_completed is null or
-       ((YEAR(np.date_completed) >= YEAR(reporting_date))
-           and (MONTH(np.date_completed) >= MONTH(reporting_date))))  ;
+insert into ncd_monthly_summary_staging (emr_id, reporting_date)
+select  distinct np.emr_id, r.reporting_date
+from    ncd_program np, #month_ends r
+where   (YEAR(np.date_enrolled) <= YEAR(reporting_date))
+  and   (MONTH(np.date_enrolled) <= MONTH(reporting_date))
+  and   (date_completed is null or ((YEAR(np.date_completed) >= YEAR(reporting_date)) and (MONTH(np.date_completed) >= MONTH(reporting_date))))
+;
 
--- If the enrollment has not completed for the month then ensure the date_completed and outcome are not included that month
-update ncd_monthly_summary_staging set date_completed = null, outcome = null where date_completed > reporting_date;
+-- if the patient had multiple qualifying enrollments, set date_enrolled to the most recent
+update s
+set s.date_enrolled = (
+    select max(p.date_enrolled)
+    from ncd_program p
+    where s.emr_id = p.emr_id
+    and (YEAR(p.date_enrolled) <= YEAR(s.reporting_date)) and (MONTH(p.date_enrolled) <= MONTH(s.reporting_date))
+)
+from ncd_monthly_summary_staging s
+;
+
+-- if the patient had multiple qualifying enrollments, set date_completed associated with the date_enrolled, if completed during the given month
+update s
+set s.date_completed = (
+    select max(p.date_completed)
+    from ncd_program p
+    where s.emr_id = p.emr_id
+    and s.date_enrolled = p.date_enrolled
+    and (YEAR(p.date_completed) = YEAR(s.reporting_date)) and (MONTH(p.date_completed) = MONTH(s.reporting_date))
+)
+from ncd_monthly_summary_staging s
+;
+
+-- if the patient had multiple qualifying enrollments, set outcome to the one associated with the enrollment chosen
+update s
+set s.outcome = (
+    select p.final_program_status
+    from ncd_program p
+    where s.emr_id = p.emr_id
+    and s.date_enrolled = p.date_enrolled
+    and s.date_completed = p.date_completed
+)
+from ncd_monthly_summary_staging s
+;
 
 -- add first day of quarter to each row
 update t 
