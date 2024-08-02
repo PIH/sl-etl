@@ -9,7 +9,7 @@ create table ncd_monthly_summary_staging
     outcome                                        varchar(255),
     latest_ncd_encounter_id                        varchar(50),
     latest_ncd_encounter_datetime                  datetime,
-    ever_missed_school                             bit,
+    ever_missed_school_this_month                  bit,
     latest_days_lost_schooling_this_quarter        float,
     total_days_lost_schooling_this_quarter         float,
     social_support_this_quarter                    bit,
@@ -198,18 +198,19 @@ update t
 set gestational_diabetes = iif(last_diabetes_type = 'Gestational diabetes',1,null)
 from ncd_monthly_summary_staging t;
 
--- set missed school to true if it had ever been set before the reporting date
+-- set missed school to true if it had ever been true during the reporting month
 update t 
-set t.ever_missed_school =  1
+set t.ever_missed_school_this_month =  1
 from ncd_monthly_summary_staging t
 where EXISTS (
     select 1 from ncd_encounter e
 	where e.emr_id = t.emr_id
-	and cast(e.encounter_datetime as DATE) <= t.reporting_date
+	and year(e.encounter_datetime) = year(t.reporting_date)
+	and month(e.encounter_datetime) = month(t.reporting_date)
 	and e.missed_school = 1
 );
 
--- update latest_days_lost_schooling_this_quarter from the last time that question was answered before the reporting date
+-- update latest_days_lost_schooling_this_quarter from the last time that question was answered before the reporting date and during the reporting quarter
 update t 
 set t.latest_days_lost_schooling_this_quarter = e.days_lost_schooling
 from ncd_monthly_summary_staging t
@@ -217,6 +218,7 @@ inner join ncd_encounter e on e.encounter_id = (
     select top 1 e2.encounter_id from ncd_encounter e2
 	where e2.emr_id = t.emr_id
 	and cast(e2.encounter_datetime as DATE) <= t.reporting_date
+    and e.encounter_datetime >= t.first_day_of_quarter
 	and e2.days_lost_schooling is not null
 	order by encounter_datetime desc, encounter_id desc
 );
@@ -227,7 +229,7 @@ set t.total_days_lost_schooling_this_quarter = (
     select SUM(days_lost_schooling) from ncd_encounter e
 	where e.emr_id = t.emr_id
 	and cast(e.encounter_datetime as DATE) <= t.reporting_date
-	and e.encounter_datetime >= first_day_of_quarter
+	and e.encounter_datetime >= t.first_day_of_quarter
 )
 from ncd_monthly_summary_staging t;
 
