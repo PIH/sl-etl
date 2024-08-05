@@ -136,9 +136,6 @@ UPDATE temp_anc_encs t
 SET estimated_gestational_age = obs_value_numeric_from_temp(encounter_id, 'PIH','1279');
 
 UPDATE temp_anc_encs t
-SET estimated_delivery_date = obs_value_datetime_from_temp(encounter_id, 'PIH','5096');
-
-UPDATE temp_anc_encs t
 SET height = obs_value_numeric_from_temp(encounter_id, 'PIH','5090');
 
 UPDATE temp_anc_encs t
