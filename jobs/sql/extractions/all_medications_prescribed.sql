@@ -1,3 +1,4 @@
+set @partition = '${partitionNum}';
 
 SELECT patient_identifier_type_id INTO @identifier_type FROM patient_identifier_type pit WHERE uuid ='1a2acce0-7426-11e5-a837-0800200c9a66';
 SELECT patient_identifier_type_id INTO @kgh_identifier_type FROM patient_identifier_type pit WHERE uuid ='c09a1d24-7162-11eb-8aa6-0242ac110002';
@@ -176,31 +177,32 @@ UPDATE all_medication_prescribed SET wellbody_emr_id=patient_identifier(patient_
 UPDATE all_medication_prescribed SET kgh_emr_id=patient_identifier(patient_id,'c09a1d24-7162-11eb-8aa6-0242ac110002');
 
 
-SELECT 
-COALESCE(wellbody_emr_id,kgh_emr_id) AS emr_id,
-order_type,
-encounter_id,
-visit_id,
-order_id,
-order_location,
-order_created_date,
-order_date_activated,
-user_entered,
-prescriber,
-order_drug,
-order_formulation,
-order_formulation_non_coded,
-product_code,
-order_quantity,
-order_quantity_units,
-order_quantity_num_refills,
-order_dose,
-order_dose_unit,
-order_dosing_instructions,
-order_route,
-order_frequency,
-order_duration,
-order_duration_units,
-order_reason,
-order_comments
+SELECT
+    concat(@partition, '-', order_id) as order_id,
+    concat(@partition, '-', encounter_id) as encounter_id,
+    concat(@partition, '-', visit_id) as visit_id,
+    concat(@partition, '-', patient_id) as patient_id,
+    COALESCE(wellbody_emr_id,kgh_emr_id) AS emr_id,
+    order_type,
+    order_location,
+    order_created_date,
+    order_date_activated,
+    user_entered,
+    prescriber,
+    order_drug,
+    order_formulation,
+    order_formulation_non_coded,
+    product_code,
+    order_quantity,
+    order_quantity_units,
+    order_quantity_num_refills,
+    order_dose,
+    order_dose_unit,
+    order_dosing_instructions,
+    order_route,
+    order_frequency,
+    order_duration,
+    order_duration_units,
+    order_reason,
+    order_comments
 FROM all_medication_prescribed;
