@@ -4,24 +4,24 @@ SELECT patient_identifier_type_id INTO @identifier_type FROM patient_identifier_
 SELECT patient_identifier_type_id INTO @kgh_identifier_type FROM patient_identifier_type pit WHERE uuid ='c09a1d24-7162-11eb-8aa6-0242ac110002';
 
 DROP temporary TABLE IF EXISTS all_encounters;
-create temporary table all_encounters(
-encounter_id int,
-patient_id int, 
-visit_id int,
-wellbody_emr_id varchar(50),
-kgh_emr_id varchar(50),
-encounter_type varchar(50),
-encounter_type_id int,
-encounter_provider varchar(50),
-encounter_datetime datetime,
-encounter_year int,
-encounter_month int,
-date_entered date,
-created_by varchar(30),
-index_asc int, 
-index_desc int
+create temporary table all_encounters
+(
+    encounter_id       int,
+    visit_id           int,
+    patient_id         int,
+    wellbody_emr_id    varchar(50),
+    kgh_emr_id         varchar(50),
+    encounter_type     varchar(50),
+    encounter_type_id  int,
+    encounter_provider varchar(50),
+    encounter_datetime datetime,
+    encounter_year     int,
+    encounter_month    int,
+    date_entered       date,
+    created_by         varchar(30),
+    index_asc          int,
+    index_desc         int
 );
-
 
 insert into all_encounters(encounter_id,patient_id, visit_id, encounter_type,encounter_type_id, encounter_datetime, 
 		encounter_year, encounter_month, date_entered, created_by)
@@ -49,10 +49,10 @@ SET ae.kgh_emr_id= patient_identifier(ae.patient_id,'c09a1d24-7162-11eb-8aa6-024
 UPDATE all_encounters ae 
 SET ae.encounter_provider=provider(ae.encounter_id);
 
-select 
-concat(@partition,"-",encounter_id) as encounter_id,
-concat(@partition,"-",patient_id)  as patient_id,
-visit_id,
+select
+concat(@partition, '-', encounter_id) as encounter_id,
+concat(@partition, '-', visit_id) as visit_id,
+concat(@partition, '-', patient_id) as patient_id,
 wellbody_emr_id,
 kgh_emr_id,
 COALESCE(wellbody_emr_id, kgh_emr_id) emr_id,

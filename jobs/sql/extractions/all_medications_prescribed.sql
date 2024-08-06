@@ -176,10 +176,12 @@ UPDATE all_medication_prescribed SET wellbody_emr_id=patient_identifier(patient_
 UPDATE all_medication_prescribed SET kgh_emr_id=patient_identifier(patient_id,'c09a1d24-7162-11eb-8aa6-0242ac110002');
 
 
-SELECT 
+SELECT
+    concat(@partition, '-', encounter_id) as encounter_id,
+    concat(@partition, '-', visit_id) as visit_id,
+    concat(@partition, '-', patient_id) as patient_id,
 COALESCE(wellbody_emr_id,kgh_emr_id) AS emr_id,
 order_type,
-encounter_id,
 visit_id,
 order_id,
 order_location,
@@ -204,3 +206,9 @@ order_duration_units,
 order_reason,
 order_comments
 FROM all_medication_prescribed;
+
+encounter_id       varchar(100),
+    visit_id           varchar(100),
+    patient_id         varchar(100),
+    emr_id              varchar(50),
+    form                varchar(10),
