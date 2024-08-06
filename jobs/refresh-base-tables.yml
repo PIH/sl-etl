@@ -48,3 +48,4 @@ configuration:
           - tableName: "labor_summary_encounter"
           - tableName: "newborn_assessment_encounter"
           - tableName: "admission_note_encounter"
+          - tableName: "newborn_progress_discharge_encounter"
