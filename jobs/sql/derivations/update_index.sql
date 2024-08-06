@@ -165,3 +165,18 @@ set nv.index_asc = nvi.index_asc,
     from newborn_progress_discharge_encounter nv
 inner join #newborn_progress_discharge_encounter_indexes nvi on nvi.emr_id = nv.emr_id
 and nvi.encounter_datetime = nv.encounter_datetime;
+
+-- update index asc/desc on postpartum_daily_encounter table
+drop table if exists #postpartum_daily_encounter_indexes;
+select  emr_id, encounter_datetime,
+ROW_NUMBER() over (PARTITION by emr_id order by  encounter_datetime asc) "index_asc",
+ROW_NUMBER() over (PARTITION by emr_id order by  encounter_datetime DESC) "index_desc"
+into #postpartum_daily_encounter_indexes
+from postpartum_daily_encounter nv;
+
+update nv
+set nv.index_asc = nvi.index_asc,
+    nv.index_desc = nvi.index_desc
+    from postpartum_daily_encounter nv
+inner join #postpartum_daily_encounter_indexes nvi on nvi.emr_id = nv.emr_id
+and nvi.encounter_datetime = nv.encounter_datetime;
