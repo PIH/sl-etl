@@ -111,6 +111,7 @@ SELECT
     encounter_location,
     datetime_created,
     user_entered,
+    provider,
     pregnancy_complications,
     delivery_datetime,
     gestation_age,

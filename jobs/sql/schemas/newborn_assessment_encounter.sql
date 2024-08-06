@@ -8,6 +8,7 @@ create table newborn_assessment_encounter
     encounter_location       varchar(255),
     datetime_created         datetime,
     user_entered             varchar(255),
+    provider                 varchar(255),
     pregnancy_complications  varchar(5000),
     delivery_datetime        datetime,
     gestation_age            decimal(8, 3),
