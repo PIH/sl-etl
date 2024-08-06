@@ -47,3 +47,4 @@ configuration:
           - tableName: "anc_encounter"
           - tableName: "labor_summary_encounter"
           - tableName: "newborn_assessment_encounter"
+          - tableName: "admission_note_encounter"
