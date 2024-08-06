@@ -17,7 +17,7 @@ create temporary table temp_enc
     provider                 varchar(255),
     admitting_clinician      varchar(255),
     admitted_to              varchar(255),
-    admission_date           date,
+    admission_date           datetime,
     index_asc                INT,
     index_desc               INT
 );
