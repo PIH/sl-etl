@@ -64,33 +64,23 @@ create table ncd_monthly_summary_staging
     reporting_date                                 date
 );
 
--- create list of monthends (since 2023)
-drop table if exists #month_ends;
-select distinct LastDayOfMonth as reporting_date
-into #month_ends
+-- create list of reporting_months (since 2023)
+drop table if exists #reporting_months;
+select distinct FirstDayOfQuarter as quarter_start_date, FirstDayOfMonth as month_start_date, LastDayOfMonth as month_end_date
+into #reporting_months
 from Dim_Date dd
 where LastDayOfMonth >= '2023-01-01'
 and LastDayOfMonth <= GETDATE()
 ;
 
 -- enter a row for every month-end the patient was active in the program
-insert into ncd_monthly_summary_staging (emr_id, reporting_date)
-select  distinct np.emr_id, r.reporting_date
-from    ncd_program np, #month_ends r
-where   (YEAR(np.date_enrolled) <= YEAR(reporting_date))
-  and   (MONTH(np.date_enrolled) <= MONTH(reporting_date))
-  and   (date_completed is null or ((YEAR(np.date_completed) >= YEAR(reporting_date)) and (MONTH(np.date_completed) >= MONTH(reporting_date))))
-;
-
 -- if the patient had multiple qualifying enrollments, set date_enrolled to the most recent
-update s
-set s.date_enrolled = (
-    select max(p.date_enrolled)
-    from ncd_program p
-    where s.emr_id = p.emr_id
-    and (YEAR(p.date_enrolled) <= YEAR(s.reporting_date)) and (MONTH(p.date_enrolled) <= MONTH(s.reporting_date))
-)
-from ncd_monthly_summary_staging s
+insert into ncd_monthly_summary_staging (emr_id, first_day_of_quarter, reporting_date, date_enrolled)
+select  np.emr_id, r.quarter_start_date, r.month_end_date, max(np.date_enrolled)
+from    ncd_program np, #reporting_months r
+where   np.date_enrolled <= r.month_end_date
+and     (np.date_completed is null or np.date_completed >= r.month_start_date)
+group by np.emr_id, r.quarter_start_date, r.month_end_date
 ;
 
 -- if the patient had multiple qualifying enrollments, set date_completed associated with the date_enrolled, if completed during the given month
@@ -116,13 +106,6 @@ set s.outcome = (
 )
 from ncd_monthly_summary_staging s
 ;
-
--- add first day of quarter to each row
-update t 
-set t.first_day_of_quarter = 
-	(select max(FirstDayOfQuarter) from Dim_Date d 
-	where d.FirstDayOfQuarter < t.reporting_date)
-from ncd_monthly_summary_staging t;
 
 -- set latest ncd encounter before reporting date for each row
 update t 
