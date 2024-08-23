@@ -54,8 +54,9 @@ select
     a.date_created as datetime_created,
     person_name_of_user(a.creator) as user_entered
 from patient_appointment a
+inner join patient p on a.patient_id = p.patient_id
 left join appointment_service s on a.appointment_service_id = s.appointment_service_id
-WHERE a.voided = 0;
+WHERE a.voided = 0 and p.voided = 0;
 
 update temp_appointments set emr_id = patient_identifier(patient_id, metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType'));
 update temp_appointments a inner join patient_appointment_occurrence o on a.appointment_id = o.patient_appointment_id set a.recurring = 1;
