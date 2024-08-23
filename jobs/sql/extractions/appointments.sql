@@ -50,7 +50,7 @@ select
     TIMESTAMPDIFF(MINUTE, a.start_date_time, a.end_date_time) as duration,
     provider_name_from_provider_id(a.provider_id) as provider,
     a.status,
-    a.comments as note, -- TODO: Is this correct?
+    a.comments as note,
     a.date_created as datetime_created,
     person_name_of_user(a.creator) as user_entered
 from patient_appointment a
