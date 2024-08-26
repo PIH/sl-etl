@@ -12,7 +12,7 @@ CREATE TABLE pregnancy_program
     age_at_pregnancy_registration   int,
     danger_signs                    varchar(1000),
     high_risk_factors               varchar(1000),
-    last_menstruation_date          datetime,
+    last_menstruation_date          date,
     estimated_gestational_age       varchar(10),
     estimated_delivery_date         date,
     actual_delivery_date            date,
