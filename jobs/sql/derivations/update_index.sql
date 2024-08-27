@@ -179,3 +179,17 @@ set t.index_asc = i.index_asc,
     t.index_desc = i.index_desc
 from appointments t inner join #derived_indexes i on i.appointment_id = t.appointment_id
 ;
+
+-- update index asc/desc on appointments table
+drop table if exists #derived_indexes;
+select  pregnancy_program_id,
+        ROW_NUMBER() over (PARTITION by patient_id order by date_enrolled, pregnancy_program_id) as index_asc,
+        ROW_NUMBER() over (PARTITION by patient_id order by date_enrolled DESC, pregnancy_program_id DESC) as index_desc
+into    #derived_indexes
+from    pregnancy_program;
+
+update t
+set t.index_asc = i.index_asc,
+    t.index_desc = i.index_desc
+from pregnancy_program t inner join #derived_indexes i on i.pregnancy_program_id = t.pregnancy_program_id
+;

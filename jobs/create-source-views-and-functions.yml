@@ -25,9 +25,7 @@ configuration:
         datasource: "openmrs-${siteName}.yml"
         delimiter: "#"
         scripts:
-          - "sql/utils/temp_encounter.sql"
-          - "sql/utils/temp_obs.sql"
-          - "sql/utils/temp_patient_program.sql"
+          - "sql/utils/temp_program.sql"
           - "sql/utils/create_functions.sql"
           - "sql/utils/global_metadata.sql"
     - type: "sql-execution"
