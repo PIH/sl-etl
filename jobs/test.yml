@@ -1,0 +1,22 @@
+type: "job-pipeline"
+description: "Refreshing OpenMRS Data for CI"
+configuration:
+  jobs:
+    - type: "job-pipeline"
+      description: "Test job"
+      parameters:
+        siteName: "kgh"
+        partitionNum: "2"
+      configuration:
+        datasources:
+          - "openmrs-${siteName}.yml"
+        jobs:
+          - path: "create-source-views-and-functions.yml"
+          - type: "iterating-job"
+            description: "Importing from ${siteName} using partition ${partitionNum}"
+            configuration:
+              maxConcurrentJobs: 1
+              jobTemplate:
+                path: "import-to-table-partition.yml"
+              iterations:
+                - tableName: "pregnancy_program"

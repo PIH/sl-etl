@@ -51,3 +51,4 @@ configuration:
           - tableName: "newborn_progress_discharge_encounter"
           - tableName: "postpartum_daily_encounter"
           - tableName: "appointments"
+          - tableName: "pregnancy_program"
