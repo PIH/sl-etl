@@ -153,7 +153,7 @@ update temp_pregnancy_program set estimated_gestational_age_calculation_date = @
 update temp_pregnancy_program set estimated_gestational_age = (40 - round(datediff(estimated_delivery_date, estimated_gestational_age_calculation_date)/7, 1));
 
 -- Delivery location should be the visit location associated with the labor and delivery summary, otherwise set as 'outborn'
-update temp_pregnancy_program set delivery_location = (select location_name(e.visit_location_id) from temp_program_encounter e where e.encounter_id = latest_labor_delivery_summary_encounter_id);
+update temp_pregnancy_program p inner join temp_program_encounter e on p.latest_labor_delivery_summary_encounter_id = e.encounter_id set p.delivery_location = location_name(e.visit_location_id);
 
 update temp_pregnancy_program set delivery_num_live_birth = (
     select count(*) from temp_program_obs o where o.encounter_id = latest_labor_delivery_summary_encounter_id
