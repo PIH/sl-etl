@@ -75,6 +75,7 @@ BEGIN
         encounter_id       int,
         encounter_type_id  int,
         location_id        int,
+        visit_location_id  int,
         encounter_datetime datetime,
         date_created       datetime,
         created_by         int
@@ -93,6 +94,7 @@ BEGIN
         encounter_id,
         encounter_type_id,
         location_id,
+        visit_location_id,
         encounter_datetime,
         date_created,
         created_by
@@ -103,15 +105,17 @@ BEGIN
         e.encounter_id,
         e.encounter_type,
         e.location_id,
+        v.location_id,
         e.encounter_datetime,
         e.date_created,
         e.creator
     from encounter e
+    left join visit v on e.visit_id = v.visit_id and v.voided = 0
     inner join temp_program_patient pp on e.patient_id = pp.patient_id
     where encounter_type = _encounter_type_id
       and e.encounter_datetime >= pp.date_enrolled
       and (pp.date_completed is null or date(e.encounter_datetime) <= pp.date_completed)
-      and voided = 0;
+      and e.voided = 0;
 END
 #
 
@@ -129,6 +133,22 @@ END
 -- ********************************
 -- ENCOUNTER-RELATED FUNCTIONS
 -- ********************************
+
+DROP FUNCTION IF EXISTS temp_program_encounter_latest_encounter_id;
+#
+CREATE FUNCTION temp_program_encounter_latest_encounter_id(_patient_program_id int, _encounter_type_id int)
+    RETURNS int
+    DETERMINISTIC
+BEGIN
+    DECLARE ret int;
+    select      e.encounter_id into ret
+    from        temp_program_encounter e
+    where       e.patient_program_id = _patient_program_id
+      and       e.encounter_type_id = _encounter_type_id
+    order by    e.encounter_datetime desc, e.encounter_id desc limit 1;
+    RETURN ret;
+END
+#
 
 DROP FUNCTION IF EXISTS temp_program_encounter_latest_encounter_datetime;
 #
@@ -154,6 +174,22 @@ CREATE FUNCTION temp_program_encounter_latest_location(_patient_program_id int, 
 BEGIN
     DECLARE ret int;
     select      e.location_id into ret
+    from        temp_program_encounter e
+    where       e.patient_program_id = _patient_program_id
+      and       e.encounter_type_id = _encounter_type_id
+    order by    e.encounter_datetime desc, e.encounter_id desc limit 1;
+    RETURN ret;
+END
+#
+
+DROP FUNCTION IF EXISTS temp_program_encounter_latest_visit_location;
+#
+CREATE FUNCTION temp_program_encounter_latest_visit_location(_patient_program_id int, _encounter_type_id int)
+    RETURNS int
+    DETERMINISTIC
+BEGIN
+    DECLARE ret int;
+    select      e.visit_location_id into ret
     from        temp_program_encounter e
     where       e.patient_program_id = _patient_program_id
       and       e.encounter_type_id = _encounter_type_id
