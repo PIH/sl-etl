@@ -193,3 +193,17 @@ set t.index_asc = i.index_asc,
     t.index_desc = i.index_desc
 from pregnancy_program t inner join #derived_indexes i on i.pregnancy_program_id = t.pregnancy_program_id
 ;
+
+-- update index asc/desc on mother newborn relationship
+drop table if exists #derived_indexes;
+select  relationship_id,
+        ROW_NUMBER() over (PARTITION by patient_id order by date_created) as index_asc,
+        ROW_NUMBER() over (PARTITION by patient_id order by date_created DESC) as index_desc
+into    #derived_indexes
+from    mother_newborn_relationship;
+
+update t
+set t.index_asc = i.index_asc,
+    t.index_desc = i.index_desc
+from mother_newborn_relationship t inner join #derived_indexes i on i.relationship_id = t.relationship_id
+;

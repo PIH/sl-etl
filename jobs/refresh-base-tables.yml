@@ -52,3 +52,4 @@ configuration:
           - tableName: "postpartum_daily_encounter"
           - tableName: "appointments"
           - tableName: "pregnancy_program"
+          - tableName: "mother_newborn_relationship"
