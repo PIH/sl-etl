@@ -53,3 +53,4 @@ configuration:
           - tableName: "appointments"
           - tableName: "pregnancy_program"
           - tableName: "mother_newborn_relationship"
+          - tableName: "newborn_admission_encounter"
