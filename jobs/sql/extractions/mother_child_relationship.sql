@@ -64,11 +64,11 @@ update temp_mc_relation t
 set child_age_at_relationship_creation = TIMESTAMPDIFF(YEAR, child_dob,date_created);
 
 select 
- relationship_id,
+ concat(@partition,"-",relationship_id) relationship_id,
  emr_id,
- patient_id,
+ concat(@partition,"-",patient_id) patient_id,
  emr_id_mother, 
- patient_id_mother,
+ concat(@partition,"-",patient_id_mother) patient_id_mother,
  relationship_source, 
  user_entered,         
  date_created,     
