@@ -20,6 +20,7 @@ create table newborn_admission_encounter
 	outborn_delivery_type       varchar(255), 
 	outborn_delivery_location   varchar(255), 
 	outborn_method_of_transport varchar(255), 
+	maternal_complications      text,
 	weight                      float,        
 	muac                        float,        
 	length                      float,        
