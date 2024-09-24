@@ -1,10 +1,10 @@
  create table mother_child_relationship
 (
- relationship_id                    int,           
+ relationship_id                    varchar(100),           
  emr_id                             varchar(255),  
- patient_id                         int,           
+ patient_id                         varchar(100),           
  emr_id_mother                      varchar(255),  
- patient_id_mother                  int,           
+ patient_id_mother                  varchar(100),           
  relationship_source                varchar(255),  
  user_entered                       text,          
  date_created                       datetime,      
