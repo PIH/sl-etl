@@ -12,7 +12,7 @@ create table newborn_admission_encounter
 	admitted_to                 varchar(255),  
 	admission_datetime          datetime,      
 	condition_at_admission      varchar(255), 
-	clinical_adverse_effects    varchar(255), 
+	clinical_adverse_effects    bit, 
 	outborn_mothers_name        varchar(255), 
 	outborn_mothers_age         int,          
 	outborn_mother_is_alive     varchar(255), 
