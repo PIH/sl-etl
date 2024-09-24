@@ -1,7 +1,7 @@
 set @partition = '${partitionNum}';
 
 SELECT encounter_type_id INTO @newborn_admission FROM encounter_type et WHERE uuid = '093b6ffc-e55a-461a-85cc-c6acf7714a23';
-SELECT encounter_role_id INTO @ordering_provider FROM encounter_role where uuid = 'c458d78e-8374-4767-ad58-9f8fe276e01c';
+SELECT encounter_role_id INTO @consulting_clinician FROM encounter_role where uuid = '4f10ad1a-ec49-48df-98c7-1391c6ac7f05';
 
 drop temporary table if exists temp_na;
 create temporary table temp_na
@@ -26,6 +26,7 @@ outborn_number_of_newborns  varchar(255),
 outborn_delivery_type       varchar(255), 
 outborn_delivery_location   varchar(255), 
 outborn_method_of_transport varchar(255), 
+maternal_complications      text,
 weight                      double,        
 muac                        double,        
 length                      double,        
@@ -68,7 +69,7 @@ UPDATE temp_na set user_entered = person_name_of_user(user_entered);
 UPDATE temp_na SET admitting_clinician = provider(encounter_id);
 UPDATE temp_na  SET emr_id = patient_identifier(patient_id, metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType'));
 UPDATE temp_na SET encounter_location=encounter_location_name(encounter_id);
-UPDATE temp_na t SET admitting_clinician = provider_name_of_type(encounter_id, @ordering_provider, 0);
+UPDATE temp_na t SET admitting_clinician = provider_name_of_type(encounter_id, @consulting_clinician, 0);
 UPDATE temp_na t SET admitted_to = encounter_location;
 UPDATE temp_na t SET admission_datetime = encounter_datetime;
 
@@ -93,6 +94,8 @@ UPDATE temp_na set outborn_number_of_newborns = obs_value_coded_list_from_temp(e
 UPDATE temp_na set outborn_delivery_type = obs_value_coded_list_from_temp(encounter_id, 'PIH','11663','en');
 UPDATE temp_na set outborn_delivery_location = obs_value_coded_list_from_temp(encounter_id, 'PIH','20260','en');
 UPDATE temp_na set outborn_method_of_transport = obs_value_coded_list_from_temp(encounter_id, 'PIH','975','en');
+
+UPDATE temp_na set maternal_complications = obs_value_coded_list_from_temp(encounter_id, 'PIH','20542', @locale);
 
 UPDATE temp_na set weight = obs_value_numeric_from_temp(encounter_id, 'PIH','5089');
 UPDATE temp_na set muac = obs_value_numeric_from_temp(encounter_id, 'PIH','1290');
@@ -143,6 +146,7 @@ select
   outborn_delivery_type,
   outborn_delivery_location,
   outborn_method_of_transport,
+  maternal_complications,
   weight,
   muac,
   length,
