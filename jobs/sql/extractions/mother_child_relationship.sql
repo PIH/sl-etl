@@ -58,10 +58,10 @@ set relationship_source = 'Manual Input'
 where relationship_source is null;
 
 update temp_mc_relation t
-set child_age_current = TIMESTAMPDIFF(YEAR, child_dob,now());
+set child_age_current = format(DATEDIFF(now(),child_dob)/365,2);
 
 update temp_mc_relation t
-set child_age_at_relationship_creation = TIMESTAMPDIFF(YEAR, child_dob,date_created);
+set child_age_at_relationship_creation = format(DATEDIFF(date_created,child_dob)/365,2);  
 
 select 
  concat(@partition,"-",relationship_id) relationship_id,
