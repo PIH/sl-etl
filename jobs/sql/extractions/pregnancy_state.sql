@@ -13,12 +13,14 @@ state                       varchar(255),
 creator                     int(11),      
 user_entered                varchar(255), 
 date_entered                datetime,     
-state_start_date            datetime,     
-state_end_date              datetime,     
+state_start_date            date,     
+state_end_date              date,     
 program_enrollment_date     datetime,         
 program_completion_date     datetime,     
-index_asc                   int,          
-index_desc                  int,          
+index_asc_patient           int,          
+index_desc_patient          int,       
+index_asc_patient_program   int,          
+index_desc_patient_program  int,          
 PRIMARY KEY (pregnancy_program_state_id)
 );
 
@@ -67,6 +69,8 @@ state_start_date,
 state_end_date,
 program_enrollment_date,
 program_completion_date,
-index_asc,
-index_desc
+index_asc_patient,          
+index_desc_patient,       
+index_asc_patient_program,          
+index_desc_patient_program
 from temp_ps;
