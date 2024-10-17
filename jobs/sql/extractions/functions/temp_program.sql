@@ -209,7 +209,7 @@ BEGIN
     from        temp_program_encounter e
     where       e.patient_program_id = _patient_program_id
       and       e.encounter_type_id = _encounter_type_id
-     and        e.encounter_datetime < _end_datetime;
+     and        (end_datetime is null or e.encounter_datetime < _end_datetime);
     RETURN ret;
 END
 #
@@ -401,7 +401,7 @@ BEGIN
 	select start_date into ret from patient_state ps 
 	where patient_program_id = _patient_program_id
 	and ps.state = _patient_state_id
-	order by start_date desc limit 1;    
+	order by start_date asc limit 1;    
 	RETURN ret;
 END
 #
