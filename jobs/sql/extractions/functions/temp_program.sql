@@ -200,7 +200,7 @@ END
 
 DROP FUNCTION IF EXISTS temp_program_encounter_count;
 #
-CREATE FUNCTION temp_program_encounter_count(_patient_program_id int, _encounter_type_id int)
+CREATE FUNCTION temp_program_encounter_count(_patient_program_id int, _encounter_type_id int, _end_datetime datetime)
     RETURNS int
     DETERMINISTIC
 BEGIN
@@ -208,7 +208,8 @@ BEGIN
     select      count(e.encounter_id) into ret
     from        temp_program_encounter e
     where       e.patient_program_id = _patient_program_id
-      and       e.encounter_type_id = _encounter_type_id;
+      and       e.encounter_type_id = _encounter_type_id
+     and        (end_datetime is null or e.encounter_datetime < _end_datetime);
     RETURN ret;
 END
 #
@@ -387,5 +388,20 @@ BEGIN
       and       o.value_coded = concept_from_mapping(_answer_source, _answer_term)
       and       (_encounter_type is null or o.encounter_type_id = _encounter_type);
     RETURN ret;
+END
+#
+
+DROP FUNCTION IF EXISTS temp_program_earliest_patient_state_date;
+#
+CREATE FUNCTION temp_program_earliest_patient_state_date(_patient_program_id int, _patient_state_id int(11))
+    RETURNS date
+    DETERMINISTIC
+BEGIN
+    DECLARE ret date;
+	select start_date into ret from patient_state ps 
+	where patient_program_id = _patient_program_id
+	and ps.state = _patient_state_id
+	order by start_date asc limit 1;    
+	RETURN ret;
 END
 #

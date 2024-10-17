@@ -1,6 +1,7 @@
 SET sql_safe_updates = 0;
 SET SESSION group_concat_max_len = 100000;
 set @partition = '${partitionNum}';
+select program_workflow_state_id into @postpartum_state from program_workflow_state where uuid = 'a735b5f6-0b63-4d9a-ae2e-70d08c947aed';
 
 drop temporary table if exists temp_pregnancy_program;
 create temporary table temp_pregnancy_program
@@ -30,6 +31,7 @@ create temporary table temp_pregnancy_program
     estimated_gestational_age                  double,
     estimated_delivery_date                    date,
     latest_labor_delivery_summary_encounter_id int,
+    latest_labor_delivery_summary_datetime     datetime,
     actual_delivery_date                       date,
     delivery_location                          varchar(255),
     delivery_num_live_birth                    int,
@@ -40,9 +42,11 @@ create temporary table temp_pregnancy_program
     hiv_status                                 varchar(255),
     trimester_enrolled                         varchar(255),
     num_previous_anc_visits                    int,
+    anc_count_end_datetime                     datetime,
     total_anc_initial                          int,
     total_anc_followup                         int,
     total_anc_visits                           int,
+    post_partum_state_date                     date,
     ferrous_sulfate_folic_acid_ever            boolean,
     iptp_sp_malaria_ever                       boolean,
     nutrition_counseling_ever                  boolean,
@@ -196,12 +200,19 @@ update temp_pregnancy_program set hiv_status = 'Unknown' where hiv_status is nul
 
 update temp_pregnancy_program set trimester_enrolled = temp_program_obs_latest_value_coded_name(patient_program_id, 'PIH', '11661');
 
+update temp_pregnancy_program t
+inner join encounter e on e.encounter_id  = latest_labor_delivery_summary_encounter_id
+set  latest_labor_delivery_summary_datetime  = e.encounter_datetime;
+
 update temp_pregnancy_program set num_previous_anc_visits = temp_program_obs_latest_value_numeric(patient_program_id, 'CIEL', '1590');
 update temp_pregnancy_program set num_previous_anc_visits = 0 where num_previous_anc_visits is null;
 update temp_pregnancy_program set num_previous_anc_visits = (num_previous_anc_visits - 1) where num_previous_anc_visits > 0;
 
-update temp_pregnancy_program set total_anc_initial = temp_program_encounter_count(patient_program_id, @ancIntake);
-update temp_pregnancy_program set total_anc_followup = temp_program_encounter_count(patient_program_id, @ancFollowup);
+update temp_pregnancy_program set post_partum_state_date = temp_program_earliest_patient_state_date(patient_program_id, @postpartum_state);
+update temp_pregnancy_program set anc_count_end_datetime = LEAST(post_partum_state_date, latest_labor_delivery_summary_datetime);
+
+update temp_pregnancy_program set total_anc_initial = temp_program_encounter_count(patient_program_id, @ancIntake, anc_count_end_datetime);
+update temp_pregnancy_program set total_anc_followup = temp_program_encounter_count(patient_program_id, @ancFollowup, anc_count_end_datetime);
 update temp_pregnancy_program set total_anc_visits = num_previous_anc_visits + total_anc_initial + total_anc_followup;
 
 update temp_pregnancy_program set ferrous_sulfate_folic_acid_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '164166', 'CIEL', '1065'), 0) > 0;
@@ -216,6 +227,8 @@ update temp_pregnancy_program set pregnancy_status = 'Postnatal, miscarriage' wh
 update temp_pregnancy_program set pregnancy_status = 'Presumed postnatal' where pregnancy_status is null;
 
 update temp_pregnancy_program set delivery_location = 'outborn' where delivery_location is null and pregnancy_status != 'Prenatal';
+update temp_pregnancy_program set delivery_location = 'miscarried' where outcome = 'Miscarried';
+
 
 select concat(@partition,'-',patient_program_id) as pregnancy_program_id,
        concat(@partition,'-',patient_id) as patient_id,
