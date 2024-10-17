@@ -61,8 +61,7 @@ WHERE a.voided = 0 and p.voided = 0;
 -- note the date_appointment_scheduled function will return the date appointement scheduled only if that column exists on the patient_appointment table
 -- otherwise it will return null
 -- the update statement can be moved into the insert statement above at some point after that column is added in all databases
-update temp_appointments t
-set date_issued = date(date_appointment_scheduled(t.appointment_id));
+update temp_appointments t set date_issued = date(date_appointment_scheduled(t.appointment_id));
 
 update temp_appointments set emr_id = patient_identifier(patient_id, metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType'));
 update temp_appointments a inner join patient_appointment_occurrence o on a.appointment_id = o.patient_appointment_id set a.recurring = 1;
