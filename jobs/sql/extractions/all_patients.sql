@@ -1,200 +1,126 @@
 -- --------------- Variables ----------------------------
 set @partition = '${partitionNum}';
-SELECT patient_identifier_type_id INTO @identifier_type FROM patient_identifier_type pit WHERE uuid ='1a2acce0-7426-11e5-a837-0800200c9a66';
-SELECT patient_identifier_type_id INTO @kgh_identifier_type 
-FROM patient_identifier_type pit WHERE uuid ='c09a1d24-7162-11eb-8aa6-0242ac110002';
-select encounter_type_id  into @reg_type_id 
-from encounter_type et where uuid='873f968a-73a8-4f9c-ac78-9f4778b751b6';
+set @locale = 'en';
+select encounter_type_id  into @regEncounterType from encounter_type et where uuid='873f968a-73a8-4f9c-ac78-9f4778b751b6';
 
--- ------------------------- Get Fresh Data ---------------------------------------
-
-DROP TABLE IF EXISTS all_patients;
-CREATE TEMPORARY TABLE  all_patients
+DROP TABLE IF EXISTS temp_patients;
+CREATE TEMPORARY TABLE  temp_patients
 (
-wellbody_emr_id varchar(50),
-kgh_emr_id varchar(50),
-patient_id int, 
-reg_location varchar(50),
-reg_date date,
-user_entered varchar(50),
-fist_encounter_date date,
-last_encounter_date date, 
-name varchar(50),
-family_name varchar(50),
-dob date,
-dob_estimated bit,
-gender varchar(2),
-dead bit,
-death_date date,
-cause_of_death varchar(100)
+wellbody_emr_id           varchar(50),  
+kgh_emr_id                varchar(50),  
+patient_id                int,           
+mothers_first_name        VARCHAR(255), 
+country                   VARCHAR(255), 
+registration_encounter_id int(11),      
+district                  VARCHAR(255), 
+chiefdom                  VARCHAR(255), 
+section                   VARCHAR(255), 
+village                   VARCHAR(255), 
+telephone_number          VARCHAR(255), 
+civil_status              VARCHAR(255), 
+occupation                VARCHAR(255), 
+reg_location              varchar(50),  
+reg_location_id           int(11),      
+registration_date         date,         
+registration_entry_date   datetime,     
+creator                   int(11),      
+user_entered              varchar(50),  
+first_encounter_date      date,         
+last_encounter_date       date,          
+name                      varchar(50),  
+family_name               varchar(50),  
+dob                       date,         
+dob_estimated             bit,          
+gender                    varchar(2),   
+dead                      bit,          
+death_date                date,         
+cause_of_death_concept_id int(11),      
+cause_of_death            varchar(100)  
 );
 
--- ---------- Temp tables ----------------
-drop table if exists tbl_first_enc;
-create temporary table tbl_first_enc
-SELECT
-    e.patient_id AS patient_id,
-    min(e.encounter_datetime) AS encounter_datetime
-FROM
-    encounter e
-GROUP BY
-    e.patient_id;
- 
-drop table if exists tbl_first_enc_details;
-create temporary table tbl_first_enc_details
-SELECT
-    DISTINCT e.patient_id AS patient_id,
-    e.encounter_datetime AS encounter_datetime,
-    e.encounter_id AS encounter_id,
-    e.encounter_type AS encounter_type,
-    u.username,
-    l.name AS name
-FROM
-    ((encounter e
-JOIN tbl_first_enc X ON
-    (((X.patient_id = e.patient_id)
-        AND (X.encounter_datetime = e.encounter_datetime))))
-JOIN location l ON
-    ((l.location_id = e.location_id)))
-LEFT OUTER JOIN users u ON e.creator =u.user_id ;
+-- load all patients
+insert into temp_patients (patient_id) 
+select patient_id from patient p where p.voided = 0;
 
-   
--- --------- Identifications --------------------------------------------------------
+-- person info
+update temp_patients t
+inner join person p on p.person_id = t.patient_id
+set t.gender = p.gender,
+	t.dob = p.birthdate,
+	t.dob_estimated = p.birthdate_estimated,
+	t.dead = p.dead,
+	t.death_date = p.death_date,
+	t.cause_of_death_concept_id = p.cause_of_death; 
 
-INSERT INTO all_patients (patient_id) 
-SELECT DISTINCT  p.patient_id
-FROM patient p
-where p.voided=0
-GROUP BY p.patient_id ;
+update temp_patients t set cause_of_death = concept_name(cause_of_death_concept_id,@locale);
 
-UPDATE all_patients dp 
-inner join 
- (
- SELECT identifier,patient_id
- FROM patient_identifier 
- WHERE identifier_type =@identifier_type
- AND voided=0
- group by patient_id
-) x 
-on  x.patient_id=dp.patient_id
-SET dp.wellbody_emr_id= x.identifier;
+-- name info
+update temp_patients t set name = person_given_name(patient_id);
+update temp_patients t set family_name = person_family_name(patient_id);
 
+-- address info
+update temp_patients t set country = person_address_country(patient_id);
+update temp_patients t set district = person_address_county_district(patient_id);
+update temp_patients t set chiefdom = person_address_state_province(patient_id);
+update temp_patients t set section = person_address_one(patient_id);
+update temp_patients t set village = person_address_city_village(patient_id);
 
-UPDATE all_patients dp 
-inner join 
- (
- SELECT identifier,patient_id
- FROM patient_identifier 
- WHERE identifier_type =@kgh_identifier_type
- AND voided=0
- group by patient_id
-) x 
-on  x.patient_id=dp.patient_id
-SET dp.kgh_emr_id= x.identifier;
+-- identifiers
+update temp_patients t set wellbody_emr_id = patient_identifier(patient_id,'1a2acce0-7426-11e5-a837-0800200c9a66');
+update temp_patients t set kgh_emr_id = patient_identifier(patient_id, 'c09a1d24-7162-11eb-8aa6-0242ac110002');
 
+-- person attributes
+update temp_patients t set telephone_number = person_attribute_value(patient_id,'Telephone Number');
+update temp_patients t set mothers_first_name = person_attribute_value(patient_id,'First Name of Mother');
 
--- --------- Registeration --------------------------------------------------------
+-- registration encounter
+update temp_patients t set registration_encounter_id = latestEnc(patient_id,'Patient Registration',null);
 
-UPDATE all_patients dp
-SET dp.reg_location=loc_registered(patient_id),
-dp.reg_date=CAST(registration_date(patient_id) AS date);
+-- registration encounter fields
+update temp_patients t 
+inner join encounter e on e.encounter_id = t.registration_encounter_id
+set t.reg_location_id = e.location_id,
+	t.registration_entry_date = e.date_created,
+	t.registration_date = e.encounter_datetime,
+	t.creator = e.creator ;
 
-drop table if exists tmp_first_enc_date;
-create temporary table tmp_first_enc_date as
-select min(cast(encounter_datetime as date)) as encounter_date, patient_id
-from encounter e 
-where encounter_type <>  @reg_type_id
-group by patient_id;
+update temp_patients t set reg_location = location_name(reg_location_id);
+update temp_patients t set user_entered = person_name_of_user(creator);
 
-drop table if exists tmp_last_enc_date;
-create temporary table tmp_last_enc_date as
-select max(cast(encounter_datetime as date)) as encounter_date, patient_id
-from encounter e 
-group by patient_id;
+-- registration obs
+DROP TABLE IF EXISTS temp_obs;
+CREATE TEMPORARY TABLE temp_obs AS
+SELECT o.person_id, o.obs_id ,o.obs_group_id, o.obs_datetime, o.date_created, o.encounter_id, o.value_coded, o.concept_id, o.value_numeric, o.voided, o.value_drug
+FROM temp_patients t INNER JOIN obs o ON t.registration_encounter_id = o.encounter_id
+WHERE o.voided = 0;
+create index temp_obs_ci1 on temp_obs(concept_id);
 
-UPDATE all_patients dp
-inner join
- (
-	select patient_id,encounter_date
-	from tmp_first_enc_date
-) x
-on dp.patient_id= x.patient_id
-set fist_encounter_date =x.encounter_date;
+update temp_patients t set civil_status = obs_value_coded_list_from_temp(t.registration_encounter_id, 'PIH','1054',@locale );
+update temp_patients t set occupation = obs_value_coded_list_from_temp(t.registration_encounter_id, 'PIH','1304',@locale );
 
-
-UPDATE all_patients dp
-inner join 
- (
-	select patient_id,encounter_date
-	from tmp_last_enc_date
-) x 
-on dp.patient_id= x.patient_id
-set dp.last_encounter_date=x.encounter_date;
-
-update all_patients dp 
-inner join
-(
-	select patient_id, name 
-	from tbl_first_enc_details 
-) x 
-on dp.patient_id= x.patient_id
-set dp.reg_location = x.name
-where dp.reg_location is null;
-
-update all_patients dp 
-inner join (
-	select patient_id,cast(encounter_datetime as date) encdate
-	from tbl_first_enc_details 
-) x 
-on dp.patient_id= x.patient_id
-set dp.reg_date = x.encdate
-where dp.reg_date is null;
-
-
-update all_patients dp 
-inner join (
-	select patient_id,username
-	from tbl_first_enc_details 
-) x 
-on dp.patient_id= x.patient_id
-set dp.user_entered = x.username;
-
--- --------- Demographical ---------------------------------------------------------
-
-UPDATE all_patients de 
-INNER JOIN (
-SELECT person_id,given_name,family_name FROM person_name 
-WHERE voided=0 
-) pn ON de.patient_id =pn.person_id 
-SET de.name=pn.given_name, 
-	de.family_name=pn.family_name;
-
--- -------------------- Bio Information -----------------------
-
-UPDATE all_patients tt
-SET tt.dob= birthdate(tt.patient_id),
-tt.gender=gender(tt.patient_id);
-
-UPDATE all_patients tt INNER JOIN (
-SELECT person_id, dead , death_date, cause_of_death, birthdate_estimated 
-FROM person p WHERE voided=0
-) st 
-on  st.person_id =tt.patient_id 
-SET tt.dead = st.dead,
-	tt.death_date = CAST(st.death_date AS date),
-tt.cause_of_death=st.cause_of_death,
-tt.dob_estimated=st.birthdate_estimated;
-
+-- first/latest encounter
+update temp_patients t set first_encounter_date = (select min(encounter_datetime) from encounter e where e.patient_id = t.patient_id);
+update temp_patients t set last_encounter_date = (select max(encounter_datetime) from encounter e where e.patient_id = t.patient_id);
 
 SELECT 
 wellbody_emr_id,
 kgh_emr_id,
 COALESCE(wellbody_emr_id, kgh_emr_id)  emr_id,
 concat(@partition,"-",patient_id)  patient_id,
+mothers_first_name,
+country,
+district,
+chiefdom,
+section,
+village,
+telephone_number,
+civil_status,
+occupation,
 reg_location,
-reg_date as date_registration_entered,
+registration_date,
+registration_entry_date,
 user_entered,
-fist_encounter_date,
+first_encounter_date,
 last_encounter_date,
 name,
 family_name,
@@ -204,4 +130,4 @@ gender,
 dead,
 death_date,
 cause_of_death
-FROM all_patients dp;
+FROM temp_patients;
