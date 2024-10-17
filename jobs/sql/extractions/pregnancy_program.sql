@@ -1,6 +1,7 @@
 SET sql_safe_updates = 0;
 SET SESSION group_concat_max_len = 100000;
 set @partition = '${partitionNum}';
+select program_workflow_state_id into @postpartum_state from program_workflow_state where uuid = 'a735b5f6-0b63-4d9a-ae2e-70d08c947aed';
 
 drop temporary table if exists temp_pregnancy_program;
 create temporary table temp_pregnancy_program
@@ -61,7 +62,6 @@ set @type_of_tx_workflow_id = (select program_workflow_id from program_workflow 
 set @ancIntake = encounter_type('00e5e810-90ec-11e8-9eb6-529269fb1459');
 set @ancFollowup = encounter_type('00e5e946-90ec-11e8-9eb6-529269fb1459');
 set @laborDeliverySummary = encounter_type('fec2cc56-e35f-42e1-8ae3-017142c1ca59');
-set @laborProgress = encounter_type('ac5ec970-31b7-4659-9141-284bfbc13c69');
 
 # Set up one row per patient program
 call temp_program_patient_create();
@@ -73,7 +73,6 @@ call temp_program_encounter_create();
 call temp_program_encounter_populate(@ancIntake);
 call temp_program_encounter_populate(@ancFollowup);
 call temp_program_encounter_populate(@laborDeliverySummary);
-call temp_program_encounter_populate(@laborProgress);
 call temp_program_encounter_create_indexes();
 
 # Link in the observations from the pregnancy encounters
@@ -209,9 +208,7 @@ update temp_pregnancy_program set num_previous_anc_visits = temp_program_obs_lat
 update temp_pregnancy_program set num_previous_anc_visits = 0 where num_previous_anc_visits is null;
 update temp_pregnancy_program set num_previous_anc_visits = (num_previous_anc_visits - 1) where num_previous_anc_visits > 0;
 
-set @postpartum_concept_id = concept_from_mapping('PIH','13137');
-select program_workflow_state_id into @postpartum_state from program_workflow_state where concept_id = @postpartum_concept_id;
-update temp_pregnancy_program set post_partum_state_date = temp_program_earliest_patient_state_date(patient_program_id ,@postpartum_state );
+update temp_pregnancy_program set post_partum_state_date = temp_program_earliest_patient_state_date(patient_program_id, @postpartum_state);
 update temp_pregnancy_program set anc_count_end_datetime = LEAST(post_partum_state_date, latest_labor_delivery_summary_datetime);
 
 update temp_pregnancy_program set total_anc_initial = temp_program_encounter_count(patient_program_id, @ancIntake, anc_count_end_datetime);
