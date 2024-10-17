@@ -209,7 +209,7 @@ BEGIN
     from        temp_program_encounter e
     where       e.patient_program_id = _patient_program_id
       and       e.encounter_type_id = _encounter_type_id
-     and        (end_datetime is null or e.encounter_datetime < _end_datetime);
+      and        (_end_datetime is null or e.encounter_datetime < _end_datetime);
     RETURN ret;
 END
 #
