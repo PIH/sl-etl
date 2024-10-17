@@ -28,6 +28,7 @@ configuration:
           - "sql/extractions/functions/temp_program.sql"
           - "sql/utils/create_functions.sql"
           - "sql/utils/global_metadata.sql"
+          - "sql/extractions/functions/appointments.sql"
     - type: "sql-execution"
       description: "Create source indexes for ${siteName}"
       configuration:
