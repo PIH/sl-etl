@@ -25,7 +25,7 @@ create temporary table temp_appointments
 insert into temp_appointments(
       appointment_id,
       patient_id,
-      date_issued,
+ --     date_issued,
       location,
       service,
       type,
@@ -41,7 +41,7 @@ insert into temp_appointments(
 select
     a.patient_appointment_id as appointment_id,
     a.patient_id,
-    date(a.date_appointment_scheduled) as date_issued,
+--    date(a.date_appointment_scheduled) as date_issued,
     location_name(a.location_id) as location,
     s.name as service,
     a.appointment_kind as type,
@@ -51,12 +51,18 @@ select
     provider_name_from_provider_id(a.provider_id) as provider,
     a.status,
     a.comments as note,
-    a.date_created as datetime_created,
+    a.date_created as datetime_created,  
     person_name_of_user(a.creator) as user_entered
 from patient_appointment a
 inner join patient p on a.patient_id = p.patient_id
 left join appointment_service s on a.appointment_service_id = s.appointment_service_id
 WHERE a.voided = 0 and p.voided = 0;
+
+-- note the date_appointment_scheduled function will return the date appointement scheduled only if that column exists on the patient_appointment table
+-- otherwise it will return null
+-- the update statement can be moved into the insert statement above at some point after that column is added in all databases
+update temp_appointments t
+set date_issued = date(date_appointment_scheduled(t.appointment_id));
 
 update temp_appointments set emr_id = patient_identifier(patient_id, metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType'));
 update temp_appointments a inner join patient_appointment_occurrence o on a.appointment_id = o.patient_appointment_id set a.recurring = 1;
