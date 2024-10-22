@@ -9,9 +9,10 @@ BEGIN
 
 IF column_exists('patient_appointment','date_appointment_scheduled') THEN
  select date_appointment_scheduled into ret
- 	from patient_appointment where patient_appointment_id = _patient_appointment_id	;
+ 	from patient_appointment where patient_appointment_id = _patient_appointment_id;
 ELSE
- set ret = null ;
+  select date_created into ret
+ 	from patient_appointment where patient_appointment_id = _patient_appointment_id;
 END IF;
 
     RETURN ret;
