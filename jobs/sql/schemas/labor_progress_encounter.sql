@@ -1,8 +1,9 @@
 create table labor_progress_encounter
 (
-emr_id                    varchar(255), 
-encounter_id              int,          
-visit_id                  int,          
+patient_id                varchar(100),
+emr_id                    varchar(100), 
+encounter_id              varchar(100),           
+visit_id                  varchar(100),         
 encounter_datetime        datetime,     
 encounter_location        varchar(255), 
 datetime_created          datetime,     
