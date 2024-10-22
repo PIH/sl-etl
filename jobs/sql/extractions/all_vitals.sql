@@ -279,6 +279,7 @@ CREATE TEMPORARY TABLE temp_vitals_index_desc
  
 select 
 	all_vitals_id,
+	concat(@partition,'-',patient_id) patient_id,
 	emr_id ,
 	concat(@partition,'-',encounter_id) encounter_id,
 	concat(@partition,'-',visit_id) visit_id,

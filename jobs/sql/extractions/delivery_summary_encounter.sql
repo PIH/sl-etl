@@ -1,3 +1,5 @@
+set @partition = '${partitionNum}';
+
 SELECT encounter_type_id INTO @labor_enc FROM encounter_type et WHERE uuid='fec2cc56-e35f-42e1-8ae3-017142c1ca59';
 
 drop temporary table if exists temp_labor_encs;
@@ -118,9 +120,10 @@ SET delivery_method=obs_from_group_id_value_coded_list_from_temp(obs_group_id, '
 
 SELECT
 baby_emr_id as emr_id,
+concat(@partition,"-",patient_id) as mother_patient_id,
 mother_emr_id,
-encounter_id,
-visit_id,
+concat(@partition,"-",encounter_id) as encounter_id,
+concat(@partition,"-",visit_id) as visit_id,
 encounter_datetime,
 encounter_location,
 datetime_created,

@@ -1,3 +1,4 @@
+set @partition = '${partitionNum}';
 select encounter_type_id  into @labor_enc
 from encounter_type et where uuid='ac5ec970-31b7-4659-9141-284bfbc13c69';
 
@@ -204,9 +205,10 @@ SET partogram_uploaded=latest_obs_from_temp_from_concept_id(patient_id, concept_
 
 
 SELECT 
+concat(@partition,"-",patient_id) as patient_id,
 emr_id,
-encounter_id,
-visit_id,
+concat(@partition,"-",encounter_id) as encounter_id,
+concat(@partition,"-",visit_id) as visit_id,
 encounter_datetime,
 encounter_location,
 datetime_created,
