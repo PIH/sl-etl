@@ -2,6 +2,8 @@
 -- This will return the date appointment scheduled for a given patient appoointment id
 -- if that column does not exist, return null
 #
+DROP FUNCTION IF EXISTS date_appointment_scheduled;
+#
 CREATE FUNCTION date_appointment_scheduled(_patient_appointment_id int) RETURNS datetime
     DETERMINISTIC
 BEGIN
