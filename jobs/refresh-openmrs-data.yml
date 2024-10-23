@@ -28,3 +28,4 @@ configuration:
           - tableName: "drop_old_tables"
           - tableName: "drug_categories"
           - tableName: "ncd_monthly_summary"
+          - tableName: "maternity_patient"
