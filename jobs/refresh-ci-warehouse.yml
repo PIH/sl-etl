@@ -21,3 +21,4 @@ configuration:
           - tableName: "dim_date"
           - tableName: "drug_categories"
           - tableName: "ncd_monthly_summary"
+          - tableName: "maternity_patient"
