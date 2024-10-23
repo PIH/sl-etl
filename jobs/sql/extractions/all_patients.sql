@@ -41,6 +41,7 @@ cause_of_death            varchar(100)
 -- load all patients
 insert into temp_patients (patient_id) 
 select patient_id from patient p where p.voided = 0;
+create index temp_patients_pi on temp_patients(patient_id);
 
 -- person info
 update temp_patients t
@@ -55,15 +56,25 @@ set t.gender = p.gender,
 update temp_patients t set cause_of_death = concept_name(cause_of_death_concept_id,@locale);
 
 -- name info
-update temp_patients t set name = person_given_name(patient_id);
-update temp_patients t set family_name = person_family_name(patient_id);
+update temp_patients t
+inner join person_name n on n.person_name_id =
+	(select n2.person_name_id from person_name n2
+	where n2.person_id = t.patient_id
+	order by preferred desc, date_created desc limit 1)
+set t.name = n.given_name,
+	t.family_name = n.family_name;
 
 -- address info
-update temp_patients t set country = person_address_country(patient_id);
-update temp_patients t set district = person_address_county_district(patient_id);
-update temp_patients t set chiefdom = person_address_state_province(patient_id);
-update temp_patients t set section = person_address_one(patient_id);
-update temp_patients t set village = person_address_city_village(patient_id);
+update temp_patients t
+inner join person_address a on a.person_address_id =
+	(select a2.person_address_id from person_address a2
+	where a2.person_id = t.patient_id
+	order by preferred desc, date_created desc limit 1)
+set t.country = a.country,
+	t.chiefdom = a.state_province,
+	t.village = a.city_village,
+	t.district = a.county_district ,
+	t.section = a.address1;
 
 -- identifiers
 update temp_patients t set wellbody_emr_id = patient_identifier(patient_id,'1a2acce0-7426-11e5-a837-0800200c9a66');
@@ -75,6 +86,7 @@ update temp_patients t set mothers_first_name = person_attribute_value(patient_i
 
 -- registration encounter
 update temp_patients t set registration_encounter_id = latestEnc(patient_id,'Patient Registration',null);
+create index temp_patients_pri on temp_patients(registration_encounter_id); 
 
 -- registration encounter fields
 update temp_patients t 
@@ -93,7 +105,7 @@ CREATE TEMPORARY TABLE temp_obs AS
 SELECT o.person_id, o.obs_id ,o.obs_group_id, o.obs_datetime, o.date_created, o.encounter_id, o.value_coded, o.concept_id, o.value_numeric, o.voided, o.value_drug
 FROM temp_patients t INNER JOIN obs o ON t.registration_encounter_id = o.encounter_id
 WHERE o.voided = 0;
-create index temp_obs_ci1 on temp_obs(concept_id);
+create index temp_obs_ci1 on temp_obs(encounter_id, concept_id);
 
 update temp_patients t set civil_status = obs_value_coded_list_from_temp(t.registration_encounter_id, 'PIH','1054',@locale );
 update temp_patients t set occupation = obs_value_coded_list_from_temp(t.registration_encounter_id, 'PIH','1304',@locale );
