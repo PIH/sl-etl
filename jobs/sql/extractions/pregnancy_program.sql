@@ -221,10 +221,10 @@ update temp_pregnancy_program set nutrition_counseling_ever = ifnull(temp_progra
 update temp_pregnancy_program set hiv_counsel_and_test_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '164401', 'CIEL', '1065'), 0) > 0;
 update temp_pregnancy_program set insecticide_treated_net_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '159855', 'CIEL', '1065'), 0) > 0;
 
-update temp_pregnancy_program set pregnancy_status = 'Prenatal' where actual_delivery_date is null and estimated_gestational_age <= 45 and outcome_concept_id is null and current_state_concept_id != concept_from_mapping('CIEL', '1180');
-update temp_pregnancy_program set pregnancy_status = 'Postnatal, delivered' where delivery_outcome in ('Alive', 'Stillbirth', 'Multiple outcome');
-update temp_pregnancy_program set pregnancy_status = 'Postnatal, miscarriage' where outcome_concept_id = concept_from_mapping('PIH', '1852');
-update temp_pregnancy_program set pregnancy_status = 'Presumed postnatal' where pregnancy_status is null;
+update temp_pregnancy_program set pregnancy_status = 'Antenatal' where actual_delivery_date is null and estimated_gestational_age <= 45 and outcome_concept_id is null and current_state_concept_id != concept_from_mapping('CIEL', '1180');
+update temp_pregnancy_program set pregnancy_status = 'Postpartum, delivered' where delivery_outcome in ('Alive', 'Stillbirth', 'Multiple outcome');
+update temp_pregnancy_program set pregnancy_status = 'Postpartum, miscarriage' where outcome_concept_id = concept_from_mapping('PIH', '1852');
+update temp_pregnancy_program set pregnancy_status = 'Presumed postpartum' where pregnancy_status is null and estimated_gestational_age > 45;
 
 update temp_pregnancy_program set delivery_location = 'outborn' where delivery_location is null and pregnancy_status != 'Prenatal';
 update temp_pregnancy_program set delivery_location = 'miscarried' where outcome = 'Miscarried';
