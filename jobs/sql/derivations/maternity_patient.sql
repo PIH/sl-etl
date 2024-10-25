@@ -95,7 +95,7 @@ from all_vitals x
 inner join maternity_patient_staging m on m.patient_id = x.patient_id;
 
 insert into #maternity_encounters (patient_id, encounter_id, encounter_type, height, weight, bp_systolic, bp_diastolic, gravida, parity, abortus, living, encounter_datetime )
-select x.patient_id, x.encounter_id, x.visit_type,x.height, x.weight, x.bp_systolic, x.bp_diastolic, x.gravida, x.parity, x.abortus, x.living, x.encounter_datetime  
+select x.patient_id, x.encounter_id, iif(x.visit_type='ANC Intake','ANC Initial',x.visit_type),x.height, x.weight, x.bp_systolic, x.bp_diastolic, x.gravida, x.parity, x.abortus, x.living, x.encounter_datetime  
 from anc_encounter x
 inner join maternity_patient_staging m on m.patient_id = x.patient_id;
 
@@ -127,7 +127,8 @@ where x.encounter_type in
 ('Sierra Leone Maternal Check-in',
 'Maternal Discharge',
 'Sierra Leone Maternal Admission',
-'Sierra Leone MCH Triage');
+'Sierra Leone MCH Triage',
+'MCH Delivery');
 
 update m
 set most_recent_height = e.height
@@ -202,7 +203,7 @@ inner join #maternity_encounters e on e.encounter_id =
 	order by e2.encounter_datetime desc);
 
 update m
-set m.latest_maternity_encounter_date = (select max(e.encounter_datetime) from #maternity_encounters e where e.patient_id = m.patient_id) 
+set m.latest_maternity_encounter_date = (select max(e.encounter_datetime) from #maternity_encounters e where e.patient_id = m.patient_id and e.encounter_type <> 'vitals') 
 from maternity_patient_staging m;
 
 update m
@@ -218,7 +219,9 @@ inner join pregnancy_program pp on pp.pregnancy_program_id =
 	and pp2.hiv_status is not NULL 
 	order by pp2.date_enrolled desc);
 
+
 -- --------------------------
 ALTER TABLE maternity_patient_staging DROP COLUMN estimated_gestational_age, current_pregnancy_state,pregnancy_outcome;
+
 DROP TABLE IF EXISTS maternity_patient;
 EXEC sp_rename 'maternity_patient_staging', 'maternity_patient';
