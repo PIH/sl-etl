@@ -207,7 +207,7 @@ set m.latest_maternity_encounter_date = (select max(e.encounter_datetime) from #
 from maternity_patient_staging m;
 
 update m
-set m.latest_maternity_encounter_type = (select max(e.encounter_type) from #maternity_encounters e where e.patient_id = m.patient_id and e.encounter_datetime = m.latest_maternity_encounter_date ) 
+set m.latest_maternity_encounter_type = (select max(e.encounter_type) from #maternity_encounters e where e.patient_id = m.patient_id and e.encounter_datetime = m.latest_maternity_encounter_date) 
 from maternity_patient_staging m;
 
 update m
