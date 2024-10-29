@@ -206,8 +206,12 @@ update m
 set m.latest_maternity_encounter_date = (select max(e.encounter_datetime) from #maternity_encounters e where e.patient_id = m.patient_id and e.encounter_type <> 'vitals') 
 from maternity_patient_staging m;
 
+
 update m
 set m.latest_maternity_encounter_type = (select max(e.encounter_type) from #maternity_encounters e where e.patient_id = m.patient_id and e.encounter_datetime = m.latest_maternity_encounter_date) 
+from maternity_patient_staging m;
+update m
+set m.latest_maternity_encounter_type = iif(latest_maternity_encounter_date is null, 'enrollment only',latest_maternity_encounter_type )
 from maternity_patient_staging m;
 
 update m
@@ -218,7 +222,6 @@ inner join pregnancy_program pp on pp.pregnancy_program_id =
 	where pp2.patient_id = m.patient_id
 	and pp2.hiv_status is not NULL 
 	order by pp2.date_enrolled desc);
-
 
 -- --------------------------
 ALTER TABLE maternity_patient_staging DROP COLUMN estimated_gestational_age, current_pregnancy_state,pregnancy_outcome;
