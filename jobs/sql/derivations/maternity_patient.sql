@@ -217,15 +217,21 @@ set m.latest_maternity_encounter_type = iif(latest_maternity_encounter_date is n
 from maternity_patient_staging m;
 
 update m
-set most_recent_hiv_status = pp.hiv_status
+set most_recent_hiv_status = l.result
 from maternity_patient_staging m
-inner join pregnancy_program pp on pp.pregnancy_program_id = 
-	(select top 1 pp2.pregnancy_program_id from pregnancy_program pp2
-	where pp2.patient_id = m.patient_id
-	and pp2.hiv_status is not NULL 
-	order by pp2.date_enrolled desc);
+inner join labs_order_results l on l.lab_results_id = 
+	(select top 1 l2.lab_results_id from labs_order_results l2
+	where l2.patient_id = m.patient_id
+	and l2.test in ('HIV test result','Rapid test for HIV')
+	order by l2.specimen_collection_date desc);
+
 update m
-set m.most_recent_hiv_status = iif(most_recent_hiv_status is null, 'Unknown',most_recent_hiv_status )
+set m.most_recent_hiv_status = 
+	CASE 
+ 		when most_recent_hiv_status	is null then 'Unknown'
+		when most_recent_hiv_status	= 'Indeterminate' then 'Unknown'
+	    else most_recent_hiv_status
+	 END   
 from maternity_patient_staging m;
 
 -- --------------------------
