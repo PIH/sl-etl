@@ -1,5 +1,6 @@
 CREATE TABLE labs_order_results
 (
+ lab_results_id           VARCHAR(100),
  patient_id               VARCHAR(100), 
  wellbody_emr_id          VARCHAR(255), 
  kgh_emr_id               VARCHAR(255), 
