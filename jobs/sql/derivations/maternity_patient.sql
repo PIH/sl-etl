@@ -37,7 +37,10 @@ where encounter_type in
 'ANC Intake',
 'Sierra Leone MCH Triage',
 'Labour Progress',
-'Postpartum progress'); 
+'Postpartum progress')
+union
+select DISTINCT emr_id, patient_id 
+from pregnancy_program ; 
 
 -- all_patient fields
 update m
