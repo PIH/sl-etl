@@ -47,6 +47,7 @@ CREATE TEMPORARY TABLE temp_laborders_spec
 DROP TEMPORARY TABLE IF EXISTS temp_labresults;
 CREATE TEMPORARY TABLE temp_labresults
 (
+  lab_results_id int(11) NOT NULL AUTO_INCREMENT, 
   patient_id INT,
   wellbody_emr_id    VARCHAR(255),
   kgh_emr_id        VARCHAR(255),
@@ -75,7 +76,8 @@ CREATE TEMPORARY TABLE temp_labresults
   reason_not_performed TEXT,
   result_coded_answer VARCHAR(255),
   result_numeric_answer DOUBLE,
-  result_text_answer TEXT
+  result_text_answer TEXT,
+  PRIMARY KEY (lab_results_id)
 );
  
  -- this loads all specimen encounters (from the lab application) into a temp table 
@@ -192,6 +194,7 @@ SET t.units = cu.units
 
 -- select  all output:
 SELECT 
+       concat(@partition,"-",t.lab_results_id)  lab_results_id,
        concat(@partition,"-",t.patient_id)  patient_id,
        t.wellbody_emr_id, 
        t.kgh_emr_id,
