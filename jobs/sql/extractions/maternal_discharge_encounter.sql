@@ -1,3 +1,4 @@
+SET @partition = '${partitionNum}';
 select encounter_type_id  into @disch_enc
 from encounter_type et where uuid='2110a810-db62-4914-ba95-604b96010164';
 
@@ -65,8 +66,9 @@ SET followup_clinic=obs_value_coded_list_from_temp(encounter_id, 'PIH','1272','e
 
 SELECT 
 emr_id,
-encounter_id,
-visit_id,
+CONCAT(@partition,'-',patient_id) "patient_id",
+CONCAT(@partition,'-',encounter_id) "encounter_id",
+CONCAT(@partition,'-',visit_id) "visit_id",
 encounter_datetime,
 datetime_created,
 user_entered,
