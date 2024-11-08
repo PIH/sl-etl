@@ -1,5 +1,6 @@
 create table mh_encounters
 (
+ patient_id                                   varchar(50),
  emr_id                                       varchar(50),   
  location_registered                          varchar(255),  
  age_at_encounter                             int,           
