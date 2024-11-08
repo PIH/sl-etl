@@ -1,3 +1,4 @@
+set @partition = '${partitionNum}';
 SET sql_safe_updates = 0;
 
 DROP TEMPORARY TABLE IF EXISTS temp_mentalhealth_program;
