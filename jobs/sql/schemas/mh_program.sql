@@ -1,5 +1,6 @@
 create table mh_program
 (
+patient_id varchar(50),  
 emr_id varchar(255),
 gender varchar(50),
 age int,
