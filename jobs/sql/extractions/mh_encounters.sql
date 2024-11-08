@@ -589,6 +589,7 @@ update temp_mh set assigned_chw = obs_value_coded_list(encounter_id, 'PIH','3293
 update temp_mh set return_visit_date = obs_value_datetime(encounter_id,'PIH','5096');
     
 select 
+    concat(@partition,"-",patient_id)  "patient_id",
     emr_id,
     location_registered,
     age_at_encounter,
