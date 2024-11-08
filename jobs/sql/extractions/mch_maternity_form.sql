@@ -1,3 +1,4 @@
+set @partition = '${partitionNum}';
 SELECT encounter_type_id  INTO @mch_delivery_enc_type FROM encounter_type et WHERE uuid='00e5ebb2-90ec-11e8-9eb6-529269fb1459';
 
 DROP TABLE IF EXISTS mch_maternity_form;
@@ -221,6 +222,7 @@ SELECT encounter_id,value_coded_name(obs_id,'en') name FROM temp_obs
 WHERE concept_id=concept_from_mapping('PIH','14376');
 
 SELECT 
+concat(@partition,"-",patient_id)  as patient_id,
 emrid,
 provider,
 location,
