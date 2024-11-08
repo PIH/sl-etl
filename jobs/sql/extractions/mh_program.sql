@@ -300,6 +300,7 @@ set tmh.next_scheduled_visit_date = date(t.value_datetime),
 	tmh.six_months_since_latest_return_date = IF(datediff(now(), tmh.last_visit_date) <= 182.5, 'No', 'Oui');
         
 select
+concat(@partition,"-",patient_id)  as patient_id,
 emr_id,
 gender,
 age,

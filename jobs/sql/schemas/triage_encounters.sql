@@ -1,5 +1,6 @@
 create table triage_encounters
 (
+patient_id               varchar(50),
 wellbody_emr_id          varchar(50),  
 kgh_emr_id               varchar(50),  
 encounter_id             varchar(100), 

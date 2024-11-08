@@ -1,3 +1,4 @@
+set @partition = '${partitionNum}';
 select encounter_type_id  into @scbu_enc
 from encounter_type et where uuid='3790ecc6-bc63-48f8-9104-f81dc90ee21c';
 
@@ -154,6 +155,7 @@ UPDATE temp_scbu_encs
 SET discharge_date=obs_value_datetime_from_temp(encounter_id, 'PIH','3800');
 
 SELECT 
+concat(@partition,"-",patient_id) as patient_id,
 emr_id,
 encounter_id,
 visit_id,
