@@ -41,7 +41,7 @@ Pregnancy                varchar(255),
 Respiratory              varchar(255), 
 Pain                     varchar(255), 
 Other_Symptom            varchar(255), 
-Clinical_Impression      varchar(255), 
+Clinical_Impression      text, 
 Glucose_Value            float,
 Referral_Destination     varchar(255)
 );
