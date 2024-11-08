@@ -1,6 +1,8 @@
 CREATE TABLE mch_maternity_delivery_register
 (
-emrid varchar(30),
+patient_id varchar(50),  
+wellbody_emr_id varchar(50),
+kgh_emr_id varchar(50),
 provider varchar(30),
 location varchar(30),
 admission_datetime datetime,
