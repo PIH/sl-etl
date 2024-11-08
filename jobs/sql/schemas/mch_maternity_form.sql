@@ -1,5 +1,6 @@
 CREATE TABLE mch_maternity_form
 (
+patient_id varchar(50),  
 emrid varchar(30),
 provider varchar(30),
 location varchar(30),
