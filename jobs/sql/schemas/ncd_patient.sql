@@ -1,4 +1,5 @@
 CREATE TABLE ncd_patient (
+patient_id varchar(50),
 emr_id varchar(50),
 hiv varchar(30),
 comorbidities varchar(255),
