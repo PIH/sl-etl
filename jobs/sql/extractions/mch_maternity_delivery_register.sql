@@ -1,9 +1,11 @@
-
+set @partition = '${partitionNum}';
 SELECT encounter_type_id  INTO @mch_reg_enc_type FROM encounter_type et WHERE uuid='9cc89b83-e32f-410a-947d-aeb3bda37571';
 
 DROP TABLE IF EXISTS mch_maternity_delivery_register;
 CREATE TABLE mch_maternity_delivery_register
 (
+wellbody_emr_id varchar(50),
+kgh_emr_id varchar(50),
 encounter_id int,
 obs_group_id int,
 obs_id int,
@@ -81,6 +83,13 @@ UPDATE mch_maternity_delivery_register SET admission_datetime=obs_value_datetime
 UPDATE mch_maternity_delivery_register SET gravida=obs_value_numeric_from_temp(encounter_id,'PIH','5624');
 UPDATE mch_maternity_delivery_register SET parity=obs_value_numeric_from_temp(encounter_id,'PIH','1053');
 UPDATE mch_maternity_delivery_register SET gestational_age=obs_value_numeric_from_temp(encounter_id,'PIH','14390');
+
+UPDATE mch_maternity_delivery_register m
+SET wellbody_emr_id= patient_identifier(patient_id,'1a2acce0-7426-11e5-a837-0800200c9a66');
+
+UPDATE mch_maternity_delivery_register m 
+SET kgh_emr_id= patient_identifier(patient_id,'c09a1d24-7162-11eb-8aa6-0242ac110002');
+
 
 -- Labor Attributes
 UPDATE mch_maternity_delivery_register SET labour_datetime=obs_value_datetime_from_temp(encounter_id,'PIH','14377');
@@ -182,7 +191,9 @@ UPDATE mch_maternity_delivery_register SET hcw_delivery=obs_value_text_from_temp
 UPDATE mch_maternity_delivery_register SET hcw_type=obs_value_coded_list_from_temp(encounter_id,'PIH','14411','en');
 
 SELECT
-emrid,
+concat(@partition,"-",patient_id)  as patient_id,
+wellbody_emr_id,
+kgh_emr_id,
 provider,
 location,
 admission_datetime,
