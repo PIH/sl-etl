@@ -1,6 +1,7 @@
 drop table if exists ncd_monthly_summary_staging;
 create table ncd_monthly_summary_staging
 (
+    patient_id                                     varchar(50),
     emr_id                                         varchar(20),
     gender                                         varchar(50),
     dob                                            date,
@@ -75,8 +76,8 @@ and LastDayOfMonth <= GETDATE()
 
 -- enter a row for every month-end the patient was active in the program
 -- if the patient had multiple qualifying enrollments, set date_enrolled to the most recent
-insert into ncd_monthly_summary_staging (emr_id, first_day_of_quarter, reporting_date, date_enrolled)
-select  np.emr_id, r.quarter_start_date, r.month_end_date, max(np.date_enrolled)
+insert into ncd_monthly_summary_staging (patient_id, emr_id, first_day_of_quarter, reporting_date, date_enrolled)
+select  np.patient_id, np.emr_id, r.quarter_start_date, r.month_end_date, max(np.date_enrolled)
 from    ncd_program np, #reporting_months r
 where   np.date_enrolled <= r.month_end_date
 and     (np.date_completed is null or np.date_completed >= r.month_start_date)
