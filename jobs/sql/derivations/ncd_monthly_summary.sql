@@ -81,7 +81,7 @@ select  np.patient_id, np.emr_id, r.quarter_start_date, r.month_end_date, max(np
 from    ncd_program np, #reporting_months r
 where   np.date_enrolled <= r.month_end_date
 and     (np.date_completed is null or np.date_completed >= r.month_start_date)
-group by np.emr_id, r.quarter_start_date, r.month_end_date
+group by np.patient_id, np.emr_id, r.quarter_start_date, r.month_end_date
 ;
 
 -- if the patient had multiple qualifying enrollments, set date_completed associated with the date_enrolled, if completed during the given month
