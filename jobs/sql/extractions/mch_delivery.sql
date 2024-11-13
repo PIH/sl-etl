@@ -2,7 +2,7 @@ set @partition = '${partitionNum}';
 SELECT encounter_type_id  INTO @mch_delivery_enc_type FROM encounter_type et WHERE uuid='00e5ebb2-90ec-11e8-9eb6-529269fb1459';
 
 DROP TEMPORARY TABLE IF EXISTS mch_delivery_form;
-CREATE TABLE mch_delivery_form
+CREATE TEMPORARY TABLE mch_delivery_form
 (
 encounter_id int,
 patient_id int,
@@ -78,7 +78,7 @@ hcw_delivery varchar(100),
 hcw_type varchar(100)
 );
 
-DROP TABLE IF EXISTS temp_encounter;
+DROP TEMPORARY TABLE IF EXISTS temp_encounter;
 CREATE TEMPORARY TABLE temp_encounter
 SELECT patient_id,encounter_id, encounter_type ,date(encounter_datetime) encounter_date, date_created 
 FROM encounter e 
@@ -148,7 +148,7 @@ UPDATE mch_delivery_form SET meconium_aspiration=answer_exists_in_encounter_temp
 UPDATE mch_delivery_form SET exit_date=obs_value_datetime_from_temp(encounter_id,'PIH','3800');
 
 SET @row_number=0;
-drop table if exists temp_mh_diagnosis;
+drop temporary table if exists temp_mh_diagnosis;
 create temporary table temp_mh_diagnosis
 select
        concept_name(value_coded,'en') AS diagnosis,
@@ -216,7 +216,7 @@ UPDATE mch_delivery_form SET maternal_disposition=obs_value_coded_list_from_temp
 UPDATE mch_delivery_form SET hcw_delivery=obs_value_text_from_temp(encounter_id,'PIH','6592');
 UPDATE mch_delivery_form SET hcw_type=obs_value_coded_list_from_temp(encounter_id,'PIH','14411','en');
 
-DROP TABLE IF EXISTS pac_type_values;
+DROP TEMPORARY TABLE IF EXISTS pac_type_values;
 CREATE TEMPORARY TABLE pac_type_values
 SELECT encounter_id,value_coded_name(obs_id,'en') name FROM temp_obs
 WHERE concept_id=concept_from_mapping('PIH','14376');
