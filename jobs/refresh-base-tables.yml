@@ -30,7 +30,7 @@ configuration:
           - tableName: "labs_order_results"
           - tableName: "dim_patients"
           - tableName: "mch_maternity_delivery_register"
-          - tableName: "mch_maternity_form"
+          - tableName: "mch_delivery"
           - tableName: "triage_encounters"
           - tableName: "all_medications_prescribed"
           - tableName: "all_medication_dispensing"
