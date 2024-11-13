@@ -1,4 +1,4 @@
-CREATE TABLE mch_maternity_form
+CREATE TABLE mch_delivery
 (
 patient_id varchar(50),  
 emrid varchar(30),
