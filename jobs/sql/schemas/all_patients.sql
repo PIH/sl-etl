@@ -2,6 +2,7 @@ CREATE TABLE all_patients
 (
 wellbody_emr_id           varchar(50),  
 kgh_emr_id                varchar(50),  
+sl_national_id            varchar(50),  
 emr_id                    varchar(50),  
 patient_id                varchar(100),  
 mothers_first_name        varchar(255), 
