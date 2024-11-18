@@ -24,6 +24,7 @@ configuration:
         jobTemplate:
           path: "create-derived-table-in-warehouse.yml"
         iterations:
+          - tableName: "dim_date"        
           - tableName: "update_index"
           - tableName: "drop_old_tables"
           - tableName: "drug_categories"
