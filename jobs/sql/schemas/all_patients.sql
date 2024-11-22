@@ -18,7 +18,7 @@ reg_location              varchar(50),
 registration_date         date,          
 date_registration_entered datetime,     
 user_entered              varchar(50),  
-fist_encounter_date       date,         
+first_encounter_date       date,         
 last_encounter_date       date,          
 name                      varchar(50),  
 family_name               varchar(50),  
@@ -27,5 +27,6 @@ dob_estimated             bit,
 gender                    varchar(2),   
 dead                      bit,          
 death_date                date,         
-cause_of_death            varchar(100)  
+cause_of_death            varchar(100),  
+last_modified_datetime    datetime 
 );
