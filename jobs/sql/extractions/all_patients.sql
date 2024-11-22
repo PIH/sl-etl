@@ -8,6 +8,7 @@ CREATE TEMPORARY TABLE  temp_patients
 (
 wellbody_emr_id           varchar(50),  
 kgh_emr_id                varchar(50),
+emr_id                    varchar(50),
 sl_national_id            varchar(50),
 patient_id                int,           
 mothers_first_name        VARCHAR(255), 
@@ -81,6 +82,7 @@ set t.country = a.country,
 update temp_patients t set wellbody_emr_id = patient_identifier(patient_id,'1a2acce0-7426-11e5-a837-0800200c9a66');
 update temp_patients t set kgh_emr_id = patient_identifier(patient_id, 'c09a1d24-7162-11eb-8aa6-0242ac110002');
 update temp_patients t set sl_national_id = patient_identifier(patient_id, 'eb201574-8abe-4393-9a8a-8d30a48a08ad');
+update temp_patients set emr_id = patient_identifier(patient_id, metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType'));
 
 -- person attributes
 update temp_patients t set telephone_number = person_attribute_value(patient_id,'Telephone Number');
@@ -120,7 +122,7 @@ SELECT
 wellbody_emr_id,
 kgh_emr_id,
 sl_national_id,
-COALESCE(wellbody_emr_id, kgh_emr_id)  emr_id,
+emr_id,
 concat(@partition,"-",patient_id)  patient_id,
 mothers_first_name,
 country,
