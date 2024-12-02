@@ -218,7 +218,7 @@ update temp_pregnancy_program set total_anc_visits = num_previous_anc_visits + t
 update temp_pregnancy_program set ferrous_sulfate_folic_acid_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '164166', 'CIEL', '1065'), 0) > 0;
 update temp_pregnancy_program set iptp_sp_malaria_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '1591', 'CIEL', '1065'), 0) > 0;
 update temp_pregnancy_program set nutrition_counseling_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '1380', 'CIEL', '1065'), 0) > 0;
-update temp_pregnancy_program set hiv_counsel_and_test_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '164401', 'CIEL', '1065'), 0) > 0;
+update temp_pregnancy_program set hiv_counsel_and_test_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'PIH', '11381', 'CIEL', '1065'), 0) > 0;
 update temp_pregnancy_program set insecticide_treated_net_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '159855', 'CIEL', '1065'), 0) > 0;
 
 update temp_pregnancy_program set pregnancy_status = 'Antenatal' where actual_delivery_date is null and estimated_gestational_age <= 45 and outcome_concept_id is null and current_state_concept_id != concept_from_mapping('CIEL', '1180');

@@ -177,7 +177,7 @@ UPDATE temp_anc_encs t
 SET insecticide_treated_net = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','13053');
 
 UPDATE temp_anc_encs t
-SET hiv_counsel_and_test = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','11672');
+SET hiv_counsel_and_test = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','11381');
 
 UPDATE temp_anc_encs t
 SET smokes_tobacco = obs_value_coded_list_from_temp(encounter_id, 'PIH','2545','en');
