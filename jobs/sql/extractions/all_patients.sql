@@ -43,7 +43,8 @@ last_modified_person_datetime     datetime,
 last_modified_name_datetime       datetime,     
 last_modified_address_datetime    datetime,     
 last_modified_attributes_datetime datetime,     
-last_modified_obs_datetime        datetime      
+last_modified_obs_datetime        datetime,
+last_modified_registration_datetime datetime      
 );
 
 -- load all patients
@@ -113,7 +114,8 @@ inner join encounter e on e.encounter_id = t.registration_encounter_id
 set t.reg_location_id = e.location_id,
 	t.registration_entry_date = e.date_created,
 	t.registration_date = e.encounter_datetime,
-	t.creator = e.creator ;
+	t.creator = e.creator,
+    t.last_modified_registration_datetime = e.date_changed;
 
 update temp_patients t set reg_location = location_name(reg_location_id);
 update temp_patients t set user_entered = person_name_of_user(creator);
@@ -147,6 +149,7 @@ update temp_patients t set last_modified_datetime =
 			ifnull(last_modified_address_datetime,last_modified_patient),
 			ifnull(last_modified_attributes_datetime,last_modified_patient),
 			ifnull(last_modified_obs_datetime,last_modified_patient),
+            ifnull(last_modified_registration_datetime,last_modified_patient),			
 			last_modified_patient);
 
 SELECT 
