@@ -44,6 +44,9 @@ drinks_alcohol             varchar(255),
 drinks_per_day             int,          
 uses_drugs                 varchar(255), 
 drug_name                  varchar(255), 
+albendazole                bit,
+malaria_rdt                varchar(255),
+counseled_danger_signs     bit,  
 index_asc                  INT,          
 index_desc                 INT           
 );
