@@ -80,12 +80,6 @@
                     <allowMinorUpdates>true</allowMinorUpdates>
                     <allowIncrementalUpdates>true</allowIncrementalUpdates>
                     <generateBackupPoms>false</generateBackupPoms>
-                    <properties>
-                        <property>
-                            <name>configPIHSLVersion</name>
-                            <version>[1.0.0,1.999.999]</version>
-                        </property>
-                    </properties>
                 </configuration>
             </plugin>
             <plugin>
