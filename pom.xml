@@ -28,9 +28,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git://github.com/PIH/openmrs-sl-etl.git</connection>
-        <developerConnection>scm:git:ssh://github.com:PIH/sl-etl.git</developerConnection>
-        <url>https://github.com/PIH/sl-etl</url>
+        <connection>scm:git:git@github.com:PIH/sl-etl.git</connection>
+        <developerConnection>scm:git:git@github.com:PIH/sl-etl.git</developerConnection>
+        <url>scm:git:git@github.com:PIH/sl-etl.git</url>
     </scm>
 
     <distributionManagement>
@@ -59,8 +59,29 @@
         <configPIHSLVersion>1.34.0-SNAPSHOT</configPIHSLVersion>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.pih.openmrs</groupId>
+            <artifactId>openmrs-config-pihsl</artifactId>
+            <version>${configPIHSLVersion}</version>
+            <type>zip</type>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.16.0</version>
+                <configuration>
+                    <allowSnapshots>true</allowSnapshots>
+                    <allowMajorUpdates>true</allowMajorUpdates>
+                    <allowMinorUpdates>true</allowMinorUpdates>
+                    <allowIncrementalUpdates>true</allowIncrementalUpdates>
+                    <generateBackupPoms>false</generateBackupPoms>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
@@ -70,24 +91,17 @@
                         <id>unpack</id>
                         <phase>compile</phase>
                         <goals>
-                            <goal>unpack</goal>
+                            <goal>unpack-dependencies</goal>
                         </goals>
                         <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>org.pih.openmrs</groupId>
-                                    <artifactId>openmrs-config-pihsl</artifactId>
-                                    <version>${configPIHSLVersion}</version>
-                                    <type>zip</type>
-                                    <overWrite>false</overWrite>
-                                    <outputDirectory>${project.build.directory}/openmrs-config-pihsl</outputDirectory>
-                                </artifactItem>
-                            </artifactItems>
+                            <includes>**/*</includes>
+                            <outputDirectory>${project.build.directory}/openmrs-config-pihsl</outputDirectory>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>3.2.0</version>
@@ -159,7 +173,7 @@
                                 <fileSet>
                                     <sourceFile>${dataExportSqlDir}/user_logins.sql</sourceFile>
                                     <destinationFile>${petlJobExtractionSqlDir}/user_logins.sql</destinationFile>
-			    	</fileSet>
+			    	            </fileSet>
                                 <fileSet>
                                     <sourceFile>${dataExportSqlDir}/all_medication_prescribed.sql</sourceFile>
                                     <destinationFile>${petlJobExtractionSqlDir}/all_medication_prescribed.sql</destinationFile>
@@ -188,7 +202,7 @@
                                     <sourceFile>${dataExportSqlDir}/summary_db_restore.sql</sourceFile>
                                     <destinationFile>${petlJobExtractionSqlDir}/summary_db_restore.sql</destinationFile>
                                 </fileSet>                                   
-			    </fileSets>
+			                </fileSets>
                         </configuration>
                     </execution>
                 </executions>
