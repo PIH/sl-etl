@@ -56,7 +56,7 @@
         <liquibaseSourceDir>${project.build.directory}/openmrs-config-pihsl/pih/liquibase/sql/</liquibaseSourceDir>
         <liquibaseDestDir>${project.build.directory}/sl-etl/jobs/sql/utils/</liquibaseDestDir>
         <petlJobExtractionSqlDir>${project.build.directory}/sl-etl/jobs/sql/extractions/</petlJobExtractionSqlDir>
-        <configPIHSLVersion>2.0.0-SNAPSHOT</configPIHSLVersion>
+        <configPIHSLVersion>1.34.0-SNAPSHOT</configPIHSLVersion>
     </properties>
 
     <dependencies>
@@ -80,6 +80,12 @@
                     <allowMinorUpdates>true</allowMinorUpdates>
                     <allowIncrementalUpdates>true</allowIncrementalUpdates>
                     <generateBackupPoms>false</generateBackupPoms>
+                    <properties>
+                        <property>
+                            <name>configPIHSLVersion</name>
+                            <version>[1.0.0,1.999.999]</version>
+                        </property>
+                    </properties>
                 </configuration>
             </plugin>
             <plugin>
