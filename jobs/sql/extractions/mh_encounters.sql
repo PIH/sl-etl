@@ -1,3 +1,4 @@
+
 -- set @startDate='2021-01-01';
 -- set @endDate='2023-05-22';
 set @partition = '${partitionNum}';
@@ -19,9 +20,9 @@ create temporary table temp_mh
     encounter_datetime datetime,
     provider varchar(255),
     referred_by_community varchar(255),
-    other_community_referral varchar(255), 
+    other_community_referral text, 
     referred_by_facility varchar(255),
-    other_facility_referral varchar(255),
+    other_facility_referral text,
     history_of_homelessness varchar(100),
     housing_type varchar(100), 
     hiv_test varchar(255),
@@ -44,10 +45,10 @@ create temporary table temp_mh
     family_mental_illness varchar(255),
     family_behavioral_problems varchar(255),
     presenting_features varchar(1000),
-    other_presenting_features varchar(255),
+    other_presenting_features text,
     clinical_impressions text,
     mental_state_exam_findings varchar(1000),
-    other_mental_state_exam_finding varchar(255),
+    other_mental_state_exam_finding text,
     past_suicidal_ideation varchar(255),
     past_suicidal_attempt varchar(255),
     current_suicidal_ideation varchar(255),
@@ -226,7 +227,7 @@ create temporary table temp_mh
     quetiapine_fumarate_tab_duration double,
     quetiapine_fumarate_tab_dur_units varchar(50),
     quetiapine_fumarate_tab_route varchar(50),
-    additional_medication_comments varchar(255),
+    additional_medication_comments text,
     assigned_chw varchar(50),
     return_visit_date datetime
     );  
