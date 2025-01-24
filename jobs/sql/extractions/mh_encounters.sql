@@ -1,4 +1,3 @@
-
 -- set @startDate='2021-01-01';
 -- set @endDate='2023-05-22';
 set @partition = '${partitionNum}';
