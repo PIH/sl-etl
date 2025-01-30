@@ -73,6 +73,7 @@ BEGIN
         patient_program_id int,
         patient_id         int,
         encounter_id       int,
+        visit_id           int,
         encounter_type_id  int,
         location_id        int,
         visit_location_id  int,
@@ -92,6 +93,7 @@ BEGIN
         patient_program_id,
         patient_id,
         encounter_id,
+        visit_id,
         encounter_type_id,
         location_id,
         visit_location_id,
@@ -103,6 +105,7 @@ BEGIN
         pp.patient_program_id,
         e.patient_id,
         e.encounter_id,
+        e.visit_id,
         e.encounter_type,
         e.location_id,
         v.location_id,
@@ -127,6 +130,7 @@ BEGIN
     create index temp_program_encounter_patient_id_idx on temp_program_encounter(patient_id);
     create index temp_program_encounter_encounter_id_idx on temp_program_encounter(encounter_id);
     create index temp_program_encounter_encounter_type_idx on temp_program_encounter(encounter_type_id);
+    create index temp_program_encounter_visit_id_idx on temp_program_encounter(visit_id);
 END
 #
 
@@ -312,7 +316,7 @@ END
 
 DROP FUNCTION IF EXISTS temp_program_obs_latest_obs_datetime;
 #
-CREATE FUNCTION temp_program_obs_latest_obs_datetime(_patient_program_id int, _source varchar(50), _term varchar(255))
+CREATE FUNCTION temp_program_obs_latest_obs_datetime(_patient_program_id int, _source varchar(50), _term varchar(255), _start_datetime date, _end_datetime date)
     RETURNS datetime
     DETERMINISTIC
 BEGIN
@@ -321,6 +325,8 @@ BEGIN
     from        temp_program_obs o
     where       o.patient_program_id = _patient_program_id
       and       o.concept_id = concept_from_mapping(_source, _term)
+      and       ((date(o.obs_datetime) >= _start_datetime or _start_datetime is null) 
+             and (date(o.obs_datetime) <= _end_datetime or _end_datetime is null)) 
     order by    o.obs_datetime desc, o.obs_id desc limit 1;
     RETURN ret;
 END
