@@ -1,7 +1,12 @@
 SET sql_safe_updates = 0;
 SET SESSION group_concat_max_len = 100000;
 set @partition = '${partitionNum}';
+
 select program_workflow_state_id into @postpartum_state from program_workflow_state where uuid = 'a735b5f6-0b63-4d9a-ae2e-70d08c947aed';
+select program_workflow_state_id into @anc_state from program_workflow_state where uuid = 'a83896bf-9094-4a3c-b843-e75509a52b32';
+set @weightConceptId = concept_from_mapping('PIH','5089');
+set @art_set = concept_from_mapping('PIH','1085');
+set @antimalarial_set = concept_from_mapping('PIH','20673');
 
 drop temporary table if exists temp_pregnancy_program;
 create temporary table temp_pregnancy_program
@@ -47,11 +52,19 @@ create temporary table temp_pregnancy_program
     total_anc_followup                         int,
     total_anc_visits                           int,
     post_partum_state_date                     date,
+    anc_state_date                             date,
     ferrous_sulfate_folic_acid_ever            boolean,
     iptp_sp_malaria_ever                       boolean,
     nutrition_counseling_ever                  boolean,
     hiv_counsel_and_test_ever                  boolean,
     insecticide_treated_net_ever               boolean,
+    syphilis_test_ever                         boolean,  
+    arv_for_pmtct                              boolean,
+    latest_anc_intake_encounter_id             int(11),
+    anc_intake_visit_id                        int(11),
+    muac_measured                              boolean, 
+    anc_visit1_weight_recorded                 boolean,
+    malaria_treatment_during_antenatal         boolean, 
     index_asc                                  int,
     index_desc                                 int
 );
@@ -62,6 +75,7 @@ set @type_of_tx_workflow_id = (select program_workflow_id from program_workflow 
 set @ancIntake = encounter_type('00e5e810-90ec-11e8-9eb6-529269fb1459');
 set @ancFollowup = encounter_type('00e5e946-90ec-11e8-9eb6-529269fb1459');
 set @laborDeliverySummary = encounter_type('fec2cc56-e35f-42e1-8ae3-017142c1ca59');
+set @vitals = encounter_type('4fb47712-34a6-40d2-8ed3-e153abbd25b7');
 
 # Set up one row per patient program
 call temp_program_patient_create();
@@ -73,6 +87,7 @@ call temp_program_encounter_create();
 call temp_program_encounter_populate(@ancIntake);
 call temp_program_encounter_populate(@ancFollowup);
 call temp_program_encounter_populate(@laborDeliverySummary);
+call temp_program_encounter_populate(@vitals);
 call temp_program_encounter_create_indexes();
 
 # Link in the observations from the pregnancy encounters
@@ -139,7 +154,7 @@ update temp_pregnancy_program p set p.high_risk_factors = (
 
 update temp_pregnancy_program set latest_lmp = date(temp_program_obs_latest_value_datetime(patient_program_id, 'CIEL', '1427'));
 update temp_pregnancy_program set latest_gest_age = temp_program_obs_latest_value_numeric(patient_program_id, 'CIEL', '1438');
-update temp_pregnancy_program set latest_gest_age_date = temp_program_obs_latest_obs_datetime(patient_program_id, 'CIEL', '1438');
+update temp_pregnancy_program set latest_gest_age_date = temp_program_obs_latest_obs_datetime(patient_program_id, 'CIEL', '1438', null, null);
 update temp_pregnancy_program set latest_edd = date(temp_program_obs_latest_value_datetime(patient_program_id, 'CIEL', '5596'));
 
 update temp_pregnancy_program set estimated_delivery_date = latest_edd;
@@ -218,8 +233,31 @@ update temp_pregnancy_program set total_anc_visits = num_previous_anc_visits + t
 update temp_pregnancy_program set ferrous_sulfate_folic_acid_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '164166', 'CIEL', '1065'), 0) > 0;
 update temp_pregnancy_program set iptp_sp_malaria_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '1591', 'CIEL', '1065'), 0) > 0;
 update temp_pregnancy_program set nutrition_counseling_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '1380', 'CIEL', '1065'), 0) > 0;
-update temp_pregnancy_program set hiv_counsel_and_test_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'PIH', '11381', 'CIEL', '1065'), 0) > 0;
+update temp_pregnancy_program set hiv_counsel_and_test_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '164401', 'CIEL', '1065'), 0) > 0;
 update temp_pregnancy_program set insecticide_treated_net_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '159855', 'CIEL', '1065'), 0) > 0;
+
+update temp_pregnancy_program set anc_state_date = temp_program_earliest_patient_state_date(patient_program_id, @anc_state);
+
+update temp_pregnancy_program set muac_measured = if(temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '7956', anc_state_date, post_partum_state_date) is null,0,1);
+
+update temp_pregnancy_program set syphilis_test_ever = answerEverExists(patient_id, 'PIH', '12265', 'PIH', '1228', null)
+	or answerEverExists(patient_id, 'PIH', '1478', 'PIH', '703', null);
+
+update temp_pregnancy_program set latest_anc_intake_encounter_id = temp_program_encounter_latest_encounter_id(patient_program_id, @ancIntake);
+
+update temp_pregnancy_program t
+inner join encounter e on e.encounter_id = latest_anc_intake_encounter_id
+set anc_intake_visit_id = e.visit_id;
+
+update temp_pregnancy_program t
+set anc_visit1_weight_recorded =  
+	(select if(max(o.concept_id) is null, 0,1) 
+	from temp_program_encounter e 
+	inner join temp_program_obs o on o.encounter_id = e.encounter_id
+		and o.concept_id = @weightConceptId
+	where e.visit_id = t.anc_intake_visit_id 
+	and e.patient_program_id = t.patient_program_id
+	group by t.patient_program_id);
 
 update temp_pregnancy_program set pregnancy_status = 'Antenatal' where actual_delivery_date is null and estimated_gestational_age <= 45 and outcome_concept_id is null and current_state_concept_id != concept_from_mapping('CIEL', '1180');
 update temp_pregnancy_program set pregnancy_status = 'Postpartum, delivered' where delivery_outcome in ('Alive', 'Stillbirth', 'Multiple outcome');
@@ -229,6 +267,50 @@ update temp_pregnancy_program set pregnancy_status = 'Presumed postpartum' where
 update temp_pregnancy_program set delivery_location = 'outborn' where delivery_location is null and pregnancy_status != 'Prenatal';
 update temp_pregnancy_program set delivery_location = 'miscarried' where outcome = 'Miscarried';
 
+-- columns dependent on dispensing events
+drop temporary table if exists temp_med_orders;
+create temporary table temp_med_orders
+(patient_program_id int(11),
+patient_id int(11),
+order_id int(11),
+concept_id int(11),
+concept_set_id int(11));
+
+insert into temp_med_orders(patient_program_id, patient_id, order_id, concept_id, concept_set_id )
+select patient_program_id, t.patient_id,order_id, concept_id, @art_set
+from orders o 
+inner join temp_pregnancy_program t 
+	on t.patient_id = o.patient_id
+where (o.date_activated >= t.anc_state_date
+and (o.date_activated <= t.post_partum_state_date or t.post_partum_state_date is null))
+and fulfiller_status = 'COMPLETED'
+and concept_in_set(o.concept_id, @art_set) 
+;
+
+insert into temp_med_orders(patient_program_id, patient_id, order_id, concept_id, concept_set_id)
+select patient_program_id, t.patient_id,order_id, concept_id, @antimalarial_set
+from orders o 
+inner join temp_pregnancy_program t 
+	on t.patient_id = o.patient_id
+where (o.date_activated >= t.anc_state_date
+and (o.date_activated <= t.post_partum_state_date or t.post_partum_state_date is null))
+and fulfiller_status = 'COMPLETED'
+and concept_in_set(o.concept_id, @antimalarial_set) 
+;
+
+create index temp_med_orders_ppi on temp_med_orders(patient_program_id);
+
+update temp_pregnancy_program t
+set arv_for_pmtct = 1
+where EXISTS 
+	(select 1 from temp_med_orders o where o.patient_program_id = t.patient_program_id
+	and concept_set_id = @art_set);
+
+update temp_pregnancy_program t
+set malaria_treatment_during_antenatal = 1
+where EXISTS 
+	(select 1 from temp_med_orders o where o.patient_program_id = t.patient_program_id
+	and concept_set_id = @antimalarial_set);
 
 select concat(@partition,'-',patient_program_id) as pregnancy_program_id,
        concat(@partition,'-',patient_id) as patient_id,
@@ -256,6 +338,13 @@ select concat(@partition,'-',patient_program_id) as pregnancy_program_id,
        nutrition_counseling_ever,
        hiv_counsel_and_test_ever,
        insecticide_treated_net_ever,
+       syphilis_test_ever,
+       latest_anc_intake_encounter_id,
+       anc_intake_visit_id,
+       arv_for_pmtct,
+       muac_measured,
+       anc_visit1_weight_recorded,
+       malaria_treatment_during_antenatal,
        index_asc,
        index_desc
 from temp_pregnancy_program;
