@@ -7,6 +7,9 @@ select program_workflow_state_id into @anc_state from program_workflow_state whe
 set @weightConceptId = concept_from_mapping('PIH','5089');
 set @art_set = concept_from_mapping('PIH','1085');
 set @antimalarial_set = concept_from_mapping('PIH','20673');
+set @ferrous_sulfate_folic_acid = concept_from_mapping('PIH','773');
+set @ferrous_sulfate = concept_from_mapping('PIH','256');
+
 
 drop temporary table if exists temp_pregnancy_program;
 create temporary table temp_pregnancy_program
@@ -58,6 +61,7 @@ create temporary table temp_pregnancy_program
     nutrition_counseling_ever                  boolean,
     hiv_counsel_and_test_ever                  boolean,
     insecticide_treated_net_ever               boolean,
+    iron_ifa_ever                              boolean,
     syphilis_test_ever                         boolean,  
     arv_for_pmtct                              boolean,
     latest_anc_intake_encounter_id             int(11),
@@ -282,10 +286,10 @@ create temporary table temp_med_orders
 patient_id int(11),
 order_id int(11),
 concept_id int(11),
-concept_set_id int(11));
+category text);
 
-insert into temp_med_orders(patient_program_id, patient_id, order_id, concept_id, concept_set_id )
-select patient_program_id, t.patient_id,order_id, concept_id, @art_set
+insert into temp_med_orders(patient_program_id, patient_id, order_id, concept_id, category )
+select patient_program_id, t.patient_id,order_id, concept_id, 'ART'
 from orders o 
 inner join temp_pregnancy_program t 
 	on t.patient_id = o.patient_id
@@ -295,8 +299,8 @@ and fulfiller_status = 'COMPLETED'
 and concept_in_set(o.concept_id, @art_set) 
 ;
 
-insert into temp_med_orders(patient_program_id, patient_id, order_id, concept_id, concept_set_id)
-select patient_program_id, t.patient_id,order_id, concept_id, @antimalarial_set
+insert into temp_med_orders(patient_program_id, patient_id, order_id, concept_id, category)
+select patient_program_id, t.patient_id,order_id, concept_id, 'Antimalarial'
 from orders o 
 inner join temp_pregnancy_program t 
 	on t.patient_id = o.patient_id
@@ -306,19 +310,35 @@ and fulfiller_status = 'COMPLETED'
 and concept_in_set(o.concept_id, @antimalarial_set) 
 ;
 
+insert into temp_med_orders(patient_program_id, patient_id, order_id, concept_id, category)
+select patient_program_id, t.patient_id,order_id, concept_id, 'Iron'
+from orders o 
+inner join temp_pregnancy_program t 
+	on t.patient_id = o.patient_id
+where (o.date_activated >= t.anc_state_date
+and (o.date_activated <= t.post_partum_state_date or t.post_partum_state_date is null))
+and fulfiller_status = 'COMPLETED'
+and concept_id in (@ferrous_sulfate_folic_acid, @ferrous_sulfate);
+
 create index temp_med_orders_ppi on temp_med_orders(patient_program_id);
 
 update temp_pregnancy_program t
 set arv_for_pmtct = 1
 where EXISTS 
 	(select 1 from temp_med_orders o where o.patient_program_id = t.patient_program_id
-	and concept_set_id = @art_set);
+	and category = 'ART');
 
 update temp_pregnancy_program t
 set malaria_treatment_during_antenatal = 1
 where EXISTS 
 	(select 1 from temp_med_orders o where o.patient_program_id = t.patient_program_id
-	and concept_set_id = @antimalarial_set);
+	and category = 'Antimalarial');
+
+update temp_pregnancy_program t
+set iron_ifa_ever = 1
+where EXISTS 
+	(select 1 from temp_med_orders o where o.patient_program_id = t.patient_program_id
+	and category = 'Iron');
 
 select concat(@partition,'-',patient_program_id) as pregnancy_program_id,
        concat(@partition,'-',patient_id) as patient_id,
@@ -346,6 +366,7 @@ select concat(@partition,'-',patient_program_id) as pregnancy_program_id,
        nutrition_counseling_ever,
        hiv_counsel_and_test_ever,
        insecticide_treated_net_ever,
+       iron_ifa_ever,
        syphilis_test_ever,
        arv_for_pmtct,
        muac_measured,
