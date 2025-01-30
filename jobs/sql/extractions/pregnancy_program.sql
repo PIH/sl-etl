@@ -76,6 +76,10 @@ set @ancIntake = encounter_type('00e5e810-90ec-11e8-9eb6-529269fb1459');
 set @ancFollowup = encounter_type('00e5e946-90ec-11e8-9eb6-529269fb1459');
 set @laborDeliverySummary = encounter_type('fec2cc56-e35f-42e1-8ae3-017142c1ca59');
 set @vitals = encounter_type('4fb47712-34a6-40d2-8ed3-e153abbd25b7');
+set @labResults = encounter_type('4d77916a-0620-11e5-a6c0-1697f925ec7b');
+set @specimenCollection= encounter_type('39C09928-0CAB-4DBA-8E48-39C631FA4286');
+
+select * from encounter_type where name like '%lab%';
 
 # Set up one row per patient program
 call temp_program_patient_create();
@@ -238,10 +242,14 @@ update temp_pregnancy_program set insecticide_treated_net_ever = ifnull(temp_pro
 
 update temp_pregnancy_program set anc_state_date = temp_program_earliest_patient_state_date(patient_program_id, @anc_state);
 
-update temp_pregnancy_program set muac_measured = if(temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '7956', anc_state_date, post_partum_state_date) is null,0,1);
+update temp_pregnancy_program set muac_measured = 
+	if(temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '7956', anc_state_date, post_partum_state_date) is null,0,1);
 
-update temp_pregnancy_program set syphilis_test_ever = answerEverExists(patient_id, 'PIH', '12265', 'PIH', '1228', null)
-	or answerEverExists(patient_id, 'PIH', '1478', 'PIH', '703', null);
+update temp_pregnancy_program set syphilis_test_ever = ifnull(temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '12265',null,null), 0) > 0
+	or ifnull(temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '1478',null,null), 0) > 0;
+
+update temp_pregnancy_program set latest_gest_age_date = temp_program_obs_latest_obs_datetime(patient_program_id, 'CIEL', '1438', null, null);
+
 
 update temp_pregnancy_program set latest_anc_intake_encounter_id = temp_program_encounter_latest_encounter_id(patient_program_id, @ancIntake);
 
