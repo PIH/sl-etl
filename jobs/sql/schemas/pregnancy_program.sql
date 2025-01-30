@@ -26,6 +26,7 @@ CREATE TABLE pregnancy_program
     nutrition_counseling_ever       bit,
     hiv_counsel_and_test_ever       bit,
     insecticide_treated_net_ever    bit,
+    iron_ifa_ever                   bit,
     syphilis_test_ever              bit,
     arv_for_pmtct                   bit,
     muac_measured                   bit,
