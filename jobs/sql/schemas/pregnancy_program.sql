@@ -26,6 +26,11 @@ CREATE TABLE pregnancy_program
     nutrition_counseling_ever       bit,
     hiv_counsel_and_test_ever       bit,
     insecticide_treated_net_ever    bit,
+    syphilis_test_ever              bit,
+    arv_for_pmtct                   bit,
+    muac_measured                   bit,
+    anc_visit1_weight_recorded      bit,
+    malaria_treatment_during_antenatal bit,
     index_asc                       int,
     index_desc                      int
 );
