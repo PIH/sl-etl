@@ -78,7 +78,7 @@ UPDATE temp_anc_encs
 SET provider = provider(encounter_id);
 
 UPDATE temp_anc_encs t
-SET emr_id = patient_identifier(patient_id, 'c09a1d24-7162-11eb-8aa6-0242ac110002');
+SET emr_id = patient_identifier(patient_id, metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType'));
 
 UPDATE temp_anc_encs
 SET encounter_location=encounter_location_name(encounter_id);
