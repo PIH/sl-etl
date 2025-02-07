@@ -21,7 +21,6 @@ CREATE TABLE pregnancy_program
     hiv_status                      varchar(255),
     trimester_enrolled              varchar(255),
     total_anc_visits                int,
-    ferrous_sulfate_folic_acid_ever bit,
     iptp_sp_malaria_ever            bit,
     nutrition_counseling_ever       bit,
     hiv_counsel_and_test_ever       bit,
