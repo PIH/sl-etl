@@ -56,7 +56,6 @@ create temporary table temp_pregnancy_program
     total_anc_visits                           int,
     post_partum_state_date                     date,
     anc_state_date                             date,
-    ferrous_sulfate_folic_acid_ever            boolean,
     iptp_sp_malaria_ever                       boolean,
     nutrition_counseling_ever                  boolean,
     hiv_counsel_and_test_ever                  boolean,
@@ -95,7 +94,6 @@ call temp_program_encounter_create();
 call temp_program_encounter_populate(@ancIntake);
 call temp_program_encounter_populate(@ancFollowup);
 call temp_program_encounter_populate(@laborDeliverySummary);
-call temp_program_encounter_populate(@vitals);
 call temp_program_encounter_create_indexes();
 
 # Link in the observations from the pregnancy encounters
@@ -238,19 +236,12 @@ update temp_pregnancy_program set total_anc_initial = temp_program_encounter_cou
 update temp_pregnancy_program set total_anc_followup = temp_program_encounter_count(patient_program_id, @ancFollowup, anc_count_end_datetime);
 update temp_pregnancy_program set total_anc_visits = num_previous_anc_visits + total_anc_initial + total_anc_followup;
 
-update temp_pregnancy_program set ferrous_sulfate_folic_acid_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '164166', 'CIEL', '1065'), 0) > 0;
 update temp_pregnancy_program set iptp_sp_malaria_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '1591', 'CIEL', '1065'), 0) > 0;
 update temp_pregnancy_program set nutrition_counseling_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '1380', 'CIEL', '1065'), 0) > 0;
 update temp_pregnancy_program set hiv_counsel_and_test_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '164401', 'CIEL', '1065'), 0) > 0;
 update temp_pregnancy_program set insecticide_treated_net_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '159855', 'CIEL', '1065'), 0) > 0;
 
 update temp_pregnancy_program set anc_state_date = temp_program_earliest_patient_state_date(patient_program_id, @anc_state);
-
-update temp_pregnancy_program set muac_measured = 
-	if(temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '7956', anc_state_date, post_partum_state_date) is null,0,1);
-
-update temp_pregnancy_program set syphilis_test_ever = ifnull(temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '12265',null,null), 0) > 0
-	or ifnull(temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '1478',null,null), 0) > 0;
 
 update temp_pregnancy_program set latest_gest_age_date = temp_program_obs_latest_obs_datetime(patient_program_id, 'CIEL', '1438', null, null);
 
@@ -261,6 +252,7 @@ update temp_pregnancy_program t
 inner join encounter e on e.encounter_id = latest_anc_intake_encounter_id
 set anc_intake_visit_id = e.visit_id;
 
+
 update temp_pregnancy_program t
 set anc_visit1_weight_recorded =  
 	(select if(max(o.concept_id) is null, 0,1) 
@@ -270,6 +262,9 @@ set anc_visit1_weight_recorded =
 	where e.visit_id = t.anc_intake_visit_id 
 	and e.patient_program_id = t.patient_program_id
 	group by t.patient_program_id);
+update temp_pregnancy_program t
+set anc_visit1_weight_recorded = 0 where anc_intake_visit_id is not null and anc_visit1_weight_recorded is null;
+
 
 update temp_pregnancy_program set pregnancy_status = 'Antenatal' where actual_delivery_date is null and estimated_gestational_age <= 45 and outcome_concept_id is null and current_state_concept_id != concept_from_mapping('CIEL', '1180');
 update temp_pregnancy_program set pregnancy_status = 'Postpartum, delivered' where delivery_outcome in ('Alive', 'Stillbirth', 'Multiple outcome');
@@ -284,44 +279,32 @@ drop temporary table if exists temp_med_orders;
 create temporary table temp_med_orders
 (patient_program_id int(11),
 patient_id int(11),
-order_id int(11),
+medication_dispense_id int(11),
 concept_id int(11),
 category text);
 
-insert into temp_med_orders(patient_program_id, patient_id, order_id, concept_id, category )
-select patient_program_id, t.patient_id,order_id, concept_id, 'ART'
-from orders o 
+insert into temp_med_orders(patient_program_id, patient_id, medication_dispense_id, concept_id, category)
+select patient_program_id, t.patient_id,medication_dispense_id, concept, 'Iron'
+from medication_dispense d 
 inner join temp_pregnancy_program t 
-	on t.patient_id = o.patient_id
-where (o.date_activated >= t.anc_state_date
-and (o.date_activated <= t.post_partum_state_date or t.post_partum_state_date is null))
-and fulfiller_status = 'COMPLETED'
-and concept_in_set(o.concept_id, @art_set) 
-;
+	on t.patient_id = d.patient_id
+where (d.date_handed_over >= t.anc_state_date
+and (d.date_handed_over <= t.post_partum_state_date or t.post_partum_state_date is null))
+and d.concept in (@ferrous_sulfate_folic_acid, @ferrous_sulfate);;
 
-insert into temp_med_orders(patient_program_id, patient_id, order_id, concept_id, category)
-select patient_program_id, t.patient_id,order_id, concept_id, 'Antimalarial'
-from orders o 
+insert into temp_med_orders(patient_program_id, patient_id, medication_dispense_id, concept_id, category)
+select patient_program_id, t.patient_id,medication_dispense_id, concept, 'Antimalarial'
+from medication_dispense d 
 inner join temp_pregnancy_program t 
-	on t.patient_id = o.patient_id
-where (o.date_activated >= t.anc_state_date
-and (o.date_activated <= t.post_partum_state_date or t.post_partum_state_date is null))
-and fulfiller_status = 'COMPLETED'
-and concept_in_set(o.concept_id, @antimalarial_set) 
+	on t.patient_id = d.patient_id
+where (d.date_handed_over >= t.anc_state_date
+and (d.date_handed_over <= t.post_partum_state_date or t.post_partum_state_date is null))
+and concept_in_set(d.concept, @antimalarial_set)  
 ;
-
-insert into temp_med_orders(patient_program_id, patient_id, order_id, concept_id, category)
-select patient_program_id, t.patient_id,order_id, concept_id, 'Iron'
-from orders o 
-inner join temp_pregnancy_program t 
-	on t.patient_id = o.patient_id
-where (o.date_activated >= t.anc_state_date
-and (o.date_activated <= t.post_partum_state_date or t.post_partum_state_date is null))
-and fulfiller_status = 'COMPLETED'
-and concept_id in (@ferrous_sulfate_folic_acid, @ferrous_sulfate);
 
 create index temp_med_orders_ppi on temp_med_orders(patient_program_id);
 
+update temp_pregnancy_program t set arv_for_pmtct = 0;
 update temp_pregnancy_program t
 set arv_for_pmtct = 1
 where EXISTS 
@@ -334,11 +317,34 @@ where EXISTS
 	(select 1 from temp_med_orders o where o.patient_program_id = t.patient_program_id
 	and category = 'Antimalarial');
 
+update temp_pregnancy_program t set iron_ifa_ever = 0;
 update temp_pregnancy_program t
 set iron_ifa_ever = 1
 where EXISTS 
 	(select 1 from temp_med_orders o where o.patient_program_id = t.patient_program_id
 	and category = 'Iron');
+
+-- columns using labs
+call temp_program_encounter_create();
+call temp_program_encounter_populate(@labResults);
+call temp_program_encounter_populate(@specimenCollection);
+call temp_program_encounter_create_indexes();
+call temp_program_obs_create();
+call temp_program_obs_populate('en');
+
+update temp_pregnancy_program set syphilis_test_ever = ifnull(temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '12265',null,null), 0) > 0
+	or ifnull(temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '1478',null,null), 0) > 0;
+
+-- columns using Vitals
+call temp_program_encounter_create();
+call temp_program_encounter_populate(@vitals);
+call temp_program_encounter_create_indexes();
+call temp_program_obs_create();
+call temp_program_obs_populate('en');
+
+update temp_pregnancy_program set muac_measured = 
+	if(temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '7956', anc_state_date, post_partum_state_date) is null,0,1);
+
 
 select concat(@partition,'-',patient_program_id) as pregnancy_program_id,
        concat(@partition,'-',patient_id) as patient_id,
@@ -361,7 +367,6 @@ select concat(@partition,'-',patient_program_id) as pregnancy_program_id,
        hiv_status,
        trimester_enrolled,
        total_anc_visits,
-       ferrous_sulfate_folic_acid_ever,
        iptp_sp_malaria_ever,
        nutrition_counseling_ever,
        hiv_counsel_and_test_ever,
