@@ -9,6 +9,7 @@ CREATE TABLE pregnancy_program
     outcome                         varchar(255),
     current_state                   varchar(255),
     pregnancy_status                varchar(255),
+    birthdate                       date,
     age_at_pregnancy_registration   int,
     danger_signs                    varchar(1000),
     high_risk_factors               varchar(1000),
