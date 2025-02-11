@@ -49,5 +49,7 @@ albendazole                bit,
 malaria_rdt                varchar(255),
 counseled_danger_signs     bit,  
 index_asc                  INT,          
-index_desc                 INT           
+index_desc                 INT,
+index_asc_patient_program  INT,
+index_desc_patient_program INT  
 );
