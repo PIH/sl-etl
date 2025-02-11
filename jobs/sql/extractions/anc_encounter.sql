@@ -6,13 +6,16 @@ FROM encounter_type et WHERE uuid='00e5e810-90ec-11e8-9eb6-529269fb1459';
 SELECT encounter_type_id  INTO @anc_followup
 FROM encounter_type et WHERE uuid='00e5e946-90ec-11e8-9eb6-529269fb1459';
 
+set @pregnancyProgramId = program('Pregnancy');
+
 drop temporary table if exists temp_anc_encs;
 create temporary table temp_anc_encs
 (
 patient_id                 int,          
 emr_id                     varchar(255), 
 encounter_id               int,          
-visit_id                   int,          
+visit_id                   int,
+pregnancy_program_id       int, 
 encounter_datetime         datetime,     
 encounter_location         varchar(255), 
 datetime_created           datetime,     
@@ -70,7 +73,6 @@ ORDER BY encounter_datetime desc;
 
 create index temp_labor_encs_ei on temp_anc_encs(encounter_id);
 
-
 UPDATE temp_anc_encs
 set user_entered = person_name_of_user(user_entered);
 
@@ -82,6 +84,9 @@ SET emr_id = patient_identifier(patient_id, metadata_uuid('org.openmrs.module.em
 
 UPDATE temp_anc_encs
 SET encounter_location=encounter_location_name(encounter_id);
+
+update temp_anc_encs
+set pregnancy_program_id = patient_program_id_from_encounter(patient_id, @pregnancyProgramId ,encounter_id);
 
 DROP TEMPORARY TABLE IF EXISTS temp_obs;
 create temporary table temp_obs
@@ -208,9 +213,10 @@ SET counseled_danger_signs = obs_value_coded_as_boolean_from_temp(encounter_id, 
 
 SELECT
 concat(@partition,"-",patient_id) as patient_id,
-concat(@partition,"-",emr_id)  as emr_id,
+emr_id,
 concat(@partition,"-",encounter_id) as encounter_id,
 concat(@partition,"-",visit_id)  as visit_id,
+concat(@partition,"-",pregnancy_program_id)  as pregnancy_program_id,
 encounter_datetime,
 encounter_location,
 datetime_created,
