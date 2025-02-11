@@ -60,7 +60,9 @@ albendazole                boolean,
 malaria_rdt                varchar(255),
 counseled_danger_signs     boolean,
 index_asc                  INT,          
-index_desc                 INT           
+index_desc                 INT,
+index_asc_patient_program  INT,
+index_desc_patient_program INT
 );
 
 insert into temp_anc_encs(patient_id, encounter_id, visit_id, encounter_datetime,
@@ -261,5 +263,7 @@ albendazole,
 malaria_rdt,
 counseled_danger_signs,
 index_asc,
-index_desc
+index_desc,
+index_asc_patient_program,
+index_desc_patient_program
 FROM temp_anc_encs;
