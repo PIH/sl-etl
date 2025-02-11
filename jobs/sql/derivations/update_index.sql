@@ -96,6 +96,20 @@ set t.index_asc = i.index_asc,
 from anc_encounter t inner join #derived_indexes i on i.encounter_id = t.encounter_id
 ;
 
+-- update index asc/desc on anc_encounter table
+drop table if exists #derived_indexes;
+select  encounter_id,
+        ROW_NUMBER() over (PARTITION by pregnancy_program_id  order by encounter_datetime, encounter_id) as index_asc_patient_program,
+        ROW_NUMBER() over (PARTITION by pregnancy_program_id order by encounter_datetime DESC, encounter_id DESC) as index_desc_patient_program
+into    #derived_indexes
+from    anc_encounter;
+
+update t
+set t.index_asc_patient_program = i.index_asc_patient_program,
+    t.index_desc_patient_program = i.index_desc_patient_program
+from anc_encounter t inner join #derived_indexes i on i.encounter_id = t.encounter_id
+;
+
 -- update index asc/desc on labor_summary_encounter table
 drop table if exists #derived_indexes;
 select  encounter_id,
