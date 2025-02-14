@@ -82,8 +82,6 @@ set @vitals = encounter_type('4fb47712-34a6-40d2-8ed3-e153abbd25b7');
 set @labResults = encounter_type('4d77916a-0620-11e5-a6c0-1697f925ec7b');
 set @specimenCollection= encounter_type('39C09928-0CAB-4DBA-8E48-39C631FA4286');
 
-select * from encounter_type where name like '%lab%';
-
 # Set up one row per patient program
 call temp_program_patient_create();
 call temp_program_patient_populate(@pregnancy_program_id);
@@ -245,26 +243,11 @@ update temp_pregnancy_program set anc_state_date = temp_program_earliest_patient
 
 update temp_pregnancy_program set latest_gest_age_date = temp_program_obs_latest_obs_datetime(patient_program_id, 'CIEL', '1438', null, null);
 
-
 update temp_pregnancy_program set latest_anc_intake_encounter_id = temp_program_encounter_latest_encounter_id(patient_program_id, @ancIntake);
 
 update temp_pregnancy_program t
 inner join encounter e on e.encounter_id = latest_anc_intake_encounter_id
 set anc_intake_visit_id = e.visit_id;
-
-
-update temp_pregnancy_program t
-set anc_visit1_weight_recorded =  
-	(select if(max(o.concept_id) is null, 0,1) 
-	from temp_program_encounter e 
-	inner join temp_program_obs o on o.encounter_id = e.encounter_id
-		and o.concept_id = @weightConceptId
-	where e.visit_id = t.anc_intake_visit_id 
-	and e.patient_program_id = t.patient_program_id
-	group by t.patient_program_id);
-update temp_pregnancy_program t
-set anc_visit1_weight_recorded = 0 where anc_intake_visit_id is not null and anc_visit1_weight_recorded is null;
-
 
 update temp_pregnancy_program set pregnancy_status = 'Antenatal' where actual_delivery_date is null and estimated_gestational_age <= 45 and outcome_concept_id is null and current_state_concept_id != concept_from_mapping('CIEL', '1180');
 update temp_pregnancy_program set pregnancy_status = 'Postpartum, delivered' where delivery_outcome in ('Alive', 'Stillbirth', 'Multiple outcome');
@@ -289,7 +272,8 @@ from medication_dispense d
 inner join temp_pregnancy_program t 
 	on t.patient_id = d.patient_id
 where (d.date_handed_over >= t.anc_state_date
-and (d.date_handed_over <= t.post_partum_state_date or t.post_partum_state_date is null))
+and (d.date_handed_over <= t.post_partum_state_date or t.post_partum_state_date is null)
+and (d.date_handed_over <= t.date_completed or t.date_completed is null))
 and d.concept in (@ferrous_sulfate_folic_acid, @ferrous_sulfate);;
 
 insert into temp_med_orders(patient_program_id, patient_id, medication_dispense_id, concept_id, category)
@@ -298,8 +282,20 @@ from medication_dispense d
 inner join temp_pregnancy_program t 
 	on t.patient_id = d.patient_id
 where (d.date_handed_over >= t.anc_state_date
-and (d.date_handed_over <= t.post_partum_state_date or t.post_partum_state_date is null))
+and (d.date_handed_over <= t.post_partum_state_date or t.post_partum_state_date is null)
+and (d.date_handed_over <= t.date_completed or t.date_completed is null))
 and concept_in_set(d.concept, @antimalarial_set)  
+;
+
+insert into temp_med_orders(patient_program_id, patient_id, medication_dispense_id, concept_id, category)
+select patient_program_id, t.patient_id,medication_dispense_id, concept, 'ART'
+from medication_dispense d 
+inner join temp_pregnancy_program t 
+	on t.patient_id = d.patient_id
+where (d.date_handed_over >= t.anc_state_date
+and (d.date_handed_over <= t.post_partum_state_date or t.post_partum_state_date is null)
+and (d.date_handed_over <= t.date_completed or t.date_completed is null))
+and concept_in_set(d.concept, @art_set)  
 ;
 
 create index temp_med_orders_ppi on temp_med_orders(patient_program_id);
@@ -316,6 +312,10 @@ set malaria_treatment_during_antenatal = 1
 where EXISTS 
 	(select 1 from temp_med_orders o where o.patient_program_id = t.patient_program_id
 	and category = 'Antimalarial');
+update temp_pregnancy_program t
+set malaria_treatment_during_antenatal = 0
+where malaria_treatment_during_antenatal is null and anc_state_date is not NULL;
+
 
 update temp_pregnancy_program t set iron_ifa_ever = 0;
 update temp_pregnancy_program t
@@ -345,6 +345,16 @@ call temp_program_obs_populate('en');
 update temp_pregnancy_program set muac_measured = 
 	if(temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '7956', anc_state_date, post_partum_state_date) is null,0,1);
 
+update temp_pregnancy_program t
+set anc_visit1_weight_recorded  = 1
+where exists 
+	(select 1 from temp_program_encounter e 
+	inner join temp_program_obs o on o.encounter_id = e.encounter_id
+		and o.concept_id = @weightConceptId
+	where e.visit_id = t.anc_intake_visit_id 
+	and e.patient_program_id = t.patient_program_id);
+update temp_pregnancy_program t
+set anc_visit1_weight_recorded = 0 where total_anc_visits >= 1 and anc_visit1_weight_recorded is null;
 
 select concat(@partition,'-',patient_program_id) as pregnancy_program_id,
        concat(@partition,'-',patient_id) as patient_id,
