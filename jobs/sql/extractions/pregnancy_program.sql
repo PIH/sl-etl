@@ -234,10 +234,17 @@ update temp_pregnancy_program set total_anc_initial = temp_program_encounter_cou
 update temp_pregnancy_program set total_anc_followup = temp_program_encounter_count(patient_program_id, @ancFollowup, anc_count_end_datetime);
 update temp_pregnancy_program set total_anc_visits = num_previous_anc_visits + total_anc_initial + total_anc_followup;
 
-update temp_pregnancy_program set iptp_sp_malaria_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '1591', 'CIEL', '1065'), 0) > 0;
-update temp_pregnancy_program set nutrition_counseling_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '1380', 'CIEL', '1065'), 0) > 0;
-update temp_pregnancy_program set hiv_counsel_and_test_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '164401', 'CIEL', '1065'), 0) > 0;
-update temp_pregnancy_program set insecticide_treated_net_ever = ifnull(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '159855', 'CIEL', '1065'), 0) > 0;
+update temp_pregnancy_program set iptp_sp_malaria_ever = if(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '1591', 'CIEL', '1065') = 0, null, 1);
+update temp_pregnancy_program t set iptp_sp_malaria_ever = 0 where total_anc_visits >= 1 and iptp_sp_malaria_ever is null;
+
+update temp_pregnancy_program set nutrition_counseling_ever = if(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '1380', 'CIEL', '1065')= 0, null,1);
+update temp_pregnancy_program t set nutrition_counseling_ever = 0 where total_anc_visits >= 1 and nutrition_counseling_ever is null;
+
+update temp_pregnancy_program set hiv_counsel_and_test_ever = if(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '164401', 'CIEL', '1065') = 0, null, 1);
+update temp_pregnancy_program t set hiv_counsel_and_test_ever = 0 where total_anc_visits >= 1 and hiv_counsel_and_test_ever is null;
+
+update temp_pregnancy_program set insecticide_treated_net_ever = if(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '159855', 'CIEL', '1065') = 0, null, 1);
+update temp_pregnancy_program t set hiv_counsel_and_test_ever = 0 where total_anc_visits >= 1 and hiv_counsel_and_test_ever is null;
 
 update temp_pregnancy_program set anc_state_date = temp_program_earliest_patient_state_date(patient_program_id, @anc_state);
 
@@ -300,12 +307,12 @@ and concept_in_set(d.concept, @art_set)
 
 create index temp_med_orders_ppi on temp_med_orders(patient_program_id);
 
-update temp_pregnancy_program t set arv_for_pmtct = 0;
 update temp_pregnancy_program t
 set arv_for_pmtct = 1
 where EXISTS 
 	(select 1 from temp_med_orders o where o.patient_program_id = t.patient_program_id
 	and category = 'ART');
+update temp_pregnancy_program t set arv_for_pmtct = 0 where total_anc_visits >= 1 and arv_for_pmtct is null;
 
 update temp_pregnancy_program t
 set malaria_treatment_during_antenatal = 1
@@ -316,13 +323,12 @@ update temp_pregnancy_program t
 set malaria_treatment_during_antenatal = 0
 where malaria_treatment_during_antenatal is null and anc_state_date is not NULL;
 
-
-update temp_pregnancy_program t set iron_ifa_ever = 0;
 update temp_pregnancy_program t
 set iron_ifa_ever = 1
 where EXISTS 
 	(select 1 from temp_med_orders o where o.patient_program_id = t.patient_program_id
 	and category = 'Iron');
+update temp_pregnancy_program t set iron_ifa_ever = 0 where total_anc_visits >= 1 and iron_ifa_ever is null;
 
 -- columns using labs
 call temp_program_encounter_create();
@@ -332,8 +338,15 @@ call temp_program_encounter_create_indexes();
 call temp_program_obs_create();
 call temp_program_obs_populate('en');
 
-update temp_pregnancy_program set syphilis_test_ever = ifnull(temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '12265',null,null), 0) > 0
-	or ifnull(temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '1478',null,null), 0) > 0;
+select temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '12265',null,null), t.* from temp_pregnancy_program t;
+
+update temp_pregnancy_program 
+set syphilis_test_ever = 
+CASE
+	when temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '12265',null,null) is not null
+		or temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '1478',null,null) is not null then 1
+	when total_anc_visits >= 1 then 0 
+END;
 
 -- columns using Vitals
 call temp_program_encounter_create();
@@ -343,7 +356,9 @@ call temp_program_obs_create();
 call temp_program_obs_populate('en');
 
 update temp_pregnancy_program set muac_measured = 
-	if(temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '7956', anc_state_date, post_partum_state_date) is null,0,1);
+	if(temp_program_obs_latest_obs_datetime(patient_program_id, 'PIH', '7956', anc_state_date, post_partum_state_date) is null,null,1);
+update temp_pregnancy_program t
+set muac_measured = 0 where total_anc_visits >= 1 and muac_measured is null;
 
 update temp_pregnancy_program t
 set anc_visit1_weight_recorded  = 1
