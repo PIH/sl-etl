@@ -244,7 +244,7 @@ update temp_pregnancy_program set hiv_counsel_and_test_ever = if(temp_program_ob
 update temp_pregnancy_program t set hiv_counsel_and_test_ever = 0 where total_anc_visits >= 1 and hiv_counsel_and_test_ever is null;
 
 update temp_pregnancy_program set insecticide_treated_net_ever = if(temp_program_obs_num_with_value_coded(patient_program_id, null, 'CIEL', '159855', 'CIEL', '1065') = 0, null, 1);
-update temp_pregnancy_program t set hiv_counsel_and_test_ever = 0 where total_anc_visits >= 1 and hiv_counsel_and_test_ever is null;
+update temp_pregnancy_program t set insecticide_treated_net_ever = 0 where total_anc_visits >= 1 and insecticide_treated_net_ever is null;
 
 update temp_pregnancy_program set anc_state_date = temp_program_earliest_patient_state_date(patient_program_id, @anc_state);
 
@@ -319,9 +319,7 @@ set malaria_treatment_during_antenatal = 1
 where EXISTS 
 	(select 1 from temp_med_orders o where o.patient_program_id = t.patient_program_id
 	and category = 'Antimalarial');
-update temp_pregnancy_program t
-set malaria_treatment_during_antenatal = 0
-where malaria_treatment_during_antenatal is null and anc_state_date is not NULL;
+update temp_pregnancy_program t set malaria_treatment_during_antenatal = 0 where total_anc_visits >= 1 and malaria_treatment_during_antenatal is null;
 
 update temp_pregnancy_program t
 set iron_ifa_ever = 1
