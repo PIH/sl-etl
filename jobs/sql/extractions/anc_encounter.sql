@@ -59,6 +59,7 @@ drug_name                  varchar(255),
 albendazole                boolean,
 malaria_rdt                varchar(255),
 counseled_danger_signs     boolean,
+llin                       boolean,
 index_asc                  INT,          
 index_desc                 INT,
 index_asc_patient_program  INT,
@@ -213,6 +214,9 @@ SET malaria_rdt = obs_value_coded_list_from_temp(encounter_id, 'PIH','11464','en
 UPDATE temp_anc_encs t
 SET counseled_danger_signs = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','12750');
 
+UPDATE temp_anc_encs t
+SET llin = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','13053');
+
 SELECT
 concat(@partition,"-",patient_id) as patient_id,
 emr_id,
@@ -262,6 +266,7 @@ drug_name,
 albendazole,
 malaria_rdt,
 counseled_danger_signs,
+llin,
 index_asc,
 index_desc,
 index_asc_patient_program,
