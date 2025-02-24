@@ -22,3 +22,4 @@ configuration:
           - tableName: "drug_categories"
           - tableName: "ncd_monthly_summary"
           - tableName: "maternity_patient"
+          - tableName: "anc_monthly_summary"          
