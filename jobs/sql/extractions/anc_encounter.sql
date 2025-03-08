@@ -27,6 +27,7 @@ number_anc_visit           int,
 birth_weight_other_babies  varchar(255), 
 danger_signs               text, 
 high_risk_factors          text, 
+other_risk_factors         text,
 prior_neonatal_deaths      int,          
 prior_stillbirths          int,          
 gravida                    int,          
@@ -117,6 +118,9 @@ SET birth_weight_other_babies = obs_value_coded_list_from_temp(encounter_id, 'PI
 
 UPDATE temp_anc_encs t
 SET high_risk_factors = obs_value_coded_list_from_temp(encounter_id, 'PIH','11673','en');
+
+UPDATE temp_anc_encs t
+SET other_risk_factors = obs_comments_from_temp(encounter_id, 'PIH','11673','PIH','5622');
 
 UPDATE temp_anc_encs t
 SET prior_neonatal_deaths = obs_value_numeric_from_temp(encounter_id, 'PIH','13241');
@@ -234,6 +238,7 @@ number_anc_visit,
 birth_weight_other_babies,
 danger_signs,
 high_risk_factors,
+other_risk_factors,
 prior_neonatal_deaths,
 prior_stillbirths,
 gravida,
