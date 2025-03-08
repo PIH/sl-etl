@@ -56,17 +56,18 @@ select distinct FirstDayOfQuarter as quarter_start_date, FirstDayOfMonth as mont
 into #reporting_months
 from Dim_Date dd
 where LastDayOfMonth >= '2023-01-01'
-and LastDayOfMonth <= '2025-02-28' -- GETDATE() -- CHANGE THIS!
+and LastDayOfMonth <= '2025-03-31' -- CHANGE THIS to GETDATE()!
 ;
 
 -- enter a row for every month-end the patient was active in the program
 -- if the patient had multiple qualifying enrollments, set date_enrolled to the most recent
 insert into anc_monthly_summary_staging (patient_id, emr_id, reporting_date, birthdate, pregnancy_program_id, date_enrolled, program_outcome_date, program_outcome)
-select  pp.patient_id, pp.emr_id, r.month_end_date, birthdate, pregnancy_program_id,pp.date_enrolled, pp.date_completed, pp.outcome
-from    pregnancy_program pp, #reporting_months r
-where   pp.date_enrolled <= r.month_end_date
-and     (pp.date_completed is null or pp.date_completed >= r.month_start_date)
-;
+select  distinct pp.patient_id, pp.emr_id, r.month_end_date, birthdate, pp.pregnancy_program_id,pp.date_enrolled, pp.date_completed, pp.outcome
+from    pregnancy_program pp
+inner join pregnancy_state ps on ps.pregnancy_program_id = pp.pregnancy_program_id and state = 'Antenatal'
+inner join #reporting_months r
+	on ps.state_start_date <= r.month_end_date
+	and     (ps.state_end_date is null or ps.state_end_date >= r.month_start_date);
 
 create index anc_monthly_summary_staging_pi on anc_monthly_summary_staging(patient_id);
 
@@ -306,7 +307,7 @@ where drug_name = 'Sulfadoxine (S) 500mg + Pyrimethamine (P) 25mg tablet';
 
 -- ipt_doses_to_date
 update a
-set ipt_doses_to_date = (select max(index_asc) from #ipt_indexes i where i.pregnancy_program_id = a.pregnancy_program_id)   
+set ipt_doses_to_date = (select count(*) from #ipt_indexes i where i.pregnancy_program_id = a.pregnancy_program_id and i.encounter_datetime <= a.reporting_date )   
 from anc_monthly_summary_staging a;
 update a set ipt_doses_to_date = 0 from anc_monthly_summary_staging a where ipt_doses_to_date is null;
 
@@ -382,7 +383,7 @@ update a set anc_visit1_albendazole = 0 from anc_monthly_summary_staging a where
 update a
 set anc_visit2_albendazole = 1 
 from anc_monthly_summary_staging a
-where anc_visit1 = 2
+where anc_visit2 = 1
 and exists
 	(select 1 from anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
@@ -435,7 +436,8 @@ where anc_visit1 = 1
 and exists
 	(select 1 from anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
-	inner join labs_order_results l on l.specimen_collection_date >= v.visit_date_started 
+	inner join labs_order_results l on l.patient_id = e.patient_id 
+		and l.specimen_collection_date >= v.visit_date_started 
 		and (l.specimen_collection_date <= v.visit_date_stopped or v.visit_date_stopped is null)
 		and l.test = 'Rapid syphilis test'
 	where e.pregnancy_program_id = a.pregnancy_program_id 
