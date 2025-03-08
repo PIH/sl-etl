@@ -1,6 +1,7 @@
 set @partition = '${partitionNum}';
 
 SELECT encounter_type_id INTO @labor_enc FROM encounter_type et WHERE uuid='fec2cc56-e35f-42e1-8ae3-017142c1ca59';
+set @pregnancyProgramId = program('Pregnancy');
 
 drop temporary table if exists temp_labor_encs;
 create temporary table temp_labor_encs
@@ -15,6 +16,7 @@ create temporary table temp_labor_encs
     encounter_location       varchar(255),
     datetime_created         datetime,
     user_entered             varchar(255),
+    pregnancy_program_id     int(11),
     provider                 varchar(255),
     birthdate                datetime,
     outcome                  varchar(255),
@@ -42,7 +44,8 @@ CREATE TEMPORARY TABLE temp_encs
     encounter_location varchar(255),
     datetime_created   datetime,
     user_entered       varchar(255),
-    provider           varchar(255)
+    provider           varchar(255),
+    pregnancy_program_id     int(11)
 );
 
 insert into temp_encs (patient_id, encounter_id, visit_id, encounter_datetime, datetime_created, user_entered)
@@ -53,6 +56,9 @@ AND         encounter_type IN (@labor_enc)
 ORDER BY    encounter_datetime desc;
 
 create index temp_labor_encs_ei on temp_encs(encounter_id);
+
+update temp_encs
+set pregnancy_program_id = patient_program_id_from_encounter(patient_id, @pregnancyProgramId ,encounter_id);
 
 DROP TEMPORARY TABLE IF EXISTS temp_obs;
 create temporary table temp_obs
@@ -65,8 +71,8 @@ where o.voided = 0;
 create index temp_obs_encs_ei on temp_obs(encounter_id);
 create index temp_obs_encs_eobs on temp_obs(encounter_id, obs_group_id);
 
-insert into temp_labor_encs(patient_id, encounter_id, visit_id, encounter_datetime, datetime_created, user_entered, obs_group_id)
-SELECT e.patient_id, e.encounter_id, e.visit_id, e.encounter_datetime, e.datetime_created, e.user_entered, o.obs_id
+insert into temp_labor_encs(patient_id, encounter_id, visit_id, encounter_datetime, datetime_created, user_entered, obs_group_id, pregnancy_program_id)
+SELECT e.patient_id, e.encounter_id, e.visit_id, e.encounter_datetime, e.datetime_created, e.user_entered, o.obs_id, e.pregnancy_program_id
 FROM temp_encs e
 INNER JOIN temp_obs o ON e.encounter_id=o.encounter_id
 AND o.concept_id= concept_from_mapping('PIH','13555');
@@ -129,6 +135,7 @@ encounter_location,
 datetime_created,
 user_entered,
 provider,
+pregnancy_program_id,
 birthdate,
 outcome,
 sex,
