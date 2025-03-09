@@ -90,7 +90,7 @@ UPDATE temp_labor_encs
 SET encounter_location=encounter_location_name(encounter_id);
 
 UPDATE temp_labor_encs
-SET birthdate=obs_from_group_id_value_datetime_from_temp(obs_group_id, 'PIH', '15080');
+SET birthdate=obs_from_group_id_value_datetime_from_temp(obs_group_id, 'PIH', '5599');
 
 UPDATE temp_labor_encs
 SET outcome=obs_from_group_id_value_coded_list_from_temp(obs_group_id, 'PIH', '13561','en');
