@@ -1,5 +1,5 @@
 CREATE TABLE pregnancy_program
-(patient_program_id   varchar(50),  
+(pregnancy_program_id   varchar(50),  
 emr_id                varchar(30),  
 patient_id            varchar(50),  
 reg_location          varchar(255), 
