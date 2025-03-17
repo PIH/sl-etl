@@ -1,0 +1,10 @@
+# Template that takes in the following parameters
+# ${scriptName}
+# The purpose of this job is to execute a script named ${scriptName}.sql in the sql/derivations directory against the warehouse DB
+type: "sql-execution"
+description: "Preparing warehouse database: ${scriptName}"
+configuration:
+  datasource: "warehouse.yml"
+  delimiter: ";"
+  scripts:
+    - "sql/derivations/dwh_preparation_scripts/${scriptName}.sql"

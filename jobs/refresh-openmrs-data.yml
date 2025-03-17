@@ -17,7 +17,15 @@ configuration:
           - siteName: "kgh"
         jobTemplate:
           path: "refresh-${siteName}.yml"
-
+          
+    - type: "iterating-job"
+      description: "Prepare data warehouse"
+      configuration:
+        jobTemplate:
+          path: "prepare_dwh.yml"
+        iterations:
+          - scriptName: "create_functions"
+          
     - type: "iterating-job"
       description: "Create final derived tables"
       configuration:
