@@ -61,8 +61,8 @@ and LastDayOfMonth <= '2025-03-31' -- CHANGE THIS to GETDATE()!
 
 -- enter a row for every month-end the patient was active in the program
 -- if the patient had multiple qualifying enrollments, set date_enrolled to the most recent
-insert into anc_monthly_summary_staging (patient_id, emr_id, reporting_date, birthdate, pregnancy_program_id, date_enrolled, program_outcome_date, program_outcome)
-select  distinct pp.patient_id, pp.emr_id, r.month_end_date, birthdate, pp.pregnancy_program_id,pp.date_enrolled, pp.date_completed, pp.outcome
+insert into anc_monthly_summary_staging (patient_id, emr_id, reporting_date, pregnancy_program_id, date_enrolled, program_outcome_date, program_outcome)
+select  distinct pp.patient_id, pp.emr_id, r.month_end_date, pp.pregnancy_program_id,pp.date_enrolled, pp.date_completed, pp.outcome
 from    pregnancy_program pp
 inner join pregnancy_state ps on ps.pregnancy_program_id = pp.pregnancy_program_id and state = 'Antenatal'
 inner join #reporting_months r
@@ -70,6 +70,11 @@ inner join #reporting_months r
 	and     (ps.state_end_date is null or ps.state_end_date >= r.month_start_date);
 
 create index anc_monthly_summary_staging_pi on anc_monthly_summary_staging(patient_id);
+
+update a
+set birthdate = p.dob
+from anc_monthly_summary_staging a
+inner join all_patients p on p.patient_id = a.patient_id;
 
 update a
 set age_at_reporting_date = DATEDIFF(year, birthdate, reporting_date)
