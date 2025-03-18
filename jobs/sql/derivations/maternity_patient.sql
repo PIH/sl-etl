@@ -3,12 +3,16 @@ create table maternity_patient_staging
 (
 emr_id varchar(50),
 patient_id varchar(100),
+most_recent_pregnancy_program_id varchar(50),
+most_recent_date_enrolled date,
 dob date,
 currently_pregnant bit,
 most_recent_gravida int,
 most_recent_parity int,
 most_recent_abortus int,
 most_recent_living int,
+actual_delivery_date date,
+latest_lmp_entered date,
 estimated_gestational_age float,
 current_pregnancy_state varchar(255),
 pregnancy_outcome varchar(255),
@@ -51,18 +55,34 @@ set dob = p.dob,
 from maternity_patient_staging m
 inner join all_patients p on p.patient_id  = m.patient_id;
 
+-- most_recent_pregnancy_program_id
 update m
-set currently_pregnant = 1
+set most_recent_pregnancy_program_id = pp.pregnancy_program_id,
+	most_recent_date_enrolled = pp.date_enrolled
+from maternity_patient_staging m
+inner join pregnancy_program pp on pp.pregnancy_program_id = 
+	(select top 1 pp2.pregnancy_program_id 
+	from pregnancy_program pp2
+	where pp2.patient_id = m.patient_id
+	order by date_enrolled desc, pregnancy_program_id desc);
+
+update m
+set m.latest_lmp_entered = e.last_menstruation_date
+from maternity_patient_staging m 
+inner join anc_encounter e on e.encounter_id =
+    (select top 1 e2.encounter_id from anc_encounter e2
+    where e2.patient_id = m.patient_id
+    and last_menstruation_date is not null
+    order by e2.encounter_datetime desc, e2.encounter_id desc);
+
+-- calculate estimated_gestational_age in this function using the actual delivery date and latest lmp entered on forms
+update m
+set estimated_gestational_age = dbo.estimated_gestational_age(m.most_recent_pregnancy_program_id, m.actual_delivery_date, m.latest_lmp_entered)
 from maternity_patient_staging m;
 
 -- this is necessary because estimated_gestational_age currently contains the string "<45" sometimes:
 update m 
-set m.estimated_gestational_age = 
-	  case
-	  	when ISNUMERIC(pp.estimated_gestational_age)=1 then pp.estimated_gestational_age
-	  	else null
-	  end,
- m.current_pregnancy_state = pp.current_state,
+set m.current_pregnancy_state = pp.current_state,
  m.pregnancy_outcome = pp.outcome
 from maternity_patient_staging m
 inner join pregnancy_program pp on pp.pregnancy_program_id = 
@@ -71,7 +91,13 @@ inner join pregnancy_program pp on pp.pregnancy_program_id =
 	order by date_enrolled desc);
 
 update m
-set currently_pregnant = iif(estimated_gestational_age < 45.0 and current_pregnancy_state <> 'Postpartum' and pregnancy_outcome is null ,1,0)
+set currently_pregnant = 
+case	
+	when current_pregnancy_state = 'Antenatal' 
+		and (estimated_gestational_age <= 45 or (estimated_gestational_age is null and datediff(week, most_recent_date_enrolled, getdate()) <= 45))
+		then 1
+	else 0	
+end
 from maternity_patient_staging m;
 
 -- most recent observations from maternity forms
@@ -235,7 +261,7 @@ set m.most_recent_hiv_status =
 from maternity_patient_staging m;
 
 -- --------------------------
-ALTER TABLE maternity_patient_staging DROP COLUMN estimated_gestational_age, current_pregnancy_state,pregnancy_outcome;
+ALTER TABLE maternity_patient_staging DROP COLUMN estimated_gestational_age, current_pregnancy_state, pregnancy_outcome, actual_delivery_date, latest_lmp_entered;
 
 DROP TABLE IF EXISTS maternity_patient;
 EXEC sp_rename 'maternity_patient_staging', 'maternity_patient';
