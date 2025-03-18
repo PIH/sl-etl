@@ -242,6 +242,11 @@ set number_of_fetuses =
 from pregnancy_summary_staging p; 
 
 update p 
+set number_of_fetuses = 1 
+from pregnancy_summary_staging p 
+where number_of_fetuses = 0 and actual_delivery_date is not NULL  ; 
+
+update p 
 set delivery_num_fsb = 
 	(select count(*) from delivery_summary_encounter d
 	where d.pregnancy_program_id = p.pregnancy_program_id
@@ -268,6 +273,7 @@ set delivery_outcome =
 	end
 from pregnancy_summary_staging p; 
 
+
 update p 
 set total_anc_visits_recorded_in_emr = 
 	(select count(*) from anc_encounter e
@@ -293,7 +299,11 @@ set total_anc_visits_since_entry =
 from pregnancy_summary_staging p; 
 
 update p 
-set total_anc_visits = iif(isnull(number_anc_visit_entered,0)<1,1,isnull(number_anc_visit_entered,0)) + total_anc_visits_since_entry
+set total_anc_visits = 
+case
+	when number_anc_visit_entered is null then total_anc_visits_recorded_in_emr
+	else iif(total_anc_visits_recorded_in_emr > number_anc_visit_entered + total_anc_visits_since_entry, total_anc_visits_recorded_in_emr, number_anc_visit_entered + total_anc_visits_since_entry)
+end
 from pregnancy_summary_staging p; 
 
 -- nutrition_counseling_ever
@@ -303,7 +313,7 @@ from pregnancy_summary_staging p
 where exists
 	(select 1 from anc_encounter e 
 	where e.pregnancy_program_id = p.pregnancy_program_id
-	and nutrition_counseling_ever = 1);
+	and nutrition_counseling = 1);
 update p set nutrition_counseling_ever = 0 from pregnancy_summary_staging p where total_anc_visits_recorded_in_emr > 0 and nutrition_counseling_ever is null;
 
 -- hiv_counsel_and_test_ever
@@ -438,7 +448,7 @@ where exists
 		and vit.weight is not null
 	where e.pregnancy_program_id = p.pregnancy_program_id 
 	and e.index_asc_patient_program = 1);
-update a set anc_visit1_weight_recorded = 0 from pregnancy_summary_staging a where anc_visit1_weight_recorded is null;
+update a set anc_visit1_weight_recorded = 0 from pregnancy_summary_staging a where total_anc_visits_recorded_in_emr > 0 and anc_visit1_weight_recorded is null;
 
 update p 
 set muac_measured = 1
@@ -474,7 +484,7 @@ where exists
 		and l.test in ('Rapid test for HIV','HIV test result')
 	where e.pregnancy_program_id = p.pregnancy_program_id 
 	and e.index_asc_patient_program = 1);
-update a set anc_visit1_hiv_test = 0 from pregnancy_summary_staging a where anc_visit1_hiv_test is null;
+update a set anc_visit1_hiv_test = 0 from pregnancy_summary_staging a where total_anc_visits_recorded_in_emr > 0  and anc_visit1_hiv_test is null;
 
 update p
 set p.trimester_enrolled = e.trimester_enrollment
