@@ -38,6 +38,7 @@ create  table pregnancy_summary_staging
     index_desc                                 int,
 -- columns used for calculations:
     outcome                                    varchar(255),
+    current_state                              varchar(255),
     latest_lmp_entered                         date,
     estimated_gestational_age_entered          float,
     estimated_gestational_age_entered_date     date,
@@ -60,9 +61,7 @@ insert into pregnancy_summary_staging
 	date_enrolled,
 	date_completed,
 	outcome,
-	pregnancy_status,
-	birthdate,
-	age_at_pregnancy_registration)
+    current_state)
 select 
 	pregnancy_program_id,
 	patient_id,
@@ -70,10 +69,19 @@ select
 	date_enrolled,
 	date_completed,
 	outcome,
-	pregnancy_status,
-	birthdate,
-	age_at_pregnancy_registration
+    current_state
 from pregnancy_program pp;
+
+
+update ps
+set birthdate = p.dob
+from pregnancy_summary_staging ps
+inner join all_patients p on p.patient_id = ps.patient_id;
+
+update ps
+set age_at_pregnancy_registration = DATEDIFF(year, birthdate, date_enrolled)
+from pregnancy_summary_staging ps
+inner join all_patients p on p.patient_id = ps.patient_id;
 
 -- danger signs
 -- to get distinct danger signs for each program, we need to unpack the concatenated danger signs from the anc_encounter table
@@ -213,32 +221,22 @@ inner join delivery_summary_encounter e on e.encounter_id =
     where e2.pregnancy_program_id = p.pregnancy_program_id
     order by e2.encounter_datetime desc, e2.encounter_id desc);
 
+-- calculate estimated_gestational_age in this function using the actual delivery date and latest lmp entered on forms
 update p
-set p.estimated_gestational_age_entered = lp.gestational_age,
-	p.estimated_gestational_age_entered_date = cast(lp.encounter_datetime as date)
-from pregnancy_summary_staging p 
-inner join labor_progress_encounter lp on lp.encounter_id =
-    (select top 1 e2.encounter_id from anc_encounter e2
-    where e2.pregnancy_program_id = p.pregnancy_program_id
-    and estimated_gestational_age_entered is not null
-    order by e2.encounter_datetime desc, e2.encounter_id desc);
-
-update p
-set p.pregnancy_calculation_end_date = iif(actual_delivery_date is not null, actual_delivery_date, getdate()) 
-from pregnancy_summary_staging p;
-
--- adjust gestational age for current date
-update p
-set p.estimated_gestational_age_entered_calculated =  datediff(week, estimated_gestational_age_entered_date,pregnancy_calculation_end_date) + estimated_gestational_age_entered
+set estimated_gestational_age = dbo.estimated_gestational_age(p.pregnancy_program_id, p.actual_delivery_date, p.latest_lmp_entered)
 from pregnancy_summary_staging p;
 
 update p
-set estimated_gestational_age = 
-	CASE
-		when latest_lmp_entered is not null then datediff(week,  latest_lmp_entered,pregnancy_calculation_end_date)
-	    else estimated_gestational_age_entered_calculated 
-	END
-from pregnancy_summary_staging p; 
+set pregnancy_status = 
+CASE
+	when current_state = 'Miscarried' then 'Miscarried'
+	when actual_delivery_date is not null 
+	     or current_state = 'Postpartum' then 'Delivered'
+	when estimated_gestational_age > 45
+	  or datediff(week, date_enrolled, getdate()) > 45 then 'Presumed Postpartum'
+	else 'Antenatal'
+END
+from pregnancy_summary_staging p;
 
 update p 
 set number_of_fetuses = 
@@ -507,6 +505,7 @@ from pregnancy_summary_staging t inner join #derived_indexes i on i.pregnancy_pr
 ALTER TABLE pregnancy_summary_staging
 DROP COLUMN 
 outcome,
+current_state,
 latest_lmp_entered,
 estimated_gestational_age_entered,
 estimated_gestational_age_entered_date,
