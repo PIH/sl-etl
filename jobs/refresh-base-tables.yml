@@ -55,3 +55,4 @@ configuration:
           - tableName: "pregnancy_state"
           - tableName: "mother_child_relationship"
           - tableName: "newborn_admission_encounter"
+          - tableName: "data_warnings"
