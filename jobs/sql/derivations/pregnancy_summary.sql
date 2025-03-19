@@ -41,6 +41,7 @@ create  table pregnancy_summary_staging
     current_state                              varchar(255),
     latest_lmp_entered                         date,
     estimated_delivery_date_entered            date, 
+    delivery_num_alive                         int,
     delivery_num_fsb                           int,
     delivery_num_msb                           int,
     number_anc_visit_entered                   int,
@@ -237,14 +238,20 @@ from pregnancy_summary_staging p;
 update p 
 set number_of_fetuses = 
 	(select count(*) from delivery_summary_encounter d
-	where d.pregnancy_program_id = p.pregnancy_program_id
-	and d.outcome = 'Livebirth')
+	where d.pregnancy_program_id = p.pregnancy_program_id)
 from pregnancy_summary_staging p; 
 
 update p 
 set number_of_fetuses = 1 
 from pregnancy_summary_staging p 
-where number_of_fetuses = 0 and actual_delivery_date is not NULL  ; 
+where number_of_fetuses = 0 ; 
+
+update p 
+set delivery_num_alive = 
+	(select count(*) from delivery_summary_encounter d
+	where d.pregnancy_program_id = p.pregnancy_program_id
+	and d.outcome = 'Livebirth')
+from pregnancy_summary_staging p; 
 
 update p 
 set delivery_num_fsb = 
@@ -263,15 +270,15 @@ from pregnancy_summary_staging p;
 update p 
 set delivery_outcome = 
 	case
-		when number_of_fetuses > 0 and delivery_num_fsb = 0 and delivery_num_msb = 0
+		when delivery_num_alive > 0 and delivery_num_fsb = 0 and delivery_num_msb = 0
 			then 'Alive'
-		when number_of_fetuses = 0 and (delivery_num_fsb > 0 or delivery_num_msb > 0)
-			then 'Stillbirth'			
-		when number_of_fetuses = 0 and delivery_num_fsb = 0 and delivery_num_msb = 0
-			then ''
-		else 'Multiple outcome'
+		when delivery_num_alive = 0 and (delivery_num_fsb > 0 or delivery_num_msb > 0)
+			then 'Stillbirth'	
+		when delivery_num_alive > 0 and (delivery_num_fsb > 0 or delivery_num_msb > 0)
+		then 'Multiple outcome'
 	end
-from pregnancy_summary_staging p; 
+from pregnancy_summary_staging p
+where actual_delivery_date is not null; 
 
 
 update p 
@@ -514,6 +521,7 @@ outcome,
 current_state,
 latest_lmp_entered,
 estimated_delivery_date_entered,
+delivery_num_alive,
 delivery_num_fsb,
 delivery_num_msb,
 number_anc_visit_entered,
