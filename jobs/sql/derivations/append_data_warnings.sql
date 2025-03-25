@@ -1,10 +1,7 @@
-delete from data_warnings 
-where warning_type = 'Followup without Intake';
-
 drop table if exists #temp_data_warnings;
 create table #temp_data_warnings
 (
-data_warning_id    int IDENTITY(100000, 1) primary key,          
+data_warning_id    int IDENTITY(1, 1) primary key,          
 warning_type       varchar(255), 
 event_type         varchar(255), 
 patient_id         varchar(50),  
@@ -21,6 +18,11 @@ other_details      text,
 site               varchar(100),
 partition_num      int
 );
+
+-- set data warning_id to continue from the current max 
+declare @maxId int 
+set @maxId = (select max(data_warning_id) + 1 from data_warnings)
+dbcc checkident(#temp_data_warnings, reseed, @maxId);
 
 -- --------------------------------------------------anc followup without intake
 -- create temp table of latest encounters by type 
