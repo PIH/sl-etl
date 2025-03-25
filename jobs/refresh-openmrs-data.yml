@@ -40,3 +40,4 @@ configuration:
           - tableName: "maternity_patient"
           - tableName: "anc_monthly_summary"
           - tableName: "pregnancy_summary"
+          - tableName: "append_data_warnings"
