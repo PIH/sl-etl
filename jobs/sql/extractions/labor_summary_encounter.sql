@@ -2,6 +2,7 @@ set @partition = '${partitionNum}';
 
 SELECT encounter_type_id  INTO @labor_enc
 FROM encounter_type et WHERE uuid='fec2cc56-e35f-42e1-8ae3-017142c1ca59';
+set @pregnancyProgramId = program('Pregnancy');
 
 drop temporary table if exists temp_labor_encs;
 create temporary table temp_labor_encs
@@ -10,6 +11,7 @@ create temporary table temp_labor_encs
     emr_id                                  varchar(255),
     encounter_id                            int,
     visit_id                                int,
+    pregnancy_program_id                    int,
     encounter_datetime                      datetime,
     encounter_location                      varchar(255),
     datetime_created                        datetime,
@@ -55,6 +57,8 @@ UPDATE temp_labor_encs SET provider = provider(encounter_id);
 UPDATE temp_labor_encs t SET emr_id = patient_identifier(patient_id, 'c09a1d24-7162-11eb-8aa6-0242ac110002');
 UPDATE temp_labor_encs SET encounter_location=encounter_location_name(encounter_id);
 
+UPDATE temp_labor_encs SET pregnancy_program_id = patient_program_id_from_encounter(patient_id, @pregnancyProgramId ,encounter_id);
+
 DROP TEMPORARY TABLE IF EXISTS temp_obs;
 create temporary table temp_obs
 select o.obs_id, o.voided ,o.obs_group_id , o.encounter_id, o.person_id, o.concept_id, o.value_coded, o.value_numeric,
@@ -94,6 +98,7 @@ SELECT
     concat(@partition, '-', visit_id) as visit_id,
     concat(@partition, '-', patient_id) as patient_id,
     emr_id,
+    concat(@partition, '-', pregnancy_program_id) as pregnancy_program_id,
     encounter_datetime,
     encounter_location,
     datetime_created,

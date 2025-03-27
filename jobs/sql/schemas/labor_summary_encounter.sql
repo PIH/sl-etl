@@ -4,6 +4,7 @@ create table labor_summary_encounter
     visit_id                                varchar(100),
     patient_id                              varchar(100),
     emr_id                                  varchar(255),
+    pregnancy_program_id                    varchar(100),
     encounter_datetime                      datetime,
     encounter_location                      varchar(255),
     datetime_created                        datetime,
