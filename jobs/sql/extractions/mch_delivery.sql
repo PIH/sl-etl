@@ -1,5 +1,6 @@
 set @partition = '${partitionNum}';
 SELECT encounter_type_id  INTO @mch_delivery_enc_type FROM encounter_type et WHERE uuid='00e5ebb2-90ec-11e8-9eb6-529269fb1459';
+set @pregnancyProgramId = program('Pregnancy');
 
 DROP TEMPORARY TABLE IF EXISTS mch_delivery_form;
 CREATE TEMPORARY TABLE mch_delivery_form
@@ -7,6 +8,7 @@ CREATE TEMPORARY TABLE mch_delivery_form
 encounter_id int,
 patient_id int,
 emrid varchar(30),
+pregnancy_program_id int,
 provider varchar(30),
 location varchar(30),
 form_date date,
@@ -100,6 +102,8 @@ SELECT e.patient_id,patient_identifier(e.patient_id,'1a2acce0-7426-11e5-a837-080
        encounter_location_name(e.encounter_id),provider(e.encounter_id), encounter_date
       --  ,o.obs_id, o.obs_group_id,o.concept_id
 FROM temp_encounter e;
+
+UPDATE mch_delivery_form SET pregnancy_program_id = patient_program_id_from_encounter(patient_id, @pregnancyProgramId ,encounter_id);
 
 -- Diagnosis Attributes
 UPDATE mch_delivery_form SET birth_weight=obs_value_numeric_from_temp(encounter_id,'PIH','11067');
@@ -224,6 +228,7 @@ WHERE concept_id=concept_from_mapping('PIH','14376');
 SELECT 
 concat(@partition,"-",patient_id)  as patient_id,
 emrid,
+concat(@partition,"-",pregnancy_program_id)  as pregnancy_program_id,
 provider,
 location,
 form_date,
