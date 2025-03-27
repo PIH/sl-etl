@@ -2,7 +2,7 @@ create table all_encounters
 (
 encounter_id varchar(100),
 patient_id varchar(100),
-visit_id int,
+visit_id varchar(100),
 wellbody_emr_id varchar(50),
 kgh_emr_id varchar(50),
 emr_id varchar(50),
