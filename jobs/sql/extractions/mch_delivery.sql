@@ -228,6 +228,7 @@ WHERE concept_id=concept_from_mapping('PIH','14376');
 SELECT 
 concat(@partition,"-",patient_id)  as patient_id,
 emrid,
+concat(@partition,"-",t.encounter_id)  as encounter_id,
 concat(@partition,"-",pregnancy_program_id)  as pregnancy_program_id,
 provider,
 location,
