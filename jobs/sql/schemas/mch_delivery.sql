@@ -2,6 +2,7 @@ CREATE TABLE mch_delivery
 (
 patient_id varchar(50),  
 emrid varchar(30),
+encounter_id varchar(50),  
 pregnancy_program_id varchar(50),  
 provider varchar(30),
 location varchar(30),
