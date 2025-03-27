@@ -52,7 +52,7 @@ SET ae.encounter_provider=provider(ae.encounter_id);
 select 
 concat(@partition,"-",encounter_id) as encounter_id,
 concat(@partition,"-",patient_id)  as patient_id,
-visit_id,
+concat(@partition,"-",visit_id)  as visit_id,
 wellbody_emr_id,
 kgh_emr_id,
 COALESCE(wellbody_emr_id, kgh_emr_id) emr_id,
