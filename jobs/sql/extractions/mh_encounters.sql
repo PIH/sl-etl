@@ -4,6 +4,7 @@ set @partition = '${partitionNum}';
 set @locale = global_property_value('default_locale', 'en');
 select encounter_type_id into @mhIntake from encounter_type where uuid = 'a8584ab8-cc2a-11e5-9956-625662870761';
 select encounter_type_id into @mhFollowup from encounter_type where uuid = '9d701a81-bb83-40ea-9efc-af50f05575f2';
+set @mhProgramId = program('Mental Health'); 
 
 drop temporary table if exists temp_mh;
 create temporary table temp_mh
@@ -16,6 +17,7 @@ create temporary table temp_mh
     encounter_id int,
     encounter_type varchar(255),
     visit_id int,
+    mh_program_id int,
     encounter_datetime datetime,
     provider varchar(255),
     referred_by_community varchar(255),
@@ -260,6 +262,8 @@ update temp_mh set address = person_address(patient_id);
 
 update temp_mh set provider = provider(encounter_id);
 
+update temp_mh
+set mh_program_id = patient_program_id_from_encounter(patient_id, @mhProgramId, encounter_id);
 -- referrals
 
 update temp_mh set referred_by_community = obs_value_coded_list(encounter_id, 'PIH','Role of referring person',@locale);
@@ -597,6 +601,7 @@ select
     concat(@partition,"-",encounter_id)  "encounter_id",
     encounter_type,
     concat(@partition,"-",visit_id)  "visit_id",
+    concat(@partition,"-",mh_program_id)  "mh_program_id",
     encounter_datetime,
     provider,
     referred_by_community,
