@@ -8,6 +8,7 @@ create temporary table all_encounters(
 encounter_id int,
 patient_id int, 
 visit_id int,
+emr_id varchar(50),
 wellbody_emr_id varchar(50),
 kgh_emr_id varchar(50),
 encounter_type varchar(50),
@@ -47,6 +48,9 @@ UPDATE all_encounters ae
 SET ae.kgh_emr_id= patient_identifier(ae.patient_id,'c09a1d24-7162-11eb-8aa6-0242ac110002');
 
 UPDATE all_encounters ae 
+set ae.emr_id = patient_identifier(patient_id, metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType'));
+
+UPDATE all_encounters ae 
 SET ae.encounter_provider=provider(ae.encounter_id);
 
 select 
@@ -55,7 +59,7 @@ concat(@partition,"-",patient_id)  as patient_id,
 concat(@partition,"-",visit_id)  as visit_id,
 wellbody_emr_id,
 kgh_emr_id,
-COALESCE(wellbody_emr_id, kgh_emr_id) emr_id,
+emr_id,
 encounter_type,
 encounter_type_id,
 encounter_provider,
