@@ -135,7 +135,7 @@ where e.encounter_type in
 'Sierra Leone MCH Triage',
 'Sierra Leone Outpatient Followup',
 'Sierra Leone Outpatient Initial',
-'Sortie de soins hospitaliers')
+'Exit from Inpatient Care')
 group by e.patient_id, e.visit_id, encounter_type
 having count(*) > 1;
 
@@ -228,7 +228,7 @@ where not exists
 	(select 1 from all_encounters e2
 	where e2.visit_id = e.visit_id 
 	and e2.encounter_datetime < e.encounter_datetime
-	and e2.encounter_type = 'Admission aux soins hospitaliers');
+	and e2.encounter_type = 'Admission');
 	
 -- -------------------------------------------------- visit details
 update t
