@@ -1,4 +1,3 @@
-
 SET @locale = GLOBAL_PROPERTY_VALUE('default_locale', 'en');
 SET sql_safe_updates = 0;
 
@@ -10,34 +9,36 @@ SELECT encounter_type_id INTO @specimenCollEnc FROM encounter_type WHERE uuid = 
 DROP TEMPORARY TABLE IF EXISTS temp_report;
 CREATE TEMPORARY TABLE temp_report
 (
-    patient_id      INT,
-    wellbody_emr_id          VARCHAR(255),
-    kgh_emr_id          VARCHAR(255),
-    specimen_encounter_id INT,
-    order_encounter_id INT,
-    loc_registered  VARCHAR(255),
-    unknown_patient CHAR(1),
-    gender          CHAR(1),
-    age_at_enc      INT,
-    patient_address VARCHAR(1000),
-    order_number    VARCHAR(255),
-    accession_number VARCHAR(255),
-    order_concept_id INT,
-    orderable       VARCHAR(255),
-    status          VARCHAR(255),
-    orderer         VARCHAR(255),
-    orderer_provider_type VARCHAR(255),
-    order_datetime  DATETIME,
-    date_stopped    DATETIME,
-    auto_expire_date DATETIME,
-    fulfiller_status VARCHAR(255),
-    ordering_location VARCHAR(255),
-    urgency         VARCHAR(255),
-    specimen_collection_datetime DATETIME,
-    collection_date_estimated VARCHAR(255),
-    test_location  VARCHAR(255),
-    result_date     DATETIME
-);
+  patient_id                   INT,           
+ emr_id                       varchar(50),   
+ wellbody_emr_id              VARCHAR(255),  
+ kgh_emr_id                   VARCHAR(255),  
+ specimen_encounter_id        INT,           
+ order_encounter_id           INT,           
+ order_visit_id               INT,           
+ loc_registered               VARCHAR(255),  
+ unknown_patient              CHAR(1),       
+ gender                       CHAR(1),       
+ age_at_enc                   INT,           
+ patient_address              VARCHAR(1000), 
+ order_number                 VARCHAR(255),  
+ accession_number             VARCHAR(255),  
+ order_concept_id             INT,           
+ orderable                    VARCHAR(255),  
+ status                       VARCHAR(255),  
+ orderer                      VARCHAR(255),  
+ orderer_provider_type        VARCHAR(255),  
+ order_datetime               DATETIME,      
+ date_stopped                 DATETIME,      
+ auto_expire_date             DATETIME,      
+ fulfiller_status             VARCHAR(255),  
+ ordering_location            VARCHAR(255),  
+ urgency                      VARCHAR(255),  
+ specimen_collection_datetime DATETIME,      
+ collection_date_estimated    VARCHAR(255),  
+ test_location                VARCHAR(255),  
+ result_date                  DATETIME       
+ );
 
 -- load temporary table with all lab test orders within the date range 
 INSERT INTO temp_report (
@@ -79,6 +80,10 @@ WHERE patient_id IN
           WHERE a.value = 'true'
           AND t.name = 'Test Patient'
       );
+
+update temp_report r 
+inner join encounter e on e.encounter_id = r.order_encounter_id
+set r.order_visit_id = e.visit_id;
       
 -- To join in the specimen encounters, a temporary table is created with all lab specimen encounters within the date range is loaded.
 -- This table is indexed and then joined with the main report temp table
@@ -86,18 +91,20 @@ DROP TEMPORARY TABLE IF EXISTS temp_spec;
 CREATE TEMPORARY TABLE temp_spec
 (
     specimen_encounter_id INT,
+    visit_id INT,
     order_number   VARCHAR(255) 
    );      
 
 CREATE  INDEX order_number ON temp_spec(order_number);
 
-
 INSERT INTO temp_spec (
     specimen_encounter_id,
+    visit_id,
     order_number
 )
 SELECT
     e.encounter_id,
+    e.visit_id, 
     o.value_text
 FROM
     encounter e
@@ -112,13 +119,14 @@ UPDATE temp_report t
 
 DROP TABLE IF EXISTS dist_patients;
 CREATE TEMPORARY TABLE dist_patients (
-patient_id int, 
-wellbody_emr_id          VARCHAR(255),
-kgh_emr_id          VARCHAR(255),
-gender varchar(20),
-loc_registered  VARCHAR(255),
-unknown_patient char(1),
-patient_address varchar(1000)
+patient_id      int,           
+emr_id          varchar(50),  
+wellbody_emr_id VARCHAR(255), 
+kgh_emr_id      VARCHAR(255), 
+gender          varchar(20),  
+loc_registered  VARCHAR(255), 
+unknown_patient char(1),      
+patient_address varchar(1000) 
 );
 
 create index dist_patients_pi on dist_patients(patient_id);
@@ -127,6 +135,9 @@ INSERT INTO dist_patients(patient_id)
 SELECT DISTINCT patient_id FROM temp_report;
 
 -- Individual columns are populated here:
+UPDATE dist_patients dp
+SET dp.emr_id = primary_emr_id(patient_id);
+
 UPDATE dist_patients dp
 SET dp.wellbody_emr_id= patient_identifier(patient_id,'1a2acce0-7426-11e5-a837-0800200c9a66');
 
@@ -141,6 +152,7 @@ UPDATE dist_patients SET patient_address = PERSON_ADDRESS(patient_id);
 UPDATE temp_report tr
 LEFT OUTER JOIN dist_patients dp ON tr.patient_id=dp.patient_id
 SET 
+tr.emr_id = dp.emr_id,
 tr.wellbody_emr_id=dp.wellbody_emr_id,
 tr.kgh_emr_id=dp.kgh_emr_id,
 tr.gender=dp.gender,
@@ -186,8 +198,11 @@ set collection_date_estimated = concept_name(o.value_coded, @locale);
 -- final output
 SELECT 
 concat(@partition,"-",patient_id)  patient_id,
+emr_id, 
 wellbody_emr_id    ,
-kgh_emr_id ,
+kgh_emr_id,
+concat(@partition,"-",order_visit_id) order_visit_id,
+concat(@partition,"-",order_encounter_id)  order_encounter_id,
 loc_registered,
 unknown_patient, 
 gender, 
