@@ -22,6 +22,7 @@ datetime_created           datetime,
 user_entered               varchar(255), 
 provider                   varchar(255), 
 visit_type                 varchar(255), 
+age_at_encounter           int,
 trimester_enrollment       varchar(255), 
 number_anc_visit           int,          
 birth_weight_other_babies  varchar(255), 
@@ -91,6 +92,9 @@ SET encounter_location=encounter_location_name(encounter_id);
 
 update temp_anc_encs
 set pregnancy_program_id = patient_program_id_from_encounter(patient_id, @pregnancyProgramId ,encounter_id);
+
+update temp_anc_encs 
+set age_at_encounter = age_at_enc(patient_id, encounter_id);
 
 DROP TEMPORARY TABLE IF EXISTS temp_obs;
 create temporary table temp_obs
@@ -232,6 +236,7 @@ encounter_location,
 datetime_created,
 user_entered,
 provider,
+age_at_encounter,
 visit_type,
 trimester_enrollment,
 number_anc_visit,
