@@ -7,7 +7,7 @@ configuration:
     - type: "iterating-job"
       description: "Refreshing OpenMRS Data for SL sites"
       configuration:
-        maxConcurrentJobs: 2
+        maxConcurrentJobs: "${petl.maxConcurrentSites}"
         errorHandling:
           maxAttempts: 3
           retryInterval: 60
