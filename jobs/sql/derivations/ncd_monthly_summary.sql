@@ -84,12 +84,16 @@ and     (np.date_completed is null or np.date_completed >= r.month_start_date)
 group by np.patient_id, np.emr_id, r.quarter_start_date, r.month_end_date
 ;
 
+create index ncd_monthly_summary_staging_ei on ncd_monthly_summary_staging(patient_id);
+create index ncd_monthly_summary_staging_c1 on ncd_monthly_summary_staging(patient_id, reporting_date);
+
+
 -- if the patient had multiple qualifying enrollments, set date_completed associated with the date_enrolled, if completed during the given month
 update s
 set s.date_completed = (
     select max(p.date_completed)
     from ncd_program p
-    where s.emr_id = p.emr_id
+    where s.patient_id = p.patient_id
     and s.date_enrolled = p.date_enrolled
     and (YEAR(p.date_completed) = YEAR(s.reporting_date)) and (MONTH(p.date_completed) = MONTH(s.reporting_date))
 )
@@ -101,7 +105,7 @@ update s
 set s.outcome = (
     select p.final_program_status
     from ncd_program p
-    where s.emr_id = p.emr_id
+    where s.patient_id = p.patient_id
     and s.date_enrolled = p.date_enrolled
     and s.date_completed = p.date_completed
 )
@@ -115,7 +119,7 @@ set latest_ncd_encounter_id = e.encounter_id,
 from ncd_monthly_summary_staging t
 inner join ncd_encounter e on e.encounter_id = (
     select top 1 e2.encounter_id from ncd_encounter e2
-	where e2.emr_id = t.emr_id
+	where e2.patient_id = t.patient_id
 	and cast(e2.encounter_datetime as DATE) <= t.reporting_date
     order by e2.encounter_datetime desc, e2.encounter_id desc
 );
@@ -155,7 +159,7 @@ set t.diabetes = e.diabetes,
 	t.congenital_heart_disease = e.congenital_heart_disease,
 	t.cardiomyopathy = e.cardiomyopathy
 from ncd_monthly_summary_staging t
-inner join ncd_patient e on e.emr_id = t.emr_id;
+inner join ncd_patient e on e.patient_id = t.patient_id;
 
 -- update diabetes type from the last time that question was answered before the reporting date
 update t 
@@ -163,7 +167,7 @@ set t.last_diabetes_type = e.diabetes_type
 from ncd_monthly_summary_staging t
 inner join ncd_encounter e on e.encounter_id = (
     select top 1 e2.encounter_id from ncd_encounter e2
-	where e2.emr_id = t.emr_id
+	where e2.patient_id = t.patient_id
 	and cast(e2.encounter_datetime as DATE) <= t.reporting_date
 	and e2.diabetes_type is not null
 	order by encounter_datetime desc, encounter_id desc
@@ -188,30 +192,46 @@ set t.ever_missed_school_this_month =  1
 from ncd_monthly_summary_staging t
 where EXISTS (
     select 1 from ncd_encounter e
-	where e.emr_id = t.emr_id
+	where e.patient_id = t.patient_id
 	and year(e.encounter_datetime) = year(t.reporting_date)
 	and month(e.encounter_datetime) = month(t.reporting_date)
 	and e.missed_school = 1
 );
 
--- update latest_days_lost_schooling_this_quarter from the last time that question was answered before the reporting date and during the reporting quarter
-update t 
-set t.latest_days_lost_schooling_this_quarter = e.days_lost_schooling
+insert into ncd_monthly_summary_staging (patient_id, emr_id, first_day_of_quarter, reporting_date, date_enrolled)
+select  np.patient_id, np.emr_id, r.quarter_start_date, r.month_end_date, max(np.date_enrolled)
+from    ncd_program np, #reporting_months r
+where   np.date_enrolled <= r.month_end_date
+and     (np.date_completed is null or np.date_completed >= r.month_start_date)
+group by np.patient_id, np.emr_id, r.quarter_start_date, r.month_end_date;
+
+-- days lost schooling 
+drop table if exists #latest_days_lost_schooling;
+select t.patient_id, t.reporting_date, max(e.encounter_datetime) max_encounter_datetime 
+into #latest_days_lost_schooling
 from ncd_monthly_summary_staging t
-inner join ncd_encounter e on e.encounter_id = (
-    select top 1 e2.encounter_id from ncd_encounter e2
-	where e2.emr_id = t.emr_id
-	and cast(e2.encounter_datetime as DATE) <= t.reporting_date
+inner join ncd_encounter e on e.patient_id = t.patient_id
+	and cast(e.encounter_datetime as DATE) <= t.reporting_date
     and e.encounter_datetime >= t.first_day_of_quarter
-	and e2.days_lost_schooling is not null
-	order by encounter_datetime desc, encounter_id desc
-);
+	and e.days_lost_schooling is not null
+group by t.patient_id, t.reporting_date
+;
+
+create index latest_days_lost_schooling_c1 on #latest_days_lost_schooling(patient_id, reporting_date);
+
+update t 
+set  t.latest_days_lost_schooling_this_quarter = e.days_lost_schooling
+from ncd_monthly_summary_staging t
+inner join #latest_days_lost_schooling l on l.patient_id = t.patient_id 
+	and l.reporting_date = t.reporting_date 
+inner join ncd_encounter e on e.patient_id = t.patient_id 
+	and e.encounter_datetime = l.max_encounter_datetime;
 
 -- sum days lost schooling this quarter from the beginning of the quarter until the reporting date
 update t
 set t.total_days_lost_schooling_this_quarter = (
     select SUM(days_lost_schooling) from ncd_encounter e
-	where e.emr_id = t.emr_id
+	where e.patient_id = t.patient_id
 	and cast(e.encounter_datetime as DATE) <= t.reporting_date
 	and e.encounter_datetime >= t.first_day_of_quarter
 )
@@ -223,7 +243,7 @@ set t.social_support_this_quarter =  1
 from ncd_monthly_summary_staging t
 where EXISTS (
     select 1 from ncd_encounter e
-	where e.emr_id = t.emr_id
+	where e.patient_id = t.patient_id
 	and cast(e.encounter_datetime as DATE) <= t.reporting_date
 	and e.encounter_datetime >= first_day_of_quarter
 	and e.social_support = 1
@@ -255,7 +275,7 @@ set t.home_glucometer =  1
 from ncd_monthly_summary_staging t
 where EXISTS (
     select 1 from ncd_encounter e
-	where e.emr_id = t.emr_id
+	where e.patient_id = t.patient_id
 	and cast(e.encounter_datetime as DATE) <= t.reporting_date
 	and e.diabetes_home_glucometer = 1
 );
@@ -267,7 +287,7 @@ set t.latest_a1c_test_date = e.specimen_collection_date,
 from ncd_monthly_summary_staging t
 inner join labs_order_results e on e.encounter_id = (
     select top 1 e2.encounter_id from labs_order_results e2
-	where (e2.wellbody_emr_id = t.emr_id or e2.kgh_emr_id = t.emr_id)
+	where e2.patient_id= t.patient_id
 	and cast(e2.specimen_collection_date as DATE) <= t.reporting_date
 	and e2.test = 'HbA1c'
 	order by e2.specimen_collection_date desc, e2.encounter_id desc
@@ -277,7 +297,7 @@ inner join labs_order_results e on e.encounter_id = (
 update t
 set t.latest_echocardiogram_date = (
     select MAX(echocardiogram_datetime) from ncd_encounter e
-	where e.emr_id = t.emr_id
+	where e.patient_id = t.patient_id
 	and cast(e.encounter_datetime as DATE) <= t.reporting_date
 )
 from ncd_monthly_summary_staging t;
@@ -288,7 +308,7 @@ set t.latest_inr_datetime = e.specimen_collection_date
 from ncd_monthly_summary_staging t
 inner join labs_order_results e on e.encounter_id = (
     select top 1 e2.encounter_id from labs_order_results e2
-	where (e2.wellbody_emr_id = t.emr_id or e2.kgh_emr_id = t.emr_id)
+	where e2.patient_id = t.patient_id
 	and cast(e2.specimen_collection_date as DATE) <= t.reporting_date
 	and e2.test = 'International Normalized Ratio'
 	order by e2.specimen_collection_date desc, e2.encounter_id desc
@@ -300,7 +320,7 @@ set t.latest_warfarin_prescription_datetime = m.order_date_activated
 from ncd_monthly_summary_staging t
 inner join all_medications_prescribed m on m.encounter_id = (
     select top 1 m2.encounter_id from all_medications_prescribed m2
-	where m2.emr_id = t.emr_id
+	where m2.patient_id = t.patient_id
 	and cast(m2.order_date_activated as DATE) <= t.reporting_date
 	and m2.order_drug in ('Warfarin sodium', 'Warfarin')
 	order by m2.order_date_activated desc, m2.encounter_id desc
@@ -312,7 +332,7 @@ set latest_referred_to_surgery_datetime = e.encounter_datetime
 from ncd_monthly_summary_staging t
 inner join ncd_encounter e on e.encounter_id = (
     select top 1 e2.encounter_id from ncd_encounter e2
-	where e2.emr_id = t.emr_id
+	where e2.patient_id = t.patient_id
 	and cast(e2.encounter_datetime as DATE) <= t.reporting_date
 	and e2.referred_to_surgery_for_heart_failure is not null
 );
@@ -323,7 +343,7 @@ set t.latest_penicillen_prescription_datetime = m.order_date_activated
 from ncd_monthly_summary_staging t
 inner join all_medications_prescribed m on m.encounter_id = (
     select top 1 m2.encounter_id from all_medications_prescribed m2
-	where m2.emr_id = t.emr_id
+	where m2.patient_id = t.patient_id
 	and cast(m2.order_date_activated as DATE) <= t.reporting_date
 	and m2.order_drug in (
         'Penicillin',
@@ -342,7 +362,7 @@ set t.latest_folic_acid_prescription_datetime = m.order_date_activated
 from ncd_monthly_summary_staging t
 inner join all_medications_prescribed m on m.encounter_id = (
     select top 1 m2.encounter_id from all_medications_prescribed m2
-	where m2.emr_id = t.emr_id
+	where m2.patient_id = t.patient_id
 	and cast(m2.order_date_activated as DATE) <= t.reporting_date
 	and m2.order_drug in (
 	    'Folic acid',
@@ -355,7 +375,7 @@ inner join all_medications_prescribed m on m.encounter_id = (
 update t
 set t.latest_transfusion_date = (
     select MAX(transfusion_date) from ncd_encounter e
-	where e.emr_id = t.emr_id
+	where e.patient_id = t.patient_id
 	and cast(e.encounter_datetime as DATE) <= t.reporting_date
 )
 from ncd_monthly_summary_staging t;
@@ -367,7 +387,7 @@ set latest_number_hospitalizations_last_12_months = e.number_hospitalizations_la
 from ncd_monthly_summary_staging t
 inner join ncd_encounter e on e.encounter_id = (
     select top 1 e2.encounter_id from ncd_encounter e2
-	where e2.emr_id = t.emr_id
+	where e2.patient_id = t.patient_id
 	and cast(e2.encounter_datetime as DATE) <= t.reporting_date
 	and e2.number_hospitalizations_last_12_months is not null
 );
@@ -378,7 +398,7 @@ set latest_on_saba_datetime = e.encounter_datetime
 from ncd_monthly_summary_staging t
 inner join ncd_encounter e on e.encounter_id = (
     select top 1 e2.encounter_id from ncd_encounter e2
-	where e2.emr_id = t.emr_id
+	where e2.patient_id = t.patient_id
 	and cast(e2.encounter_datetime as DATE) <= t.reporting_date
 	and e2.on_saba is not null
 );
@@ -389,7 +409,7 @@ set latest_on_oral_salbutamol_datetime = e.encounter_datetime
 from ncd_monthly_summary_staging t
 inner join ncd_encounter e on e.encounter_id = (
     select top 1 e2.encounter_id from ncd_encounter e2
-	where e2.emr_id = t.emr_id
+	where e2.patient_id = t.patient_id
 	and cast(e2.encounter_datetime as DATE) <= t.reporting_date
 	and e2.on_oral_salbutamol = 1
 );
@@ -400,7 +420,7 @@ set latest_on_steroid_inhaler_datetime = e.encounter_datetime
 from ncd_monthly_summary_staging t
 inner join ncd_encounter e on e.encounter_id = (
     select top 1 e2.encounter_id from ncd_encounter e2
-	where e2.emr_id = t.emr_id
+	where e2.patient_id = t.patient_id
 	and cast(e2.encounter_datetime as DATE) <= t.reporting_date
 	and e2.on_steroid_inhaler = 1
 );
@@ -411,7 +431,7 @@ set t.latest_APRI_datetime = e.specimen_collection_date
 from ncd_monthly_summary_staging t
 inner join labs_order_results e on e.encounter_id = (
     select top 1 e2.encounter_id from labs_order_results e2
-	where (e2.wellbody_emr_id = t.emr_id or e2.kgh_emr_id = t.emr_id)
+	where e2.patient_id = t.patient_id
 	and cast(e2.specimen_collection_date as DATE) <= t.reporting_date
 	and e2.test = 'APRI score'
 	order by e2.specimen_collection_date desc, e2.encounter_id desc
@@ -423,7 +443,7 @@ set t.latest_HBsAg_datetime = e.specimen_collection_date
 from ncd_monthly_summary_staging t
 inner join labs_order_results e on e.encounter_id = (
     select top 1 e2.encounter_id from labs_order_results e2
-	where (e2.wellbody_emr_id = t.emr_id or e2.kgh_emr_id = t.emr_id)
+	where e2.patient_id = t.patient_id
 	and cast(e2.specimen_collection_date as DATE) <= t.reporting_date
 	and e2.test = 'Hepatitis B surface antigen test'
 	order by e2.specimen_collection_date desc, e2.encounter_id desc
@@ -435,7 +455,7 @@ set latest_esophageal_varices_prophylaxis_datetime = e.encounter_datetime
 from ncd_monthly_summary_staging t
 inner join ncd_encounter e on e.encounter_id = (
     select top 1 e2.encounter_id from ncd_encounter e2
-	where e2.emr_id = t.emr_id
+	where e2.patient_id = t.patient_id
 	and cast(e2.encounter_datetime as DATE) <= t.reporting_date
 	and e2.on_esophageal_varices_prophylaxis = 'Yes'
 );
@@ -446,7 +466,7 @@ set t.latest_electrolytes_panel_datetime = e.order_datetime
 from ncd_monthly_summary_staging t
 inner join labs_order_report e on e.order_number = (
     select top 1 e2.order_number from labs_order_report e2
-	where (e2.wellbody_emr_id = t.emr_id or e2.kgh_emr_id = t.emr_id)
+	where e2.patient_id = t.patient_id
 	and cast(e2.order_datetime as DATE) <= t.reporting_date
 	and e2.orderable in (
 	    'SL i-STAT CG4+ panel',
@@ -462,7 +482,7 @@ set latest_diastolic_bp = bp_diastolic,
 from ncd_monthly_summary_staging t
 inner join all_vitals e on e.encounter_id = (
     select top 1 e2.encounter_id from all_vitals e2
-	where e2.emr_id = t.emr_id
+	where e2.patient_id = t.patient_id
 	and cast(e2.encounter_datetime as DATE) <= t.reporting_date
 	and e2.bp_systolic is not null
 	order by e2.encounter_datetime desc, e2.encounter_id desc
@@ -475,7 +495,7 @@ set latest_seizure_frequency = seizure_frequency,
 from ncd_monthly_summary_staging t
 inner join mh_encounters e on e.encounter_id = (
     select top 1 e2.encounter_id from mh_encounters e2
-	where e2.emr_id = t.emr_id
+	where e2.patient_id = t.patient_id
 	and cast(e2.encounter_datetime as DATE) <= t.reporting_date
 	and e2.seizure_frequency is not null
 	order by e2.encounter_datetime desc, e2.encounter_id desc
@@ -488,7 +508,7 @@ set t.latest_anti_epilepsy_prescription_datetime = m.order_date_activated
 from ncd_monthly_summary_staging t
 inner join all_medications_prescribed m on m.encounter_id = (
     select top 1 m2.encounter_id from all_medications_prescribed m2
-	where m2.emr_id = t.emr_id
+	where m2.patient_id = t.patient_id
 	and cast(m2.order_date_activated as DATE) <= t.reporting_date
 	and m2.order_drug in (  --  NOTE: NEED LIST OF ANTI-EPILEPSY DRUGS
 	    'Gabapentin'
@@ -501,7 +521,7 @@ update t
 set t.dob = p.dob,
 	t.gender = p.gender
 from ncd_monthly_summary_staging t
-inner join all_patients p on p.emr_id = t.emr_id
+inner join all_patients p on p.patient_id = t.patient_id
 ;
 
 -- ------------------------------------------------------------------------------------
