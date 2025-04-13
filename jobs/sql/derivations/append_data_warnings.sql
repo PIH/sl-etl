@@ -230,6 +230,17 @@ where not exists
 	and e2.encounter_datetime < e.encounter_datetime
 	and e2.encounter_type = 'Admission');
 	
+-- -------------------------------------------------- duplicate emr_id
+insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, encounter_datetime, datetime_created,
+user_entered, site, partition_num) 
+select 'Duplicate emr_ids', 'patient_registration',p.patient_id, p.emr_id, p.registration_date, p.date_registration_entered,
+p.user_entered, p.site, p.partition_num
+from all_patients p
+where exists 
+	(select 1 from all_patients p2
+	where p2.emr_id = p.emr_id 
+	and p2.patient_id <> p.patient_id);
+
 -- -------------------------------------------------- visit details
 update t
 set t.visit_date_started = v.visit_date_started,
