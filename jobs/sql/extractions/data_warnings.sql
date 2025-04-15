@@ -26,6 +26,7 @@ create temporary table temp_warnings
 data_warning_id int(11) NOT NULL AUTO_INCREMENT, 
 warning_type       varchar(50),  
 event_type         varchar(255), 
+event_datetime     datetime,
 patient_id         int(11),      
 emr_id             varchar(50), 
 visit_id           int(11),
@@ -209,11 +210,16 @@ where t.encounter_id is not null;
 update temp_warnings t 
 set user_entered = person_name_of_user(creator);
 
+-- event datetime
+update temp_warnings t 
+set event_datetime = coalesce(encounter_datetime, visit_date_started, datetime_created);
+
 -- final select
 select
 	data_warning_id,
 	warning_type,
 	event_type,
+	event_datetime,
 	concat(@partition, '-', patient_id) as patient_id,
 	emr_id,
 	concat(@partition, '-', visit_id) as visit_id,
