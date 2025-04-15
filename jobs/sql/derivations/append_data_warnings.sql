@@ -6,6 +6,7 @@ create table #temp_data_warnings
 data_warning_id    int IDENTITY(1,1) primary key,          
 warning_type       varchar(255), 
 event_type         varchar(255), 
+event_datetime     datetime,
 patient_id         varchar(50),  
 emr_id             varchar(50),  
 visit_id           varchar(50),
@@ -245,11 +246,21 @@ set t.visit_date_started = v.visit_date_started,
 from #temp_data_warnings t
 inner join all_visits v on v.visit_id = t.visit_id;
 
--- -------------------------------------------------- insert into destination table 
+-- -------------------------------------------------- event datetime
+update t
+set t.event_datetime = 
+CASE
+	when encounter_datetime is not null then encounter_datetime
+	when visit_date_started is not null then visit_date_started
+	else datetime_created
+END
+from  #temp_data_warnings t;
+
 insert into data_warnings
 	(data_warning_id,
 	warning_type,
 	event_type,
+	event_datetime,
 	patient_id,
 	emr_id,
 	visit_id,
@@ -267,6 +278,7 @@ select
 	data_warning_id, 
 	warning_type,
 	event_type,
+	event_datetime,
 	patient_id,
 	emr_id,
 	visit_id,
