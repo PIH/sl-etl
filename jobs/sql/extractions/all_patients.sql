@@ -156,9 +156,11 @@ update temp_patients t set last_modified_datetime =
 			last_modified_patient);
 
 -- patient url
+set @site_url = SUBSTRING_INDEX(global_property_value('host.url',null), "/", 3);
 update temp_patients t 
-set patient_url = concat('https://@site_url.pih-emr.org/openmrs/coreapps/clinicianfacing/patient.page?patientId=',patient_uuid);
+set patient_url = concat(@site_url,'/openmrs/coreapps/clinicianfacing/patient.page?patientId=',patient_uuid);
 
+-- final select
 SELECT 
 wellbody_emr_id,
 kgh_emr_id,
