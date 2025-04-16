@@ -222,7 +222,7 @@ UPDATE all_medication_prescribed SET emr_id=patient_identifier(patient_id,@prima
 
 SELECT 
     medication_prescription_id,
-	concat(@partition, '-', order_id) as order_id,
+    concat(@partition, '-', order_id) as order_id,
     concat(@partition,'-',obs_group_id) as 'obs_id',
     concat(@partition, '-', encounter_id) as encounter_id,
     concat(@partition, '-', visit_id) as visit_id,
