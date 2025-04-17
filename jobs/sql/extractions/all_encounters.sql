@@ -23,7 +23,6 @@ index_asc int,
 index_desc int
 );
 
-
 insert into all_encounters(encounter_id,patient_id, visit_id, encounter_type,encounter_type_id, encounter_datetime, 
 		encounter_year, encounter_month, date_entered, created_by)
 select e.encounter_id,
@@ -41,14 +40,32 @@ left outer join encounter_type et on e.encounter_type =et.encounter_type_id
 left outer join users u on e.creator =u.user_id
 WHERE e.voided =0;
 
-UPDATE all_encounters ae
-SET ae.wellbody_emr_id= patient_identifier(ae.patient_id,'1a2acce0-7426-11e5-a837-0800200c9a66');
+create index all_encounters_pi on all_encounters(patient_id);
+create index all_encounters_ei on all_encounters(encounter_id);
 
-UPDATE all_encounters ae 
-SET ae.kgh_emr_id= patient_identifier(ae.patient_id,'c09a1d24-7162-11eb-8aa6-0242ac110002');
+DROP TEMPORARY TABLE IF EXISTS temp_patient;
+CREATE TEMPORARY TABLE temp_patient
+(
+patient_id      int(11),      
+wellbody_emr_id varchar(50),  
+kgh_emr_id      varchar(50),  
+emr_id          varchar(50)
+);
+   
+insert into temp_patient(patient_id)
+select distinct patient_id from all_encounters;
 
-UPDATE all_encounters ae 
-set ae.emr_id = patient_identifier(patient_id, metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType'));
+create index temp_patient_pi on temp_patient(patient_id);
+
+UPDATE temp_patient SET wellbody_emr_id= patient_identifier(patient_id,'1a2acce0-7426-11e5-a837-0800200c9a66');
+UPDATE temp_patient SET kgh_emr_id= patient_identifier(patient_id,'c09a1d24-7162-11eb-8aa6-0242ac110002');
+UPDATE temp_patient SET emr_id = patient_identifier(patient_id, metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType'));
+
+update all_encounters t
+inner join temp_patient p on p.patient_id = t.patient_id
+set t.wellbody_emr_id = p.wellbody_emr_id,
+	t.kgh_emr_id = p.kgh_emr_id,
+	t.emr_id = p.emr_id;
 
 UPDATE all_encounters ae 
 SET ae.encounter_provider=provider(ae.encounter_id);
