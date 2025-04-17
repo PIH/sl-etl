@@ -145,19 +145,24 @@ set t.user_entered = u.user_name;
 set @civilStatus = concept_from_mapping('PIH','1054');
 set @occupation = concept_from_mapping('PIH','1304');
 
-DROP TABLE IF EXISTS temp_obs;
-CREATE TEMPORARY TABLE temp_obs AS
-SELECT o.person_id, o.obs_id ,o.obs_group_id, o.obs_datetime, o.date_created, o.encounter_id, o.value_coded, o.concept_id, o.value_numeric, o.voided, o.value_drug
-from obs o
+DROP TABLE IF EXISTS temp_obs_collated;
+CREATE TEMPORARY TABLE temp_obs_collated AS
+select encounter_id,
+max(case when concept_id = @civilStatus then concept_name(value_coded,@locale) end) "civil_status",
+max(case when concept_id = @occupation then concept_name(value_coded,@locale) end) "occupation",
+max(o.date_created) "last_modified_obs_datetime"
+from obs o 
 inner join temp_patients t on t.registration_encounter_id = o.encounter_id
-WHERE o.voided = 0;
-create index temp_obs_ci1 on temp_obs(encounter_id, concept_id);
-create index temp_obs_pi on temp_obs(person_id);
+where o.voided = 0 
+group by encounter_id;
 
-update temp_patients t set civil_status = obs_value_coded_list_from_temp(t.registration_encounter_id, 'PIH','1054',@locale );
-update temp_patients t set occupation = obs_value_coded_list_from_temp(t.registration_encounter_id, 'PIH','1304',@locale );
-update temp_patients t set last_modified_obs_datetime = 
-	(select max(o.date_created) from temp_obs o where o.person_id = t.patient_id);
+create index temp_obs_collated_ei on temp_obs_collated(encounter_id);
+
+update temp_patients t 
+inner join temp_obs_collated o on o.encounter_id = t.registration_encounter_id
+set t.civil_status = o.civil_status,
+	t.occupation = o.occupation,
+	t.last_modified_obs_datetime = o.last_modified_obs_datetime;
 
 -- first/latest encounter
 update temp_patients t set first_encounter_date = (select min(encounter_datetime) from encounter e where e.patient_id = t.patient_id);
