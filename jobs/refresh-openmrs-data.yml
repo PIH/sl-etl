@@ -37,3 +37,4 @@ configuration:
           - tableName: "anc_monthly_summary"
           - tableName: "pregnancy_summary"
           - tableName: "append_data_warnings"
+          - tableName: "update_patient_url"
