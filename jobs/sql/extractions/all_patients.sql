@@ -121,7 +121,25 @@ set t.reg_location_id = e.location_id,
     t.last_modified_registration_datetime = e.date_changed;
 
 update temp_patients t set reg_location = location_name(reg_location_id);
-update temp_patients t set user_entered = person_name_of_user(creator);
+-- update temp_patients t set user_entered = person_name_of_user(creator);
+-- update user entered
+drop temporary table if exists user_names;
+create temporary table user_names
+(user_id  int(11),
+ user_name varchar(511));
+
+insert into user_names(user_id)
+select distinct creator from temp_patients;
+
+update user_names u 
+set u.user_name = person_name_of_user(user_id);
+
+create index user_names_ui on user_names(user_id);
+create index temp_patients_c on temp_patients(creator);
+
+update temp_patients t 
+inner join user_names u on t.creator = u.user_id
+set t.user_entered = u.user_name;
 
 -- registration obs
 set @civilStatus = concept_from_mapping('PIH','1054');
@@ -190,5 +208,6 @@ dead,
 death_date,
 cause_of_death,
 last_modified_datetime,
+patient_uuid,
 patient_url
 FROM temp_patients;
