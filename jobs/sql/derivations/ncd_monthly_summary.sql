@@ -4,7 +4,7 @@ create table ncd_monthly_summary_staging
     patient_id                                     varchar(50),
     emr_id                                         varchar(20),
     gender                                         varchar(50),
-    dob                                            date,
+    birthdate                                            date,
     date_enrolled                                  date,
     date_completed                                 date,
     outcome                                        varchar(255),
@@ -516,9 +516,9 @@ inner join all_medications_prescribed m on m.encounter_id = (
 	order by m2.order_date_activated desc, m2.encounter_id desc
 );
 	
--- dob and gender data from all_patients
+-- birthdate and gender data from all_patients
 update t 
-set t.dob = p.dob,
+set t.birthdate = p.birthdate,
 	t.gender = p.gender
 from ncd_monthly_summary_staging t
 inner join all_patients p on p.patient_id = t.patient_id
