@@ -76,7 +76,7 @@ from pregnancy_summary_staging ps
 inner join all_patients p on p.patient_id = ps.patient_id;
 
 update ps
-set age_at_pregnancy_registration = DATEDIFF(year, birthdate, date_enrolled)
+set age_at_pregnancy_registration = DATEDIFF(year, p.birthdate, date_enrolled)
 from pregnancy_summary_staging ps
 inner join all_patients p on p.patient_id = ps.patient_id;
 
