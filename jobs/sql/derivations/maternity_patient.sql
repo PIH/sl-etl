@@ -5,7 +5,7 @@ emr_id varchar(50),
 patient_id varchar(100),
 most_recent_pregnancy_program_id varchar(50),
 most_recent_date_enrolled date,
-dob date,
+birthdate date,
 currently_pregnant bit,
 most_recent_gravida int,
 most_recent_parity int,
@@ -48,7 +48,7 @@ from pregnancy_program ;
 
 -- all_patient fields
 update m
-set dob = p.dob,
+set birthdate = p.birthdate,
 	dead = p.dead,
 	death_date = p.death_date,
 	cause_of_death = p.cause_of_death 
