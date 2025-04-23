@@ -29,7 +29,7 @@ diagnosis_coded_fr varchar(255),
 icd10_code varchar(255),
 notifiable int,
 urgent int,
-santeFamn int,
+womens_health int,
 psychological int,
 pediatric int,
 outpatient int,
@@ -197,7 +197,7 @@ CREATE TEMPORARY TABLE temp_dx_concept
 	icd10_code					varchar(255),
 	notifiable					int(1),
 	urgent						int(1),
-	santeFamn					int(1),
+	womens_health					int(1),
 	psychological					int(1),
 	pediatric					int(1),
 	outpatient					int(1),
@@ -218,7 +218,7 @@ update temp_dx_concept set icd10_code = retrieveICD10(diagnosis_concept);
 select concept_id into @non_diagnoses 
 from concept where uuid = 'a2d2124b-fc2e-4aa2-ac87-792d4205dd8d';    
 update temp_dx_concept set notifiable = concept_in_set(diagnosis_concept, concept_from_mapping('PIH','8612'));
-update temp_dx_concept set santeFamn = concept_in_set(diagnosis_concept, concept_from_mapping('PIH','7957'));
+update temp_dx_concept set womens_health = concept_in_set(diagnosis_concept, concept_from_mapping('PIH','7957'));
 update temp_dx_concept set urgent = concept_in_set(diagnosis_concept, concept_from_mapping('PIH','7679'));
 update temp_dx_concept set psychological = concept_in_set(diagnosis_concept, concept_from_mapping('PIH','7942'));
 update temp_dx_concept set pediatric = concept_in_set(diagnosis_concept, concept_from_mapping('PIH','7933'));
@@ -254,7 +254,7 @@ d.diagnosis_coded_fr,
 dc.icd10_code,
 dc.notifiable,
 dc.urgent,
-dc.santeFamn,
+dc.womens_health,
 dc.psychological,
 dc.pediatric,
 dc.outpatient,

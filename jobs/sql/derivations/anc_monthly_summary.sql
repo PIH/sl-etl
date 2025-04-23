@@ -72,7 +72,7 @@ inner join #reporting_months r
 create index anc_monthly_summary_staging_pi on anc_monthly_summary_staging(patient_id);
 
 update a
-set birthdate = p.dob
+set birthdate = p.birthdate
 from anc_monthly_summary_staging a
 inner join all_patients p on p.patient_id = a.patient_id;
 
