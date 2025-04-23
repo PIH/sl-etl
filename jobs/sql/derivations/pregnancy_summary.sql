@@ -4,7 +4,7 @@ create  table pregnancy_summary_staging
 -- columns in final table:
     emr_id                                     varchar(30),
     patient_id                                 varchar(50),
-	pregnancy_program_id                       varchar(50),
+    pregnancy_program_id                       varchar(50),
     date_enrolled                              date,
     date_completed                             date,   
     pregnancy_status                           varchar(255),
@@ -71,7 +71,7 @@ from pregnancy_program pp;
 
 
 update ps
-set birthdate = p.dob
+set birthdate = p.birthdate
 from pregnancy_summary_staging ps
 inner join all_patients p on p.patient_id = ps.patient_id;
 
