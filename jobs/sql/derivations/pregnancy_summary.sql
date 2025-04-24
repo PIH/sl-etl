@@ -494,12 +494,12 @@ where exists
 update a set anc_visit1_hiv_test = 0 from pregnancy_summary_staging a where total_anc_visits_recorded_in_emr > 0  and anc_visit1_hiv_test is null;
 
 update p
-set p.trimester_enrolled = e.trimester_enrollment
+set p.trimester_enrolled = e.trimester_enrolled
 from pregnancy_summary_staging p 
 inner join anc_encounter e on e.encounter_id =
     (select top 1 e2.encounter_id from anc_encounter e2
     where e2.pregnancy_program_id = p.pregnancy_program_id
-    and trimester_enrollment is not null
+    and trimester_enrolled is not null
     order by e2.encounter_datetime desc, e2.encounter_id desc);
 
 -- update index asc/desc on appointments table

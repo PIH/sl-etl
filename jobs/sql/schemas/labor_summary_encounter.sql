@@ -7,7 +7,7 @@ create table labor_summary_encounter
     pregnancy_program_id                    varchar(100),
     encounter_datetime                      datetime,
     encounter_location                      varchar(255),
-    datetime_created                        datetime,
+    datetime_entered                        datetime,
     user_entered                            varchar(255),
     provider                                varchar(255),
     labor_start                             datetime,
