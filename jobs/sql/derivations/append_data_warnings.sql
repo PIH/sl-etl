@@ -53,7 +53,7 @@ and not exists
 
 -- ncd_followup
 drop table if exists #temp_ncd_encounter_latest;
-select patient_id, emr_id, visit_id, encounter_type, encounter_id, e.ncd_program_id, encounter_datetime, date_created, creator, site, partition_num 
+select patient_id, emr_id, visit_id, encounter_type, encounter_id, e.ncd_program_id, encounter_datetime, datetime_entered, user_entered, site, partition_num 
 into #temp_ncd_encounter_latest
 from ncd_encounter e where encounter_id =
 (select top 1 encounter_id from ncd_encounter e2
@@ -64,7 +64,7 @@ order by encounter_datetime desc, encounter_id desc);
 insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id, patient_program_id, 
 encounter_datetime, datetime_entered, user_entered, site, partition_num) 
 select 'Followup without Intake', encounter_type, patient_id, emr_id, visit_id, encounter_id, e.ncd_program_id, 
-encounter_datetime, date_created, creator, site, partition_num  
+encounter_datetime, datetime_entered, user_entered, site, partition_num  
 from #temp_ncd_encounter_latest e
 where e.encounter_type = 'NCD Followup Consult'
 and not exists
