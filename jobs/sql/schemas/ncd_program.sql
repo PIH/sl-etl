@@ -7,5 +7,5 @@ CREATE TABLE ncd_program
     date_completed       date,
     final_program_status varchar(100),
     clinical_status      varchar(50),
-    created_by           varchar(50)
+    user_entered         varchar(50)
 );
