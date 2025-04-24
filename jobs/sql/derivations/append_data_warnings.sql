@@ -13,7 +13,7 @@ visit_id           varchar(50),
 encounter_id       varchar(50),  
 patient_program_id varchar(50),  
 encounter_datetime datetime,     
-datetime_created   datetime,
+datetime_entered   datetime,
 visit_date_started datetime,
 visit_date_stopped datetime,
 user_entered       text,         
@@ -30,7 +30,7 @@ dbcc checkident(#temp_data_warnings, reseed, @maxId);
 -- -------------------------------------------------- followup without intake
 -- anc followup
 drop table if exists #temp_anc_encounter_latest;
-select patient_id, emr_id, visit_id, visit_type, encounter_id, e.pregnancy_program_id, encounter_datetime, datetime_created, user_entered, site, partition_num 
+select patient_id, emr_id, visit_id, visit_type, encounter_id, e.pregnancy_program_id, encounter_datetime, datetime_entered, user_entered, site, partition_num 
 into #temp_anc_encounter_latest
 from anc_encounter e where encounter_id =
 (select top 1 encounter_id from anc_encounter e2
@@ -40,9 +40,9 @@ order by encounter_datetime desc, encounter_id desc);
 
 
 insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id, patient_program_id, 
-encounter_datetime, datetime_created, user_entered, site, partition_num) 
+encounter_datetime, datetime_entered, user_entered, site, partition_num) 
 select 'Followup without Intake', visit_type, patient_id, emr_id, visit_id, encounter_id, e.pregnancy_program_id, 
-encounter_datetime, datetime_created, user_entered, site, partition_num  
+encounter_datetime, datetime_entered, user_entered, site, partition_num  
 from #temp_anc_encounter_latest e
 where e.visit_type = 'ANC Followup'
 and not exists
@@ -62,7 +62,7 @@ and e2.encounter_type = e.encounter_type
 order by encounter_datetime desc, encounter_id desc);
 
 insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id, patient_program_id, 
-encounter_datetime, datetime_created, user_entered, site, partition_num) 
+encounter_datetime, datetime_entered, user_entered, site, partition_num) 
 select 'Followup without Intake', encounter_type, patient_id, emr_id, visit_id, encounter_id, e.ncd_program_id, 
 encounter_datetime, date_created, creator, site, partition_num  
 from #temp_ncd_encounter_latest e
@@ -85,7 +85,7 @@ and e2.encounter_type = e.encounter_type
 order by encounter_datetime desc, encounter_id desc);
 
 insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id, patient_program_id, 
-encounter_datetime, datetime_created, user_entered, site, partition_num) 
+encounter_datetime, datetime_entered, user_entered, site, partition_num) 
 select 'Followup without Intake', encounter_type, patient_id, emr_id, visit_id, encounter_id, e.mh_program_id, 
 encounter_datetime, date_created, user_entered, site, partition_num  
 from #temp_mh_encounter_latest e
@@ -106,7 +106,7 @@ group by e.patient_id
 having count(*) > 1;
 
 insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id,
-encounter_datetime, datetime_created, user_entered, site, partition_num, other_details) 
+encounter_datetime, datetime_entered, user_entered, site, partition_num, other_details) 
 select 'Duplicate encounters for patient', e.encounter_type, e.patient_id, e.emr_id, e.visit_id, e.encounter_id, 
 e.encounter_datetime, e.date_entered, e.user_entered, e.site, e.partition_num, 
 concat('number of encounters: ', t.count)
@@ -142,7 +142,7 @@ having count(*) > 1;
 
 
 insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id,
-encounter_datetime, datetime_created, user_entered, site, partition_num, other_details) 
+encounter_datetime, datetime_entered, user_entered, site, partition_num, other_details) 
 select 'Duplicate encounters within visit', e.encounter_type, e.patient_id, e.emr_id, e.visit_id, e.encounter_id, 
 e.encounter_datetime, e.date_entered, e.user_entered, e.site, e.partition_num, 
 concat('number of encounters: ', t.count)
@@ -160,9 +160,9 @@ group by e.patient_id, e.pregnancy_program_id
 having count(*) > 1;
 
 insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id, patient_program_id,
-encounter_datetime, datetime_created, user_entered, site, partition_num, other_details) 
+encounter_datetime, datetime_entered, user_entered, site, partition_num, other_details) 
 select 'Duplicate encounters within program', e.visit_type, e.patient_id, e.emr_id, e.visit_id, e.encounter_id, e.pregnancy_program_id,  
-e.encounter_datetime, e.datetime_created, e.user_entered, e.site, e.partition_num, 
+e.encounter_datetime, e.datetime_entered, e.user_entered, e.site, e.partition_num, 
 concat('number of encounters: ', t.count)
 from anc_encounter e
 inner join #temp_dup_encounters t on t.max_encounter_id = e.encounter_id;
@@ -177,9 +177,9 @@ having count(*) > 1;
 
 
 insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id, patient_program_id,
-encounter_datetime, datetime_created, user_entered, site, partition_num, other_details) 
+encounter_datetime, datetime_entered, user_entered, site, partition_num, other_details) 
 select 'Duplicate encounters within program', 'Labor and Delivery Summary', e.patient_id, e.emr_id, e.visit_id, e.encounter_id, e.pregnancy_program_id,  
-e.encounter_datetime, e.datetime_created, e.user_entered, e.site, e.partition_num,
+e.encounter_datetime, e.datetime_entered, e.user_entered, e.site, e.partition_num,
 concat('number of encounters: ', t.count)
 from labor_summary_encounter e
 inner join #temp_dup_encounters t on t.max_encounter_id = e.encounter_id;
@@ -193,7 +193,7 @@ group by e.patient_id, e.pregnancy_program_id
 having count(*) > 1;
 
 insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id,  visit_id, 
-encounter_id, encounter_datetime, patient_program_id, datetime_created, user_entered, 
+encounter_id, encounter_datetime, patient_program_id, datetime_entered, user_entered, 
 site, partition_num, other_details) 
 select 'Duplicate encounters within program', 'MCH Delivery', e.patient_id, e.emr_id, e.visit_id, 
 e.encounter_id, encounter_datetime, e.pregnancy_program_id, e.date_created, e.user_entered, e.site, e.partition_num,
@@ -221,7 +221,7 @@ order by encounter_datetime desc, encounter_id desc);
 
 
 insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id, 
-encounter_datetime, datetime_created, user_entered, site, partition_num) 
+encounter_datetime, datetime_entered, user_entered, site, partition_num) 
 select 'Inpatient encounters without admission', encounter_type, patient_id, emr_id, visit_id, encounter_id,
 encounter_datetime, date_entered, user_entered, site, partition_num  
 from #temp_all_encounters_latest e
@@ -232,7 +232,7 @@ where not exists
 	and e2.encounter_type = 'Admission');
 
 -- -------------------------------------------------- duplicate emr_id
-insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, encounter_datetime, datetime_created,
+insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, encounter_datetime, datetime_entered,
 user_entered, site, partition_num, other_details) 
 select 'Duplicate emr_ids', 'patient_registration',p.patient_id, p.emr_id, p.registration_date, p.date_registration_entered,
 p.user_entered, p.site, p.partition_num, concat('other patient_id: ',p2.patient_id)
@@ -252,7 +252,7 @@ set t.event_datetime =
 CASE
 	when encounter_datetime is not null then encounter_datetime
 	when visit_date_started is not null then visit_date_started
-	else datetime_created
+	else datetime_entered
 END
 from  #temp_data_warnings t;
 
@@ -267,7 +267,7 @@ insert into data_warnings
 	encounter_id,
 	patient_program_id,
 	encounter_datetime,
-	datetime_created,
+	datetime_entered,
 	visit_date_started,
 	visit_date_stopped,
 	user_entered,
@@ -285,7 +285,7 @@ select
 	encounter_id,
 	patient_program_id,
 	encounter_datetime,
-	datetime_created,
+	datetime_entered,
 	visit_date_started,
 	visit_date_stopped,
 	user_entered,

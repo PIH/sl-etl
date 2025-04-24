@@ -12,9 +12,9 @@ emr_id				varchar(50),
 visit_id			int,
 visit_date_started	datetime,
 visit_date_stopped	datetime,
-visit_date_entered	datetime,
+datetime_entered	datetime,
 visit_creator		int,
-visit_user_entered	varchar(255),
+user_entered	varchar(255),
 visit_type_id		int,
 visit_type			varchar(255),
 checkin_encounter_id	int,	
@@ -24,7 +24,7 @@ index_asc			int,
 index_desc			int
 );
 
-insert into temp_visits(patient_id, visit_id, visit_date_started, visit_date_stopped, visit_date_entered, visit_type_id, visit_creator, location_id)
+insert into temp_visits(patient_id, visit_id, visit_date_started, visit_date_stopped, datetime_entered, visit_type_id, visit_creator, location_id)
 select patient_id, visit_id, date_started, date_stopped, date_created, visit_type_id, creator, location_id  
 from visit v 
 where v.voided = 0
@@ -84,7 +84,7 @@ update temp_users t set creator_name  = person_name_of_user(creator);
 
 update temp_visits tv 
 inner join temp_users tu on tu.creator = tv.visit_creator
-set tv.visit_user_entered = tu.creator_name;
+set tv.user_entered = tu.creator_name;
 
 
 -- ---- Ascending Order ------------------------------------------
@@ -165,8 +165,8 @@ emr_id,
 concat(@partition,"-",visit_id),
 visit_date_started,
 visit_date_stopped,
-visit_date_entered,
-visit_user_entered,
+datetime_entered,
+user_entered,
 visit_type,
 visit_location,
 index_asc,

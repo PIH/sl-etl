@@ -18,12 +18,12 @@ visit_id                   int,
 pregnancy_program_id       int, 
 encounter_datetime         datetime,     
 encounter_location         varchar(255), 
-datetime_created           datetime,     
+datetime_entered           datetime,     
 user_entered               varchar(255), 
 provider                   varchar(255), 
 visit_type                 varchar(255), 
 age_at_encounter           int,
-trimester_enrollment       varchar(255), 
+trimester_enrolled       varchar(255), 
 number_anc_visit           int,          
 birth_weight_other_babies  varchar(255), 
 danger_signs               text, 
@@ -69,7 +69,7 @@ index_desc_patient_program INT
 );
 
 insert into temp_anc_encs(patient_id, encounter_id, visit_id, encounter_datetime,
-datetime_created, user_entered, visit_type)
+datetime_entered, user_entered, visit_type)
 select patient_id, encounter_id, visit_id, encounter_datetime, date_created, creator, encounter_type_name_from_id(encounter_type)
 from encounter e
 where e.voided = 0
@@ -109,7 +109,7 @@ create index temp_obs_encs_eobs on temp_obs(encounter_id, obs_group_id);
 
 
 UPDATE temp_anc_encs t
-SET trimester_enrollment = obs_value_coded_list_from_temp(encounter_id, 'PIH','11661','en');
+SET trimester_enrolled = obs_value_coded_list_from_temp(encounter_id, 'PIH','11661','en');
 
 UPDATE temp_anc_encs t
 SET danger_signs = obs_value_coded_list_from_temp(encounter_id, 'PIH','3064','en');
@@ -233,12 +233,12 @@ concat(@partition,"-",visit_id)  as visit_id,
 concat(@partition,"-",pregnancy_program_id)  as pregnancy_program_id,
 encounter_datetime,
 encounter_location,
-datetime_created,
+datetime_entered,
 user_entered,
 provider,
 age_at_encounter,
 visit_type,
-trimester_enrollment,
+trimester_enrolled,
 number_anc_visit,
 birth_weight_other_babies,
 danger_signs,
