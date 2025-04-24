@@ -33,7 +33,7 @@ visit_id           int(11),
 encounter_id       int(11),      
 patient_program_id int(11),      
 encounter_datetime datetime,     
-datetime_created   datetime,  
+datetime_entered   datetime,  
 creator            int(11),
 user_entered       text,
 visit_date_started datetime,
@@ -46,17 +46,17 @@ drop temporary table if exists temp_reg;
 create temporary table temp_reg
 (patient_id      int(11),
 warning_type     varchar(255),
-datetime_created datetime, 
+datetime_entered datetime, 
 creator          int(11),  
 encounter_id     int(11),
 encounter_datetime datetime);    
 
-insert into temp_reg (patient_id,datetime_created, creator, warning_type)
+insert into temp_reg (patient_id,datetime_entered, creator, warning_type)
 select patient_id,date_created, creator, 'blank emr_id'
 from patient p 
 where p.voided = 0 and patient_identifier(patient_id, metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType')) is null;
 
-insert into temp_reg (patient_id, datetime_created, creator, warning_type)
+insert into temp_reg (patient_id, datetime_entered, creator, warning_type)
 select patient_id, p.date_created, p.creator, 'blank birthdate'
 from patient p
 inner join person ps on ps.person_id = p.patient_id
@@ -64,20 +64,20 @@ where p.voided = 0
 and birthdate is null
 and unknown_patient(p.patient_id) is null;
 
-insert into temp_reg (patient_id, datetime_created, creator, warning_type)
+insert into temp_reg (patient_id, datetime_entered, creator, warning_type)
 select patient_id, p.date_created, p.creator, 'blank gender'
 from patient p
 inner join person ps on ps.person_id = p.patient_id
 where p.voided = 0 and gender is null;
 
-insert into temp_reg (patient_id, datetime_created, creator, warning_type)
+insert into temp_reg (patient_id, datetime_entered, creator, warning_type)
 select patient_id, p.date_created, p.creator, 'death date before birthdate'
 from patient p
 inner join person ps on ps.person_id = p.patient_id
 where p.voided = 0 
 and ps.death_date < birthdate;
 
-insert into temp_reg (patient_id, datetime_created, creator, warning_type)
+insert into temp_reg (patient_id, datetime_entered, creator, warning_type)
 select patient_id, p.date_created, p.creator, 'blank address'
 from patient p
 where p.voided = 0 
@@ -87,7 +87,7 @@ and not exists
 	and pa.voided = 0)
 and unknown_patient(p.patient_id) is null;
 
-insert into temp_reg (patient_id, datetime_created, creator, warning_type)
+insert into temp_reg (patient_id, datetime_entered, creator, warning_type)
 select patient_id, p.date_created, p.creator, 'blank name'
 from patient p
 where p.voided = 0 
@@ -97,7 +97,7 @@ and not exists
 	and pn.voided = 0)
 and unknown_patient(p.patient_id) is null;
 
-insert into temp_reg (patient_id, datetime_created, creator, warning_type)
+insert into temp_reg (patient_id, datetime_entered, creator, warning_type)
 select patient_id, p.date_created, p.creator, 'unknown patient > 10 days'
 from patient p 
 inner join person_attribute pa on 
@@ -123,8 +123,8 @@ inner join encounter e on e.encounter_id =
 set t.encounter_id = e.encounter_id,
 	t.encounter_datetime = e.encounter_datetime;
 
-insert into temp_warnings (patient_id,datetime_created, encounter_id, encounter_datetime, creator, warning_type, event_type)
-select patient_id,datetime_created, encounter_id, encounter_datetime, creator, warning_type, 'patient registration' 
+insert into temp_warnings (patient_id,datetime_entered, encounter_id, encounter_datetime, creator, warning_type, event_type)
+select patient_id,datetime_entered, encounter_id, encounter_datetime, creator, warning_type, 'patient registration' 
 from temp_reg;
 
 -- --------------------------------------------------------- visits no encounters
@@ -152,7 +152,7 @@ create temporary table temp_latest_encounter
 create index temp_latest_encounter_p on temp_latest_encounter(patient_id);
 create index temp_latest_encounter_c1 on temp_latest_encounter(patient_id, latest_datetime);
 
-insert into temp_warnings (event_type, warning_type, patient_id, datetime_created, creator, encounter_id, encounter_datetime,  other_details)
+insert into temp_warnings (event_type, warning_type, patient_id, datetime_entered, creator, encounter_id, encounter_datetime,  other_details)
 select 'patient_registration', 'age at encounter > 105', p.person_id, p.date_created, p.creator, e.encounter_id, e.encounter_datetime,
 concat('patient birthdate =',p.birthdate)
 from person p 
@@ -162,7 +162,7 @@ where timestampdiff(YEAR, p.birthdate , encounter_datetime) >105
 ;
 
 -- --------------------------------------------------------- invalid encounters for male
-insert into temp_warnings (event_type, warning_type, patient_id, datetime_created, creator, encounter_id, encounter_datetime)
+insert into temp_warnings (event_type, warning_type, patient_id, datetime_entered, creator, encounter_id, encounter_datetime)
 select  et.name, 'invalid encounter for male',p.person_id, e.date_created, e.creator, e.encounter_id, e.encounter_datetime 
 from person p 
 inner join encounter e on p.person_id = e.patient_id 
@@ -212,7 +212,7 @@ set user_entered = person_name_of_user(creator);
 
 -- event datetime
 update temp_warnings t 
-set event_datetime = coalesce(encounter_datetime, visit_date_started, datetime_created);
+set event_datetime = coalesce(encounter_datetime, visit_date_started, datetime_entered);
 
 -- final select
 select
@@ -226,7 +226,7 @@ select
 	concat(@partition, '-', encounter_id) as encounter_id,
 	concat(@partition, '-', patient_program_id) as patient_program_id,
 	encounter_datetime,
-	datetime_created,
+	datetime_entered,
 	visit_date_started,
 	visit_date_stopped,
 	user_entered,
