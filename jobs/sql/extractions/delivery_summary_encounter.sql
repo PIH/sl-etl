@@ -8,13 +8,13 @@ create temporary table temp_labor_encs
 (
     patient_id               int,
     obs_group_id             int,
-    mother_emr_id            varchar(255),
+    emr_id_mother            varchar(255),
     baby_emr_id              varchar(255),
     encounter_id             int,
     visit_id                 int,
     encounter_datetime       datetime,
     encounter_location       varchar(255),
-    datetime_created         datetime,
+    datetime_entered         datetime,
     user_entered             varchar(255),
     pregnancy_program_id     int(11),
     provider                 varchar(255),
@@ -42,13 +42,13 @@ CREATE TEMPORARY TABLE temp_encs
     visit_id           int,
     encounter_datetime datetime,
     encounter_location varchar(255),
-    datetime_created   datetime,
+    datetime_entered   datetime,
     user_entered       varchar(255),
     provider           varchar(255),
     pregnancy_program_id     int(11)
 );
 
-insert into temp_encs (patient_id, encounter_id, visit_id, encounter_datetime, datetime_created, user_entered)
+insert into temp_encs (patient_id, encounter_id, visit_id, encounter_datetime, datetime_entered, user_entered)
 select      patient_id, encounter_id, visit_id, encounter_datetime, date_created, creator
 from        encounter e
 where       e.voided = 0
@@ -71,8 +71,8 @@ where o.voided = 0;
 create index temp_obs_encs_ei on temp_obs(encounter_id);
 create index temp_obs_encs_eobs on temp_obs(encounter_id, obs_group_id);
 
-insert into temp_labor_encs(patient_id, encounter_id, visit_id, encounter_datetime, datetime_created, user_entered, obs_group_id, pregnancy_program_id)
-SELECT e.patient_id, e.encounter_id, e.visit_id, e.encounter_datetime, e.datetime_created, e.user_entered, o.obs_id, e.pregnancy_program_id
+insert into temp_labor_encs(patient_id, encounter_id, visit_id, encounter_datetime, datetime_entered, user_entered, obs_group_id, pregnancy_program_id)
+SELECT e.patient_id, e.encounter_id, e.visit_id, e.encounter_datetime, e.datetime_entered, e.user_entered, o.obs_id, e.pregnancy_program_id
 FROM temp_encs e
 INNER JOIN temp_obs o ON e.encounter_id=o.encounter_id
 AND o.concept_id= concept_from_mapping('PIH','13555');
@@ -84,7 +84,7 @@ UPDATE temp_labor_encs
 SET provider = provider(encounter_id);
 
 UPDATE temp_labor_encs t
-SET mother_emr_id = patient_identifier(patient_id, 'c09a1d24-7162-11eb-8aa6-0242ac110002');
+SET emr_id_mother = patient_identifier(patient_id, 'c09a1d24-7162-11eb-8aa6-0242ac110002');
 
 UPDATE temp_labor_encs
 SET encounter_location=encounter_location_name(encounter_id);
@@ -127,12 +127,12 @@ SET delivery_method=obs_from_group_id_value_coded_list_from_temp(obs_group_id, '
 SELECT
 baby_emr_id as emr_id,
 concat(@partition,"-",patient_id) as mother_patient_id,
-mother_emr_id,
+emr_id_mother,
 concat(@partition,"-",encounter_id) as encounter_id,
 concat(@partition,"-",visit_id) as visit_id,
 encounter_datetime,
 encounter_location,
-datetime_created,
+datetime_entered,
 user_entered,
 provider,
 concat(@partition,"-",pregnancy_program_id) as pregnancy_program_id,
