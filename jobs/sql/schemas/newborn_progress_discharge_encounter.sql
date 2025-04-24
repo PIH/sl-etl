@@ -6,7 +6,7 @@ create table newborn_progress_discharge_encounter
     emr_id              varchar(255),
     encounter_datetime  datetime,
     encounter_location  varchar(255),
-    datetime_created    datetime,
+    datetime_entered    datetime,
     user_entered        varchar(255),
     provider            varchar(255),
     visit_type          varchar(255),

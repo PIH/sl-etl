@@ -6,7 +6,7 @@ create table postpartum_daily_encounter
     emr_id                        varchar(255),
     encounter_datetime            datetime,
     encounter_location            varchar(255),
-    datetime_created              datetime,
+    datetime_entered              datetime,
     user_entered                  varchar(255),
     provider                      varchar(255),
     temperature                   decimal(8, 3),
