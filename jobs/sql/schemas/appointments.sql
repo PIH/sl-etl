@@ -13,7 +13,7 @@ create table appointments
     provider             varchar(255),
     status               varchar(45),
     note                 varchar(255),
-    datetime_created     datetime,
+    datetime_entered     datetime,
     user_entered         varchar(255),
     index_asc            int,
     index_desc           int
