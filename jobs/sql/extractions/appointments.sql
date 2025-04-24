@@ -16,7 +16,7 @@ create temporary table temp_appointments
     provider             varchar(255),
     status               varchar(45),
     note                 varchar(255),
-    datetime_created     datetime,
+    datetime_entered     datetime,
     user_entered         varchar(255),
     index_asc            int,
     index_desc           int
@@ -35,7 +35,7 @@ insert into temp_appointments(
       provider,
       status,
       note,
-      datetime_created,
+      datetime_entered,
       user_entered
 )
 select
@@ -51,7 +51,7 @@ select
     provider_name_from_provider_id(a.provider_id) as provider,
     a.status,
     a.comments as note,
-    a.date_created as datetime_created,  
+    a.date_created as datetime_entered,  
     person_name_of_user(a.creator) as user_entered
 from patient_appointment a
 inner join patient p on a.patient_id = p.patient_id
@@ -89,7 +89,7 @@ duration,
 provider,
 status,
 note,
-datetime_created,
+datetime_entered,
 user_entered,
 index_asc,
 index_desc
