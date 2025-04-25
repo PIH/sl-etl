@@ -9,7 +9,7 @@ SELECT encounter_type_id INTO @specimenCollEnc FROM encounter_type WHERE uuid = 
 DROP TEMPORARY TABLE IF EXISTS temp_report;
 CREATE TEMPORARY TABLE temp_report
 (
-  patient_id                   INT,           
+ patient_id                   INT,           
  emr_id                       varchar(50),   
  wellbody_emr_id              VARCHAR(255),  
  kgh_emr_id                   VARCHAR(255),  
@@ -19,14 +19,14 @@ CREATE TEMPORARY TABLE temp_report
  loc_registered               VARCHAR(255),  
  unknown_patient              CHAR(1),       
  gender                       CHAR(1),       
- age_at_enc                   INT,           
+ age_at_encounter             INT,           
  patient_address              VARCHAR(1000), 
  order_number                 VARCHAR(255),  
  accession_number             VARCHAR(255),  
  order_concept_id             INT,           
  orderable                    VARCHAR(255),  
  status                       VARCHAR(255),  
- orderer                      VARCHAR(255),  
+ user_entered                 VARCHAR(255),  
  orderer_provider_type        VARCHAR(255),  
  order_datetime               DATETIME,      
  date_stopped                 DATETIME,      
@@ -160,7 +160,7 @@ tr.loc_registered=dp.loc_registered,
 tr.unknown_patient=dp.unknown_patient,
 tr.patient_address=dp.patient_address;
 
-UPDATE temp_report SET age_at_enc = AGE_AT_ENC(patient_id,order_encounter_id);
+UPDATE temp_report SET age_at_encounter = AGE_AT_ENC(patient_id,order_encounter_id);
 UPDATE temp_report SET orderable = IFNULL(CONCEPT_NAME(order_concept_id, @locale),CONCEPT_NAME(order_concept_id, 'en'));
 -- status is derived by the order fulfiller status and other fields
 UPDATE temp_report t SET status =
@@ -172,7 +172,7 @@ UPDATE temp_report t SET status =
        WHEN t.fulfiller_status = 'EXCEPTION' THEN 'Not Performed'
        ELSE 'Ordered'
     END ;
-UPDATE temp_report t SET orderer = PROVIDER(t.order_encounter_id);
+UPDATE temp_report t SET user_entered = PROVIDER(t.order_encounter_id);
 UPDATE temp_report t SET orderer_provider_type = PROVIDER_TYPE(t.order_encounter_id);
 UPDATE temp_report t SET ordering_location = ENCOUNTER_LOCATION_NAME(t.order_encounter_id);
 
@@ -206,13 +206,13 @@ concat(@partition,"-",order_encounter_id)  order_encounter_id,
 loc_registered,
 unknown_patient, 
 gender, 
-age_at_enc,
+age_at_encounter,
 patient_address,
 order_number,
 accession_number "Lab_ID",
 orderable,
 status,
-orderer,
+user_entered,
 orderer_provider_type,
 order_datetime,
 ordering_location,
