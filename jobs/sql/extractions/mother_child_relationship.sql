@@ -15,13 +15,13 @@ create temporary table temp_mc_relation
  relationship_source                varchar(255),         
  creator                            int(11),      
  user_entered                       text,                 
- date_created                       datetime,  
+ datetime_entered                   datetime,  
  child_dob                          datetime,
  child_age_at_relationship_creation double,       
  child_age_current                  double                
 );
 
-insert into temp_mc_relation(patient_id,patient_id_mother, creator, date_created)
+insert into temp_mc_relation(patient_id,patient_id_mother, creator, datetime_entered)
 select person_b, person_a, creator, date_created
 from relationship r
 where relationship in (@mother, @parent)
@@ -61,7 +61,7 @@ update temp_mc_relation t
 set child_age_current = format(DATEDIFF(now(),child_dob)/365,2);
 
 update temp_mc_relation t
-set child_age_at_relationship_creation = format(DATEDIFF(date_created,child_dob)/365,2);  
+set child_age_at_relationship_creation = format(DATEDIFF(datetime_entered,child_dob)/365,2);  
 
 select 
  concat(@partition,"-",relationship_id) relationship_id,
@@ -71,7 +71,7 @@ select
  concat(@partition,"-",patient_id_mother) patient_id_mother,
  relationship_source, 
  user_entered,         
- date_created,     
+ datetime_entered,     
  child_age_at_relationship_creation,   
  child_age_current
 from temp_mc_relation;

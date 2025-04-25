@@ -7,7 +7,7 @@
  patient_id_mother                  varchar(100),           
  relationship_source                varchar(255),  
  user_entered                       text,          
- date_created                       datetime,      
+ datetime_entered                   datetime,      
  child_age_at_relationship_creation float,         
  child_age_current                  float                 
 ); 
