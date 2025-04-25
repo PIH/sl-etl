@@ -12,11 +12,11 @@ encounter_id                int,
 visit_id                    int,           
 encounter_datetime          datetime,     
 encounter_location          varchar(255), 
-datetime_created            datetime,     
+datetime_entered            datetime,     
 user_entered                varchar(255), 
 admitting_clinician         varchar(255), 
 admitted_to                 varchar(255),  
-admission_datetime          datetime,      
+admission_date              date,      
 condition_at_admission      varchar(255), 
 clinical_adverse_effects    boolean, 
 outborn_mothers_name        varchar(255), 
@@ -56,7 +56,7 @@ index_asc                   int,
 index_desc                  int    
 );
 
-insert into temp_na(patient_id, encounter_id, visit_id, encounter_datetime, datetime_created, user_entered)
+insert into temp_na(patient_id, encounter_id, visit_id, encounter_datetime, datetime_entered, user_entered)
 select patient_id, encounter_id, visit_id, encounter_datetime, date_created, creator
 from encounter e
 where e.voided = 0
@@ -71,7 +71,7 @@ UPDATE temp_na  SET emr_id = patient_identifier(patient_id, metadata_uuid('org.o
 UPDATE temp_na SET encounter_location=encounter_location_name(encounter_id);
 UPDATE temp_na t SET admitting_clinician = provider_name_of_type(encounter_id, @consulting_clinician, 0);
 UPDATE temp_na t SET admitted_to = encounter_location;
-UPDATE temp_na t SET admission_datetime = encounter_datetime;
+UPDATE temp_na t SET admission_date = encounter_datetime;
 
 DROP TEMPORARY TABLE IF EXISTS temp_obs;
 create temporary table temp_obs
@@ -132,11 +132,11 @@ select
   concat(@partition, '-', encounter_id) as encounter_id,
   concat(@partition, '-', visit_id) as visit_id,encounter_datetime,
   encounter_location,
-  datetime_created,
+  datetime_entered,
   user_entered,
   admitting_clinician,
   admitted_to,
-  admission_datetime,
+  admission_date,
   condition_at_admission,
   clinical_adverse_effects,
   outborn_mothers_name,
