@@ -10,7 +10,7 @@ patient_id int,
 emr_id varchar(30),
 visit_id int, 
 pregnancy_program_id int,
-date_created datetime, 
+datetime_entered datetime, 
 creator int,
 user_entered text,
 provider varchar(30),
@@ -58,10 +58,10 @@ clinical_note varchar(500),
 primary_diagnosis varchar(1000),
 confirmed_diagnoses varchar(1000),
 counselled_HIV_testing varchar(100),
-admission_datetime datetime,
+admission_date date,
 gravida int,
 parity int,
-labour_datetime datetime,
+labor_start_datetime datetime,
 presentation_position varchar(100),
 presentation_other varchar(250),
 delivery_datetime datetime,
@@ -101,7 +101,7 @@ where o.voided = 0;
 
 create index temp_obs_ci3 on temp_obs(encounter_id, concept_id,value_coded);
 
-INSERT INTO mch_delivery_form(patient_id, emr_id, encounter_id,location,provider,encounter_datetime, visit_id, date_created, creator)
+INSERT INTO mch_delivery_form(patient_id, emr_id, encounter_id,location,provider,encounter_datetime, visit_id, datetime_entered, creator)
 SELECT e.patient_id,patient_identifier(patient_id, metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType')), e.encounter_id,
        encounter_location_name(e.encounter_id),provider(e.encounter_id), encounter_datetime, visit_id, date_created, creator
 FROM temp_encounter e;
@@ -196,12 +196,12 @@ set e.confirmed_diagnoses = (
 UPDATE mch_delivery_form SET clinical_note=obs_value_text_from_temp(encounter_id,'PIH','1364');
 UPDATE mch_delivery_form SET counselled_HIV_testing=obs_value_coded_list_from_temp(encounter_id,'PIH','11381','en');
 
-UPDATE mch_delivery_form SET admission_datetime=obs_value_datetime_from_temp(encounter_id,'PIH','12240');
+UPDATE mch_delivery_form SET admission_date=obs_value_datetime_from_temp(encounter_id,'PIH','12240');
 UPDATE mch_delivery_form SET gravida=obs_value_numeric_from_temp(encounter_id,'PIH','5624');
 UPDATE mch_delivery_form SET parity=obs_value_numeric_from_temp(encounter_id,'PIH','1053');
 
 UPDATE mch_delivery_form SET gestational_age=obs_value_numeric_from_temp(encounter_id,'PIH','14390');
-UPDATE mch_delivery_form SET labour_datetime=obs_value_datetime_from_temp(encounter_id,'PIH','14377');
+UPDATE mch_delivery_form SET labor_start_datetime=obs_value_datetime_from_temp(encounter_id,'PIH','14377');
 UPDATE mch_delivery_form SET presentation_position=obs_value_coded_list_from_temp(encounter_id,'PIH','13047','en');
 UPDATE mch_delivery_form SET presentation_other=obs_value_text_from_temp(encounter_id,'PIH','14414');
 
@@ -236,7 +236,7 @@ emr_id,
 concat(@partition,"-",t.encounter_id)  as encounter_id,
 concat(@partition,"-",t.visit_id)  as visit_id,
 concat(@partition,"-",pregnancy_program_id)  as pregnancy_program_id,
-date_created,
+datetime_entered,
 user_entered,
 provider,
 location,
@@ -283,10 +283,10 @@ clinical_note,
 primary_diagnosis,
 confirmed_diagnoses,
 counselled_HIV_testing,
-admission_datetime,
+admission_date,
 gravida,
 parity,
-labour_datetime,
+labor_start_datetime,
 presentation_position,
 presentation_other,
 delivery_datetime,
