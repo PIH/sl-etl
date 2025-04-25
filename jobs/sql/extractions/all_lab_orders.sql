@@ -37,7 +37,7 @@ CREATE TEMPORARY TABLE temp_report
  specimen_collection_datetime DATETIME,      
  collection_date_estimated    VARCHAR(255),  
  test_location                VARCHAR(255),  
- result_date                  DATETIME       
+ results_date                  DATETIME       
  );
 
 -- load temporary table with all lab test orders within the date range 
@@ -188,7 +188,7 @@ set test_location = concept_name(o.value_coded, @locale);
 update temp_report t 
   inner join obs o on o.encounter_id = t.specimen_encounter_id and o.voided  = 0 
     and o.concept_id = concept_from_mapping('PIH','Date of test results')
-set result_date = o.value_datetime;
+set results_date = o.value_datetime;
 
 update temp_report t 
   inner join obs o on o.encounter_id = t.specimen_encounter_id and o.voided  = 0 
@@ -220,5 +220,5 @@ urgency,
 specimen_collection_datetime,
 collection_date_estimated,
 test_location,
-result_date
+results_date
 FROM temp_report;
