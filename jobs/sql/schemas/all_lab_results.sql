@@ -8,7 +8,7 @@ CREATE TABLE labs_order_results
  encounter_location       VARCHAR(255), 
  unknown_patient          VARCHAR(50),  
  gender                   VARCHAR(50),  
- age_at_enc               INT,          
+ age_at_encounter         INT,          
  encounter_id             VARCHAR(25),   
  order_number             VARCHAR(50), 
  orderable                VARCHAR(255), 
