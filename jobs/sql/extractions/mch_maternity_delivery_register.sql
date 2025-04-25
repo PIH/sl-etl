@@ -14,12 +14,12 @@ patient_id int,
 emrid varchar(30),
 provider varchar(30),
 location varchar(30),
-admission_datetime datetime,
+admission_date date,
 gravida int,
 parity int,
 gestational_age float,
 pac_type varchar(100),
-labour_datetime datetime,
+labor_start_datetime datetime,
 presentation_position varchar(100),
 presentation_other varchar(500),
 delivery_datetime datetime,
@@ -79,7 +79,7 @@ SELECT e.patient_id,patient_identifier(e.patient_id,'1a2acce0-7426-11e5-a837-080
        encounter_location_name(e.encounter_id),provider(e.encounter_id)
 FROM temp_encounter e;
 
-UPDATE mch_maternity_delivery_register SET admission_datetime=obs_value_datetime_from_temp(encounter_id,'PIH','12240');
+UPDATE mch_maternity_delivery_register SET admission_date=obs_value_datetime_from_temp(encounter_id,'PIH','12240');
 UPDATE mch_maternity_delivery_register SET gravida=obs_value_numeric_from_temp(encounter_id,'PIH','5624');
 UPDATE mch_maternity_delivery_register SET parity=obs_value_numeric_from_temp(encounter_id,'PIH','1053');
 UPDATE mch_maternity_delivery_register SET gestational_age=obs_value_numeric_from_temp(encounter_id,'PIH','14390');
@@ -92,7 +92,7 @@ SET kgh_emr_id= patient_identifier(patient_id,'c09a1d24-7162-11eb-8aa6-0242ac110
 
 
 -- Labor Attributes
-UPDATE mch_maternity_delivery_register SET labour_datetime=obs_value_datetime_from_temp(encounter_id,'PIH','14377');
+UPDATE mch_maternity_delivery_register SET labor_start_datetime=obs_value_datetime_from_temp(encounter_id,'PIH','14377');
 UPDATE mch_maternity_delivery_register SET presentation_position=obs_value_coded_list_from_temp(encounter_id,'PIH','13047','en');
 UPDATE mch_maternity_delivery_register SET presentation_other=obs_value_text_from_temp(encounter_id,'PIH','14414');
 
@@ -196,12 +196,12 @@ wellbody_emr_id,
 kgh_emr_id,
 provider,
 location,
-admission_datetime,
+admission_date,
 gravida,
 parity,
 gestational_age,
 o.pac_type,
-labour_datetime,
+labor_start_datetime,
 presentation_position,
 presentation_other,
 delivery_datetime,

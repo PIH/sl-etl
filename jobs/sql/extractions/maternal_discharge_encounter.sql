@@ -11,7 +11,7 @@ emr_id              varchar(255),
 encounter_id        int,
 visit_id            int,
 encounter_datetime datetime,
-datetime_created datetime,
+datetime_entered datetime,
 user_entered     varchar(255),
 provider             varchar(255),
 next_appointment_date  date,
@@ -23,7 +23,7 @@ index_desc  int
 );
 
 insert into temp_disch_encs(patient_id, encounter_id, visit_id, encounter_datetime, 
-datetime_created, user_entered)
+datetime_entered, user_entered)
 select patient_id, encounter_id, visit_id, encounter_datetime, date_created, creator
 from encounter e
 where e.voided = 0
@@ -70,7 +70,7 @@ CONCAT(@partition,'-',patient_id) "patient_id",
 CONCAT(@partition,'-',encounter_id) "encounter_id",
 CONCAT(@partition,'-',visit_id) "visit_id",
 encounter_datetime,
-datetime_created,
+datetime_entered,
 user_entered,
 provider,
 next_appointment_date,

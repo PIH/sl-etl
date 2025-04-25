@@ -10,7 +10,7 @@ create table mh_encounters
  visit_id                                     varchar(50),   
  mh_program_id                                varchar(50),
  encounter_datetime                           datetime,
- date_created                                 datetime,
+ datetime_entered                             datetime,
  user_entered                                 text,
  provider                                     varchar(255),  
  referred_by_community                        varchar(255),  

@@ -19,7 +19,7 @@ create temporary table temp_mh
  visit_id                                     int,           
  mh_program_id                                int,           
  encounter_datetime                           datetime,      
- date_created                                 datetime,      
+ datetime_entered                             datetime,      
  creator                                      int,           
  user_entered                                 text,          
  provider                                     varchar(255),  
@@ -243,7 +243,7 @@ insert into temp_mh (
     encounter_datetime,
     encounter_type,
     visit_id,
-    date_created,
+    datetime_entered,
     creator
 )
 select
@@ -694,7 +694,7 @@ select
     concat(@partition,"-",visit_id)  "visit_id",
     concat(@partition,"-",mh_program_id)  "mh_program_id",
     encounter_datetime,
-    date_created,
+    datetime_entered,
     user_entered,
     provider,
     referred_by_community,
