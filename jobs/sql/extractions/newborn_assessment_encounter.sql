@@ -11,12 +11,12 @@ create temporary table temp_enc
     emr_id                   varchar(255),
     encounter_datetime       datetime,
     encounter_location       varchar(255),
-    datetime_created         datetime,
+    datetime_entered         datetime,
     user_entered             varchar(255),
     provider                 varchar(255),
     pregnancy_complications  varchar(5000),
     delivery_datetime        datetime,
-    gestation_age            decimal(8, 3),
+    gestational_age            decimal(8, 3),
     delivery_type            varchar(255),
     delivery_outcome         varchar(255),
     sex                      varchar(255),
@@ -47,7 +47,7 @@ create temporary table temp_enc
     index_desc               INT
 );
 
-insert into temp_enc(patient_id, encounter_id, visit_id, encounter_datetime, datetime_created, user_entered)
+insert into temp_enc(patient_id, encounter_id, visit_id, encounter_datetime, datetime_entered, user_entered)
 select patient_id, encounter_id, visit_id, encounter_datetime, date_created, creator
 from encounter e
 where e.voided = 0
@@ -74,7 +74,7 @@ create index temp_obs_encs_eobs on temp_obs(encounter_id, obs_group_id);
 
 UPDATE temp_enc t SET pregnancy_complications = obs_value_coded_list_from_temp(encounter_id, 'PIH','3334','en');
 UPDATE temp_enc t SET delivery_datetime = obs_value_datetime_from_temp(encounter_id, 'CIEL','5599');
-UPDATE temp_enc t SET gestation_age = obs_value_numeric_from_temp(encounter_id, 'CIEL','165425');
+UPDATE temp_enc t SET gestational_age = obs_value_numeric_from_temp(encounter_id, 'CIEL','165425');
 UPDATE temp_enc t SET delivery_type = obs_value_coded_list_from_temp(encounter_id, 'PIH','11663','en');
 UPDATE temp_enc t SET delivery_outcome = obs_value_coded_list_from_temp(encounter_id, 'CIEL','159917','en');
 UPDATE temp_enc t SET sex = obs_value_coded_list_from_temp(encounter_id, 'CIEL','1587','en');
@@ -109,12 +109,12 @@ SELECT
     emr_id,
     encounter_datetime,
     encounter_location,
-    datetime_created,
+    datetime_entered,
     user_entered,
     provider,
     pregnancy_complications,
     delivery_datetime,
-    gestation_age,
+    gestational_age,
     delivery_type,
     delivery_outcome,
     sex,
