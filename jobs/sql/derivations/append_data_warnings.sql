@@ -75,7 +75,7 @@ and not exists
 
 -- mh_followup
 drop table if exists #temp_mh_encounter_latest;
-select patient_id, emr_id, visit_id, encounter_type, encounter_id, e.mh_program_id, encounter_datetime, date_created, user_entered, 
+select patient_id, emr_id, visit_id, encounter_type, encounter_id, e.mh_program_id, encounter_datetime, datetime_entered, user_entered, 
 site, partition_num 
 into #temp_mh_encounter_latest
 from mh_encounters e where encounter_id =
@@ -87,7 +87,7 @@ order by encounter_datetime desc, encounter_id desc);
 insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id, patient_program_id, 
 encounter_datetime, datetime_entered, user_entered, site, partition_num) 
 select 'Followup without Intake', encounter_type, patient_id, emr_id, visit_id, encounter_id, e.mh_program_id, 
-encounter_datetime, date_created, user_entered, site, partition_num  
+encounter_datetime, datetime_entered, user_entered, site, partition_num  
 from #temp_mh_encounter_latest e
 where e.encounter_type = 'Mental Health Follow-up'
 and not exists
@@ -196,7 +196,7 @@ insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id,  
 encounter_id, encounter_datetime, patient_program_id, datetime_entered, user_entered, 
 site, partition_num, other_details) 
 select 'Duplicate encounters within program', 'MCH Delivery', e.patient_id, e.emr_id, e.visit_id, 
-e.encounter_id, encounter_datetime, e.pregnancy_program_id, e.date_created, e.user_entered, e.site, e.partition_num,
+e.encounter_id, encounter_datetime, e.pregnancy_program_id, e.datetime_entered, e.user_entered, e.site, e.partition_num,
 concat('number of encounters: ', t.count)
 from mch_delivery e
 inner join #temp_dup_encounters t on t.max_encounter_id = e.encounter_id;
