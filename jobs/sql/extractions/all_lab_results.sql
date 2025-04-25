@@ -11,7 +11,7 @@ SELECT encounter_type_id INTO @specimen_collection FROM encounter_type WHERE uui
 SELECT concept_id INTO @test_order FROM concept WHERE uuid = '393dec41-2fb5-428f-acfa-36ea85da6666';
 SELECT concept_id INTO @not_performed FROM concept WHERE uuid = '5dc35a2a-228c-41d0-ae19-5b1e23618eda';
 SELECT concept_id INTO @order_number FROM concept WHERE UUID = '393dec41-2fb5-428f-acfa-36ea85da6666'; 
-SELECT concept_id INTO @result_date FROM concept WHERE UUID = '68d6bd27-37ff-4d7a-87a0-f5e0f9c8dcc0'; 
+SELECT concept_id INTO @results_date FROM concept WHERE UUID = '68d6bd27-37ff-4d7a-87a0-f5e0f9c8dcc0'; 
 SELECT concept_id INTO @test_location FROM concept WHERE UUID = GLOBAL_PROPERTY_VALUE('labworkflowowa.locationOfLaboratory', 'Unknown Location'); -- test location may differ by implementation
 SELECT concept_id INTO @test_status FROM concept WHERE UUID = '7e0cf626-dbe8-42aa-9b25-483b51350bf8'; 
 SELECT concept_id INTO @collection_date_estimated FROM concept WHERE UUID = '87f506e3-4433-40ec-b16c-b3c65e402989'; 
@@ -39,7 +39,7 @@ CREATE TEMPORARY TABLE temp_laborders_spec
   section VARCHAR(255),
   locality VARCHAR(255),
   street_landmark VARCHAR(255),
-  result_date DATETIME,
+  results_date DATETIME,
   results_entry_date DATETIME
  );
 
@@ -68,7 +68,7 @@ CREATE TEMPORARY TABLE temp_labresults
   LOINC VARCHAR(255),	
   encounter_id int(11),
   specimen_collection_date DATETIME,
-  result_date DATETIME,
+  results_date DATETIME,
   results_entry_date DATETIME,
   result VARCHAR(255),
   units VARCHAR(255),
@@ -146,11 +146,11 @@ street_landmark =pa.address2
 
  -- results date
 UPDATE temp_laborders_spec ts
-INNER JOIN obs res_date ON res_date.voided = 0 AND res_date.encounter_id = ts.encounter_id AND res_date.concept_id = @result_date
-SET ts.result_date = res_date.value_datetime;
+INNER JOIN obs res_date ON res_date.voided = 0 AND res_date.encounter_id = ts.encounter_id AND res_date.concept_id = @results_date
+SET ts.results_date = res_date.value_datetime;
 
 -- This query loads all specimen encounter-level information from above and observations from results entered  
-INSERT INTO temp_labresults (patient_id,wellbody_emr_id, kgh_emr_id, encounter_location, loc_registered, unknown_patient, gender, age_at_encounter, department, commune, section, locality, street_landmark,encounter_id, order_number,orderable,specimen_collection_date, result_date, results_entry_date,test_concept_id,test, lab_id, LOINC,result_coded_answer,result_numeric_answer,result_text_answer)
+INSERT INTO temp_labresults (patient_id,wellbody_emr_id, kgh_emr_id, encounter_location, loc_registered, unknown_patient, gender, age_at_encounter, department, commune, section, locality, street_landmark,encounter_id, order_number,orderable,specimen_collection_date, results_date, results_entry_date,test_concept_id,test, lab_id, LOINC,result_coded_answer,result_numeric_answer,result_text_answer)
 SELECT ts.patient_id,
 ts.wellbody_emr_id, 
 ts.kgh_emr_id,
@@ -168,7 +168,7 @@ ts.encounter_id,
 ts.order_number, 
 IFNULL(CONCEPT_NAME(ts.concept_id,@locale),CONCEPT_NAME(ts.concept_id,'en')), 
 res.obs_datetime, 
-ts.result_date,
+ts.results_date,
 -- ts.results_entry_date,
 res.obs_datetime,
 res.concept_id, 
@@ -181,7 +181,7 @@ res.value_text
   FROM temp_laborders_spec ts
 -- observations from specimen collection encounters that are results (all except the ones listed below) are added here:   
 INNER JOIN obs res ON res.encounter_id = ts.encounter_id
-  AND res.voided = 0 AND res.concept_id NOT IN (@order_number,@result_date,@test_location,@test_status,@collection_date_estimated)
+  AND res.voided = 0 AND res.concept_id NOT IN (@order_number,@results_date,@test_location,@test_status,@collection_date_estimated)
   AND (res.value_numeric IS NOT NULL OR res.value_text IS NOT NULL OR res.value_coded IS NOT NULL)
 ;
 
@@ -211,7 +211,7 @@ SELECT
        t.lab_id,							   
        t.LOINC,							   
        DATE(t.specimen_collection_date) "specimen_collection_date",
-       DATE(t.result_date) "result_date",
+       DATE(t.results_date) "results_date",
        t.results_entry_date,
        -- only return the result if the test was performed:     
        CASE 
