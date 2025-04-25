@@ -1,4 +1,4 @@
-CREATE TABLE labs_order_results
+CREATE TABLE all_lab_results
 (
  lab_results_id           VARCHAR(100),
  patient_id               VARCHAR(100), 
