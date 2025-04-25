@@ -33,13 +33,13 @@ CREATE TEMPORARY TABLE temp_laborders_spec
   loc_registered VARCHAR(255),
   unknown_patient VARCHAR(50),
   gender VARCHAR(50),
-  age_at_enc INT,
+  age_at_encounter INT,
   department VARCHAR(255),
   commune VARCHAR(255),
   section VARCHAR(255),
   locality VARCHAR(255),
   street_landmark VARCHAR(255),
-  results_date DATETIME,
+  result_date DATETIME,
   results_entry_date DATETIME
  );
 
@@ -55,7 +55,7 @@ CREATE TEMPORARY TABLE temp_labresults
   loc_registered VARCHAR(255),
   unknown_patient VARCHAR(50),
   gender VARCHAR(50),
-  age_at_enc INT,
+  age_at_encounter INT,
   department VARCHAR(255),
   commune VARCHAR(255),
   section VARCHAR(255),
@@ -68,7 +68,7 @@ CREATE TEMPORARY TABLE temp_labresults
   LOINC VARCHAR(255),	
   encounter_id int(11),
   specimen_collection_date DATETIME,
-  results_date DATETIME,
+  result_date DATETIME,
   results_entry_date DATETIME,
   result VARCHAR(255),
   units VARCHAR(255),
@@ -131,7 +131,7 @@ SET ts.unknown_patient = un.value;
 UPDATE temp_laborders_spec ts
 INNER JOIN person pr ON ts.patient_id = pr.person_id AND pr.voided = 0
 SET ts.gender = pr.gender,
-ts.age_at_enc = ROUND(DATEDIFF(ts.encounter_datetime, pr.birthdate)/365.25, 1);
+ts.age_at_encounter = ROUND(DATEDIFF(ts.encounter_datetime, pr.birthdate)/365.25, 1);
 
 -- address
 UPDATE temp_laborders_spec ts
@@ -147,10 +147,10 @@ street_landmark =pa.address2
  -- results date
 UPDATE temp_laborders_spec ts
 INNER JOIN obs res_date ON res_date.voided = 0 AND res_date.encounter_id = ts.encounter_id AND res_date.concept_id = @result_date
-SET ts.results_date = res_date.value_datetime;
+SET ts.result_date = res_date.value_datetime;
 
 -- This query loads all specimen encounter-level information from above and observations from results entered  
-INSERT INTO temp_labresults (patient_id,wellbody_emr_id, kgh_emr_id, encounter_location, loc_registered, unknown_patient, gender, age_at_enc, department, commune, section, locality, street_landmark,encounter_id, order_number,orderable,specimen_collection_date, results_date, results_entry_date,test_concept_id,test, lab_id, LOINC,result_coded_answer,result_numeric_answer,result_text_answer)
+INSERT INTO temp_labresults (patient_id,wellbody_emr_id, kgh_emr_id, encounter_location, loc_registered, unknown_patient, gender, age_at_encounter, department, commune, section, locality, street_landmark,encounter_id, order_number,orderable,specimen_collection_date, result_date, results_entry_date,test_concept_id,test, lab_id, LOINC,result_coded_answer,result_numeric_answer,result_text_answer)
 SELECT ts.patient_id,
 ts.wellbody_emr_id, 
 ts.kgh_emr_id,
@@ -158,7 +158,7 @@ ts.encounter_location,
 ts.loc_registered, 
 ts.unknown_patient, 
 ts.gender, 
-ts.age_at_enc, 
+ts.age_at_encounter, 
 ts.department, 
 ts.commune, 
 ts.section, 
@@ -168,7 +168,7 @@ ts.encounter_id,
 ts.order_number, 
 IFNULL(CONCEPT_NAME(ts.concept_id,@locale),CONCEPT_NAME(ts.concept_id,'en')), 
 res.obs_datetime, 
-ts.results_date,
+ts.result_date,
 -- ts.results_entry_date,
 res.obs_datetime,
 res.concept_id, 
@@ -202,7 +202,7 @@ SELECT
        t.encounter_location,
        t.unknown_patient,
        t.gender,
-       t.age_at_enc,
+       t.age_at_encounter,
        concat(@partition,"-",t.encounter_id)  encounter_id,
        t.order_number,
        t.orderable,
@@ -211,7 +211,7 @@ SELECT
        t.lab_id,							   
        t.LOINC,							   
        DATE(t.specimen_collection_date) "specimen_collection_date",
-       DATE(t.results_date) "results_date",
+       DATE(t.result_date) "result_date",
        t.results_entry_date,
        -- only return the result if the test was performed:     
        CASE 
