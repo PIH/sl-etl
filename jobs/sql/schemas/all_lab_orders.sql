@@ -23,5 +23,5 @@ CREATE TABLE all_lab_orders
  specimen_collection_datetime DATETIME,      
  collection_date_estimated    VARCHAR(255),  
  test_location                VARCHAR(255),  
- result_date                  DATETIME       
+ results_date                 DATETIME       
 );
