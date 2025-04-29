@@ -43,7 +43,7 @@ create table ncd_monthly_summary_staging
     latest_esophageal_varices_prophylaxis_datetime datetime,
     latest_electrolytes_panel_datetime             datetime,
     most_recent_bp_diastolic                            float,
-    most_recent_bp_sytolic                             float,
+    most_recent_bp_systolic                             float,
     latest_seizure_frequency_datetime              datetime,
     latest_seizure_frequency                       float,
     latest_anti_epilepsy_prescription_datetime     datetime,
@@ -478,7 +478,7 @@ inner join labs_order_report e on e.order_number = (
 -- update the BP info to the values collected (all_vitals) most recently before the reporting date
 update t 
 set most_recent_bp_diastolic = bp_diastolic,
-	most_recent_bp_sytolic = bp_systolic
+	most_recent_bp_systolic = bp_systolic
 from ncd_monthly_summary_staging t
 inner join all_vitals e on e.encounter_id = (
     select top 1 e2.encounter_id from all_vitals e2
