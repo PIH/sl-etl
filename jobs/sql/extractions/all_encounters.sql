@@ -13,8 +13,10 @@ wellbody_emr_id varchar(50),
 kgh_emr_id varchar(50),
 encounter_type varchar(50),
 encounter_type_id int,
-encounter_provider varchar(50),
+provider varchar(50),
 encounter_datetime datetime,
+location_id int(11),
+encounter_location varchar(255),
 encounter_year int,
 encounter_month int,
 date_entered date,
@@ -23,7 +25,7 @@ index_asc int,
 index_desc int
 );
 
-insert into all_encounters(encounter_id,patient_id, visit_id, encounter_type,encounter_type_id, encounter_datetime, 
+insert into all_encounters(encounter_id,patient_id, visit_id, encounter_type,encounter_type_id, encounter_datetime, location_id,
 		encounter_year, encounter_month, date_entered, created_by)
 select e.encounter_id,
 	e.patient_id,
@@ -31,6 +33,7 @@ select e.encounter_id,
 	et.name encounter_type,
 	e.encounter_type encounter_type_id,
 	e.encounter_datetime,
+	e.location_id,
 	year(e.encounter_datetime) as encounter_year,
 	month(e.encounter_datetime) as encounter_month,
 	e.date_created,
@@ -66,9 +69,12 @@ inner join temp_patient p on p.patient_id = t.patient_id
 set t.wellbody_emr_id = p.wellbody_emr_id,
 	t.kgh_emr_id = p.kgh_emr_id,
 	t.emr_id = p.emr_id;
+ 	
+UPDATE all_encounters ae 
+SET ae.provider=provider(ae.encounter_id);
 
 UPDATE all_encounters ae 
-SET ae.encounter_provider=provider(ae.encounter_id);
+SET ae.encounter_location = location_name(ae.location_id);
 
 select 
 concat(@partition,"-",encounter_id) as encounter_id,
@@ -79,7 +85,8 @@ kgh_emr_id,
 emr_id,
 encounter_type,
 encounter_type_id,
-encounter_provider,
+encounter_location,
+provider,
 encounter_datetime,
 date_entered,
 created_by AS user_entered,
