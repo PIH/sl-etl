@@ -6,8 +6,10 @@ set @pregnancyProgramId = program('Pregnancy');
 drop temporary table if exists temp_labor_encs;
 create temporary table temp_labor_encs
 (
-    patient_id               int,
-    obs_group_id             int,
+    patient_id               int(11),
+    baby_patient_id          int(11),
+    obs_group_id             int(11),
+    baby_uuid                varchar(38),
     emr_id_mother            varchar(255),
     baby_emr_id              varchar(255),
     encounter_id             int,
@@ -122,9 +124,19 @@ SET fetal_presentation=obs_from_group_id_value_coded_list_from_temp(obs_group_id
 UPDATE temp_labor_encs
 SET delivery_method=obs_from_group_id_value_coded_list_from_temp(obs_group_id, 'PIH', '11663','en');
 
--- TODO: Retrieve baby EMR ID based on reference to baby patient stored in this same obs group when implemented
+UPDATE temp_labor_encs
+SET baby_uuid = obs_from_group_id_comment_from_temp(obs_group_id, 'PIH','20150');
+
+update temp_labor_encs t 
+inner join person p on p.uuid = t.baby_uuid
+set baby_patient_id = p.person_id;
+
+set @primary_emr_uuid = metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType');
+UPDATE temp_labor_encs SET baby_emr_id=patient_identifier(patient_id,@primary_emr_uuid );
 
 SELECT
+concat(@partition,"-",obs_group_id)  as baby_obs_id,
+concat(@partition,"-",baby_patient_id)  as patient_id,
 baby_emr_id as emr_id,
 concat(@partition,"-",patient_id) as mother_patient_id,
 emr_id_mother,
