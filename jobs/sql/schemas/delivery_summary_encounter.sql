@@ -1,5 +1,7 @@
 create table delivery_summary_encounter
 (
+    baby_obs_id              varchar(50),
+    patient_id               varchar(50),
     emr_id                   varchar(255),
     mother_patient_id        varchar(100),
     emr_id_mother            varchar(255),
