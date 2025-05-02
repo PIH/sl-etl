@@ -12,6 +12,8 @@ encounter_id        int,
 visit_id            int,
 encounter_datetime datetime,
 datetime_entered datetime,
+location_id         int,
+encounter_location  varchar(255),
 user_entered     varchar(255),
 provider             varchar(255),
 next_appointment_date  date,
@@ -23,8 +25,8 @@ index_desc  int
 );
 
 insert into temp_disch_encs(patient_id, encounter_id, visit_id, encounter_datetime, 
-datetime_entered, user_entered)
-select patient_id, encounter_id, visit_id, encounter_datetime, date_created, creator
+datetime_entered, user_entered, location_id)
+select patient_id, encounter_id, visit_id, encounter_datetime, date_created, creator, location_id
 from encounter e
 where e.voided = 0
 AND encounter_type IN (@disch_enc)
@@ -32,12 +34,14 @@ ORDER BY encounter_datetime desc;
 
 create index temp_disch_encs_ei on temp_disch_encs(encounter_id);
 
-
 UPDATE temp_disch_encs
 set user_entered = person_name_of_user(user_entered);
 
 UPDATE temp_disch_encs
 SET provider = provider(encounter_id);
+
+UPDATE temp_disch_encs
+set encounter_location = location_name(location_id);
 
 UPDATE temp_disch_encs t
 SET emr_id = patient_identifier(patient_id, 'c09a1d24-7162-11eb-8aa6-0242ac110002');
@@ -60,7 +64,6 @@ SET disposition= obs_value_coded_list_from_temp(encounter_id, 'PIH','8620','en')
 UPDATE temp_disch_encs
 SET transfer_location= obs_value_coded_list_from_temp(encounter_id, 'PIH','14973','en');
 
-
 UPDATE temp_disch_encs
 SET followup_clinic=obs_value_coded_list_from_temp(encounter_id, 'PIH','1272','en');
 
@@ -69,6 +72,7 @@ emr_id,
 CONCAT(@partition,'-',patient_id) "patient_id",
 CONCAT(@partition,'-',encounter_id) "encounter_id",
 CONCAT(@partition,'-',visit_id) "visit_id",
+encounter_location,
 encounter_datetime,
 datetime_entered,
 user_entered,
