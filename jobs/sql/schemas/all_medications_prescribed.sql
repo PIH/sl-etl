@@ -9,7 +9,7 @@ CREATE TABLE all_medications_prescribed
     emr_id                      varchar(25),
     order_type                  varchar(30),
     order_location              varchar(255),
-    order_created_date          date,
+    date_entered                date,
     order_date_activated        date,
     user_entered                varchar(255),
     prescriber                  varchar(255),
