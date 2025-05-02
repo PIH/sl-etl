@@ -134,7 +134,7 @@ select
   encounter_location,
   datetime_entered,
   user_entered,
-  admitting_clinician,
+  admitting_clinician as provider,
   admitted_to,
   admission_date,
   condition_at_admission,
