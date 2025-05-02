@@ -7,7 +7,7 @@ CREATE TABLE all_vitals
  visit_id           varchar(25),  
  encounter_location varchar(255), 
  encounter_datetime datetime,     
- encounter_provider varchar(255), 
+ provider           varchar(255), 
  date_entered       datetime,     
  user_entered       varchar(255), 
  height             float,        
