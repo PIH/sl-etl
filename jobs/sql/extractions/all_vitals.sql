@@ -15,8 +15,8 @@ CREATE TEMPORARY TABLE temp_vitals
     encounter_location_id	int(11),
     encounter_location	varchar(255),
     encounter_datetime	datetime,
-    encounter_provider_id	int(11),
-    encounter_provider 	VARCHAR(255),
+    provider_id	int(11),
+    provider 	VARCHAR(255),
     date_entered		datetime,
     creator				int(11),
     user_entered		varchar(255),
@@ -63,7 +63,7 @@ set tv.emr_id = ti.emr_id;
 -- provider name
 update temp_vitals tv 
 inner join encounter_provider ep on ep.encounter_id  = tv.encounter_id and ep.voided = 0
-set tv.encounter_provider_id = ep.encounter_provider_id ;
+set tv.provider_id = ep.provider_id ;
 
 DROP TEMPORARY TABLE IF EXISTS temp_providers;
 CREATE TEMPORARY TABLE temp_providers
@@ -73,17 +73,15 @@ provider_name					VARCHAR(255)
 );
 
 INSERT INTO temp_providers(provider_id)
-select distinct provider_id from encounter_provider ep
-inner join temp_vitals tv on ep.encounter_id = tv.encounter_id
-where ep.voided = 0;
+select distinct provider_id from temp_vitals tv;
 
-update temp_providers t set provider_name  = username(provider_id);	
+update temp_providers t set provider_name = username(provider_id);	
 
-CREATE INDEX temp_providers_p ON temp_providers (provider_id);
+CREATE INDEX temp_providers_p ON temp_providers(provider_id);
 
 update temp_vitals tv 
-inner join temp_providers tp on tp.provider_id = tv.encounter_provider_id
-set tv.encounter_provider = tp.provider_name;
+inner join temp_providers tp on tp.provider_id = tv.provider_id
+set tv.provider = tp.provider_name;
 
 -- location name
 DROP TEMPORARY TABLE IF EXISTS temp_locations;
@@ -209,9 +207,7 @@ inner join temp_obs o ON t.encounter_id = o.encounter_id
         AND o.concept_id = @muac
 SET muac_mm = o.value_numeric;
 
-
 -- chief_complaint   
-
 UPDATE temp_vitals t
 inner join temp_obs o ON t.encounter_id = o.encounter_id
         AND o.concept_id = @cc 
@@ -285,7 +281,7 @@ select
 	concat(@partition,'-',visit_id) visit_id,
 	encounter_location,
 	encounter_datetime,
-	provider(encounter_id) encounter_provider,
+	provider,
 	date_entered,
 	user_entered,
 	height,
