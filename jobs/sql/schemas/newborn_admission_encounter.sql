@@ -8,7 +8,7 @@ create table newborn_admission_encounter
 	encounter_location          varchar(255), 
 	datetime_entered            datetime,     
 	user_entered                varchar(255), 
-	admitting_clinician         varchar(255), 
+	provider                    varchar(255), 
 	admitted_to                 varchar(255),  
 	admission_date              date,      
 	condition_at_admission      varchar(255), 
