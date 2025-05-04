@@ -9,6 +9,7 @@ create table mh_encounters
  encounter_type                               varchar(255),  
  visit_id                                     varchar(50),   
  mh_program_id                                varchar(50),
+ encounter_location                           varchar(255),
  encounter_datetime                           datetime,
  datetime_entered                             datetime,
  user_entered                                 text,
