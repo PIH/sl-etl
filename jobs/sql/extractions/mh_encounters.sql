@@ -17,7 +17,9 @@ create temporary table temp_mh
  encounter_id                                 int,           
  encounter_type                               varchar(255),  
  visit_id                                     int,           
- mh_program_id                                int,           
+ mh_program_id                                int,
+ location_id                                  int(11),
+ encounter_location                           varchar(255),
  encounter_datetime                           datetime,      
  datetime_entered                             datetime,      
  creator                                      int,           
@@ -244,7 +246,8 @@ insert into temp_mh (
     encounter_type,
     visit_id,
     datetime_entered,
-    creator
+    creator,
+    location_id
 )
 select
     e.patient_id,
@@ -253,7 +256,8 @@ select
     encounter_type_name_from_id(e.encounter_type), 
     e.visit_id,
     e.date_created,
-    e.creator
+    e.creator,
+    e.location_id
 from
     encounter e
 where e.encounter_type in (@mhIntake, @mhFollowup);
@@ -261,8 +265,9 @@ where e.encounter_type in (@mhIntake, @mhFollowup);
 create index temp_mh_patient on temp_mh(patient_id);
 create index temp_mh_encounter_id on temp_mh(encounter_datetime);
 
-UPDATE temp_mh SET user_entered = person_name_of_user(creator);
- 
+update temp_mh SET user_entered = person_name_of_user(creator);
+update temp_mh SET encounter_location = location_name(location_id);
+
 -- demographics
 update temp_mh set emr_id = patient_identifier(patient_id, metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType'));
 update temp_mh set location_registered = loc_registered(patient_id);
@@ -693,6 +698,7 @@ select
     encounter_type,
     concat(@partition,"-",visit_id)  "visit_id",
     concat(@partition,"-",mh_program_id)  "mh_program_id",
+    encounter_location,
     encounter_datetime,
     datetime_entered,
     user_entered,

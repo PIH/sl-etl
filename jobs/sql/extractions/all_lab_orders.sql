@@ -16,7 +16,9 @@ CREATE TEMPORARY TABLE temp_report
  specimen_encounter_id        INT,           
  order_encounter_id           INT,           
  order_visit_id               INT,           
- loc_registered               VARCHAR(255),  
+ loc_registered               VARCHAR(255), 
+ creator                      INT(11),
+ user_entered                 TEXT,
  unknown_patient              CHAR(1),       
  gender                       CHAR(1),       
  age_at_encounter             INT,           
@@ -26,7 +28,6 @@ CREATE TEMPORARY TABLE temp_report
  order_concept_id             INT,           
  orderable                    VARCHAR(255),  
  status                       VARCHAR(255),  
- user_entered                 VARCHAR(255),  
  orderer_provider_type        VARCHAR(255),  
  order_datetime               DATETIME,      
  date_stopped                 DATETIME,      
@@ -49,6 +50,7 @@ INSERT INTO temp_report (
     order_encounter_id,
     order_datetime,
     date_stopped,
+    creator,
     auto_expire_date,
     fulfiller_status,
     urgency
@@ -61,6 +63,7 @@ SELECT
     o.encounter_id,
     o.date_activated,
     o.date_stopped,
+    o.creator,
     o.auto_expire_date,
     o.fulfiller_status,
      o.urgency
@@ -172,9 +175,12 @@ UPDATE temp_report t SET status =
        WHEN t.fulfiller_status = 'EXCEPTION' THEN 'Not Performed'
        ELSE 'Ordered'
     END ;
-UPDATE temp_report t SET user_entered = PROVIDER(t.order_encounter_id);
+
 UPDATE temp_report t SET orderer_provider_type = PROVIDER_TYPE(t.order_encounter_id);
 UPDATE temp_report t SET ordering_location = ENCOUNTER_LOCATION_NAME(t.order_encounter_id);
+
+update temp_report t
+set user_entered = person_name_of_user(creator);
 
 update temp_report t
   inner join encounter e on e.encounter_id = t.specimen_encounter_id
