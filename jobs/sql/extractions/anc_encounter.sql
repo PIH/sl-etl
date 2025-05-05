@@ -37,7 +37,7 @@ abortus                    int,
 living                     int,          
 last_menstruation_date     datetime,     
 estimated_delivery_date    datetime,     
-estimated_gestational_age  int,          
+estimated_gestational_age  int,    
 return_visit_date          datetime,     
 height                     decimal(8,2), 
 weight                     decimal(8,2), 
@@ -48,7 +48,8 @@ fetal_heart_rate           int,
 blood_type                 varchar(255), 
 urine_glucose              varchar(255), 
 urine_protein              varchar(255), 
-ferrous_sulfate_folic_acid boolean,      
+ferrous_sulfate_folic_acid boolean, 
+hiv_syphilis_rapid_test    varchar(255),
 iptp_sp_malaria            boolean,      
 nutrition_counseling       boolean,      
 hiv_counsel_and_test       boolean,      
@@ -190,6 +191,9 @@ UPDATE temp_anc_encs t
 SET iptp_sp_malaria = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','20074');
 
 UPDATE temp_anc_encs t
+SET hiv_syphilis_rapid_test = obs_value_coded_list_from_temp(encounter_id, 'PIH','20762', 'en');
+
+UPDATE temp_anc_encs t
 SET nutrition_counseling = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','12878');
 
 UPDATE temp_anc_encs t
@@ -265,6 +269,7 @@ urine_glucose,
 urine_protein,
 ferrous_sulfate_folic_acid,
 iptp_sp_malaria,
+hiv_syphilis_rapid_test,
 nutrition_counseling,
 hiv_counsel_and_test,
 insecticide_treated_net,
