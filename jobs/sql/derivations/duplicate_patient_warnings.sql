@@ -1,21 +1,21 @@
 drop table if exists duplicate_patient_staging;
 create table duplicate_patient_staging
-(warning_type text,
-siblings bit,
-patient_1_patient_id varchar(30),
-patient_2_patient_id varchar(30),
-patient_1_telephone_number text,
-patient_2_telephone_number text,
-patient_1_name text,
-patient_2_name text,
-patient_1_mothers_first_name text,
-patient_2_mothers_first_name text,
-patient_1_date_registration_entered datetime,
-patient_2_date_registration_entered datetime,
-patient_1_user_entered text,
-patient_2_user_entered text,
-patient_1_site varchar(100),
-patient_2_site varchar(100)
+(warning_type                       text,         
+siblings                            bit,          
+patient_1_patient_id                varchar(30),  
+patient_2_patient_id                varchar(30),  
+patient_1_telephone_number          text,         
+patient_2_telephone_number          text,         
+patient_1_name                      text,         
+patient_2_name                      text,         
+patient_1_mothers_first_name        text,         
+patient_2_mothers_first_name        text,         
+patient_1_date_registration_entered datetime,     
+patient_2_date_registration_entered datetime,     
+patient_1_user_entered              text,         
+patient_2_user_entered              text,         
+patient_1_site                      varchar(100), 
+patient_2_site                      varchar(100)
 );
 
 -- populate table with all pairs of candidates based on same telephone number
