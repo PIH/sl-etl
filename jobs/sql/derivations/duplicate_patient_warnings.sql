@@ -1,9 +1,13 @@
 drop table if exists duplicate_patient_staging;
 create table duplicate_patient_staging
 (warning_type                       text,         
-siblings                            bit,          
 patient_1_patient_id                varchar(30),  
-patient_2_patient_id                varchar(30),  
+patient_2_patient_id                varchar(30),
+patient_1_emr_id                    varchar(30),
+patient_2_emr_id                    varchar(30),
+patient_1_birthdate                 date,
+patient_2_birthdate                 date,
+siblings                            bit,    
 patient_1_telephone_number          text,         
 patient_2_telephone_number          text,         
 patient_1_name                      text,         
@@ -58,16 +62,20 @@ set patient_1_telephone_number = p1.telephone_number,
 	patient_1_mothers_first_name = p1.mothers_first_name,
 	patient_1_date_registration_entered = p1.date_registration_entered,
 	patient_1_user_entered = p1.user_entered, 
+	patient_1_birthdate = p1.birthdate,
+	patient_1_emr_id = p1.emr_id,
 	patient_1_site = p1.site
 from duplicate_patient_staging t
 inner join all_patients p1 on p1.patient_id = t.patient_1_patient_id;
-	
+
 update t
 set patient_2_telephone_number = p2.telephone_number,
 	patient_2_name = concat(p2.name,' ',p2.family_name),
 	patient_2_mothers_first_name = p2.mothers_first_name,
 	patient_2_date_registration_entered = p2.date_registration_entered,
-	patient_2_user_entered = p2.user_entered ,	
+	patient_2_user_entered = p2.user_entered,	
+	patient_2_birthdate = p2.birthdate,
+	patient_2_emr_id = p2.emr_id,
 	patient_2_site = p2.site
 from duplicate_patient_staging t
 inner join all_patients p2 on p2.patient_id = t.patient_2_patient_id;
