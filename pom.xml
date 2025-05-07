@@ -205,6 +205,10 @@
                                     <destinationFile>${petlJobExtractionSqlDir}/ncd_program.sql</destinationFile>
                                 </fileSet>        
                                 <fileSet>
+                                    <sourceFile>${dataExportSqlDir}/labResultsExport.sql</sourceFile>
+                                    <destinationFile>${petlJobExtractionSqlDir}/all_lab_results.sql</destinationFile>
+                                </fileSet>				    
+                                <fileSet>
                                     <sourceFile>${dataExportSqlDir}/summary_db_restore.sql</sourceFile>
                                     <destinationFile>${petlJobExtractionSqlDir}/summary_db_restore.sql</destinationFile>
                                 </fileSet>                                   
