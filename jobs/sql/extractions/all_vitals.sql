@@ -2,7 +2,7 @@ SET sql_safe_updates = 0;
 set @partition = '${partitionNum}';
 
 SET @vitals_encounter = (SELECT encounter_type_id FROM encounter_type WHERE uuid = '4fb47712-34a6-40d2-8ed3-e153abbd25b7');
-
+SET @vitals_ncd = (SELECT encounter_type_id FROM encounter_type WHERE uuid = '2fd151a2-fbef-43e3-b82d-c3f70f1d7333');
 
 DROP TEMPORARY TABLE IF EXISTS temp_vitals;
 CREATE TEMPORARY TABLE temp_vitals
@@ -29,6 +29,7 @@ CREATE TEMPORARY TABLE temp_vitals
     bp_diastolic		double,
     o2_saturation		double,
     muac_mm				double,
+    glucose             double,
     chief_complaint		text,
     index_asc			int,
     index_desc			int
@@ -36,7 +37,7 @@ CREATE TEMPORARY TABLE temp_vitals
    
 insert into temp_vitals(patient_id, encounter_id, visit_id, encounter_datetime, date_entered, creator, encounter_location_id)   
 select e.patient_id,  e.encounter_id, e.visit_id, e.encounter_datetime, e.date_created, e.creator, e.location_id  from encounter e
-where e.encounter_type = @vitals_encounter
+where e.encounter_type in (@vitals_encounter, @vitals_ncd)
 and e.voided = 0;
 
 create index temp_vitals_ei on temp_vitals(encounter_id);
@@ -132,6 +133,7 @@ set @bpd =  CONCEPT_FROM_MAPPING('PIH', '5086');
 set @o2 =  CONCEPT_FROM_MAPPING('PIH', '5092');
 set @muac =  CONCEPT_FROM_MAPPING('PIH', '7956');
 set @cc =  CONCEPT_FROM_MAPPING('PIH', '10137');
+set @glucose = CONCEPT_FROM_MAPPING('CIEL','1458');
 
 DROP TEMPORARY TABLE IF EXISTS temp_obs;
 create temporary table temp_obs 
@@ -149,7 +151,8 @@ and o.concept_id in (
 @bpd,
 @o2,
 @muac,
-@cc);
+@cc,
+@glucose);
 
 create index temp_obs_concept_id on temp_obs(encounter_id,concept_id);
    
@@ -206,6 +209,12 @@ UPDATE temp_vitals t
 inner join temp_obs o ON t.encounter_id = o.encounter_id
         AND o.concept_id = @muac
 SET muac_mm = o.value_numeric;
+
+-- glucose
+UPDATE temp_vitals t
+inner join temp_obs o ON t.encounter_id = o.encounter_id
+        AND o.concept_id = @glucose
+SET glucose = o.value_numeric;
 
 -- chief_complaint   
 UPDATE temp_vitals t
@@ -293,6 +302,7 @@ select
 	bp_diastolic,
 	o2_saturation,
 	muac_mm,
+	glucose,
 	chief_complaint,
 	index_asc,
 	index_desc
