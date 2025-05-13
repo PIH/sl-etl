@@ -1,4 +1,5 @@
 create table outpatient_encounters (
+patient_id          varchar(50),
 emr_id              varchar(50),  
 encounter_id        varchar(50),  
 visit_id            varchar(50),  
