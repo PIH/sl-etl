@@ -7,6 +7,7 @@ patient_1_emr_id                    varchar(30),
 patient_2_emr_id                    varchar(30),
 patient_1_birthdate                 date,
 patient_2_birthdate                 date,
+same_day_registration               bit,
 siblings                            bit,    
 patient_1_telephone_number          text,         
 patient_2_telephone_number          text,         
@@ -94,6 +95,10 @@ from duplicate_patient_staging t
 inner join mother_child_relationship r1 on r1.patient_id = t.patient_1_patient_id 
 inner join mother_child_relationship r2 on r2.patient_id = t.patient_2_patient_id 
 	and r1.emr_id_mother = r2.emr_id_mother; 
+
+update t
+set same_day_registration = iif(cast(patient_1_date_registration_entered as date) = cast(patient_2_date_registration_entered as date),1,0)
+from duplicate_patient_staging t;
 
 DROP TABLE IF EXISTS duplicate_patient_warnings;
 EXEC sp_rename 'duplicate_patient_staging', 'duplicate_patient_warnings';
