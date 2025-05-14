@@ -69,8 +69,8 @@ state_start_date,
 state_end_date,
 program_enrollment_date,
 program_completion_date,
-index_asc_patient,          
-index_desc_patient,       
+index_asc,          
+index_desc,       
 index_asc_patient_program,          
 index_desc_patient_program
 from temp_ps;
