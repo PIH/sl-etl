@@ -28,7 +28,6 @@ configuration:
           - tableName: "all_diagnosis"
           - tableName: "all_lab_orders"
           - tableName: "all_lab_results"
-          - tableName: "dim_patients"
           - tableName: "mch_maternity_delivery_register"
           - tableName: "mch_delivery"
           - tableName: "triage_encounters"

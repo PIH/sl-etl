@@ -225,14 +225,14 @@ from newborn_admission_encounter t inner join #derived_indexes i on i.encounter_
 -- update patient index asc/desc on pregnancy_state table
 drop table if exists #derived_indexes;
 select  pregnancy_program_state_id,
-        ROW_NUMBER() over (PARTITION by emr_id order by state_start_date, pregnancy_program_state_id) as index_asc_patient,
-        ROW_NUMBER() over (PARTITION by emr_id order by state_start_date DESC, pregnancy_program_state_id DESC) as index_desc_patient
+        ROW_NUMBER() over (PARTITION by emr_id order by state_start_date, pregnancy_program_state_id) as index_asc,
+        ROW_NUMBER() over (PARTITION by emr_id order by state_start_date DESC, pregnancy_program_state_id DESC) as index_desc
 into    #derived_indexes
 from    pregnancy_state;
 
 update t
-set t.index_asc_patient = i.index_asc_patient,
-    t.index_desc_patient = i.index_desc_patient
+set t.index_asc = i.index_as,
+    t.index_desc = i.index_desc
 from pregnancy_state t inner join #derived_indexes i on i.pregnancy_program_state_id = t.pregnancy_program_state_id
 ;
 
