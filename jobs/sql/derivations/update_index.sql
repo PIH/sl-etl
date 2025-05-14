@@ -231,7 +231,7 @@ into    #derived_indexes
 from    pregnancy_state;
 
 update t
-set t.index_asc = i.index_as,
+set t.index_asc = i.index_asc,
     t.index_desc = i.index_desc
 from pregnancy_state t inner join #derived_indexes i on i.pregnancy_program_state_id = t.pregnancy_program_state_id
 ;
