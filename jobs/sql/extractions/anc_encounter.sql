@@ -23,7 +23,7 @@ user_entered               varchar(255),
 provider                   varchar(255), 
 visit_type                 varchar(255), 
 age_at_encounter           int,
-trimester_enrolled       varchar(255), 
+trimester_enrolled         varchar(255), 
 number_anc_visit           int,          
 birth_weight_other_babies  varchar(255), 
 danger_signs               text, 
@@ -63,6 +63,8 @@ albendazole                boolean,
 malaria_rdt                varchar(255),
 counseled_danger_signs     boolean,
 llin                       boolean,
+latest_entered_number_anc_visit INT,
+actual_visit_number        INT,
 index_asc                  INT,          
 index_desc                 INT,
 index_asc_patient_program  INT,
@@ -78,6 +80,8 @@ AND encounter_type IN (@anc_followup, @anc_init)
 ORDER BY encounter_datetime desc;
 
 create index temp_labor_encs_ei on temp_anc_encs(encounter_id);
+create index temp_anc_encs_c1 on temp_anc_encs(patient_id, pregnancy_program_id,encounter_datetime);
+
 
 UPDATE temp_anc_encs
 set user_entered = person_name_of_user(user_entered);
@@ -108,126 +112,120 @@ where o.voided = 0;
 create index temp_obs_encs_ei on temp_obs(encounter_id);
 create index temp_obs_encs_eobs on temp_obs(encounter_id, obs_group_id);
 
+SET @abortus = concept_from_mapping('PIH','7012');
+SET @albendazole = concept_from_mapping('PIH','10570');
+SET @birth_weight_other_babies = concept_from_mapping('PIH','20072');
+SET @blood_type = concept_from_mapping('PIH','300');
+SET @bp_diastolic = concept_from_mapping('PIH','5086');
+SET @bp_systolic = concept_from_mapping('PIH','5085');
+SET @counseled_danger_signs = concept_from_mapping('PIH','12750');
+SET @danger_signs = concept_from_mapping('PIH','3064');
+SET @drinks_alcohol = concept_from_mapping('PIH','1552');
+SET @drinks_per_day = concept_from_mapping('PIH','2246');
+SET @drug_name = concept_from_mapping('PIH','6489');
+SET @estimated_delivery_date = concept_from_mapping('PIH','5596');
+SET @estimated_gestational_age = concept_from_mapping('PIH','1279');
+SET @ferrous_sulfate_folic_acid = concept_from_mapping('PIH','20073');
+SET @fetal_heart_rate = concept_from_mapping('PIH','13199');
+SET @fundal_height = concept_from_mapping('PIH','13028');
+SET @gravida = concept_from_mapping('PIH','5624');
+SET @height = concept_from_mapping('PIH','5090');
+SET @high_risk_factors = concept_from_mapping('PIH','11673');
+SET @hiv_counsel_and_test = concept_from_mapping('PIH','11381');
+SET @hiv_syphilis_rapid_test = concept_from_mapping('PIH','20762');
+SET @insecticide_treated_net = concept_from_mapping('PIH','13053');
+SET @iptp_sp_malaria = concept_from_mapping('PIH','20074');
+SET @last_menstruation_date = concept_from_mapping('PIH','968');
+SET @living = concept_from_mapping('PIH','11117');
+SET @llin = concept_from_mapping('PIH','13053');
+SET @malaria_rdt = concept_from_mapping('PIH','11464');
+SET @number_anc_visit = concept_from_mapping('PIH','13321');
+SET @nutrition_counseling = concept_from_mapping('PIH','12878');
+SET @parity = concept_from_mapping('PIH','1053');
+SET @prior_neonatal_deaths = concept_from_mapping('PIH','13241');
+SET @prior_stillbirths = concept_from_mapping('PIH','13240');
+SET @return_visit_date = concept_from_mapping('PIH','5096');
+SET @smokes_tobacco = concept_from_mapping('PIH','2545');
+SET @trimester_enrolled = concept_from_mapping('PIH','11661');
+SET @urine_glucose = concept_from_mapping('PIH','12292');
+SET @urine_protein = concept_from_mapping('PIH','12272');
+SET @uses_drugs = concept_from_mapping('PIH','2546');
+SET @weight = concept_from_mapping('PIH','5089');
 
-UPDATE temp_anc_encs t
-SET trimester_enrolled = obs_value_coded_list_from_temp(encounter_id, 'PIH','11661','en');
-
-UPDATE temp_anc_encs t
-SET danger_signs = obs_value_coded_list_from_temp(encounter_id, 'PIH','3064','en');
-
-UPDATE temp_anc_encs t
-SET number_anc_visit = obs_value_numeric_from_temp(encounter_id, 'PIH','13321');
-
-UPDATE temp_anc_encs t
-SET birth_weight_other_babies = obs_value_coded_list_from_temp(encounter_id, 'PIH','20072','en');
-
-UPDATE temp_anc_encs t
-SET high_risk_factors = obs_value_coded_list_from_temp(encounter_id, 'PIH','11673','en');
-
+  UPDATE temp_anc_encs t SET abortus = obs_value_numeric_from_temp_using_concept_id(encounter_id, @abortus);
+UPDATE temp_anc_encs t SET albendazole = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @albendazole);
+UPDATE temp_anc_encs t SET birth_weight_other_babies = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @birth_weight_other_babies,'en');
+UPDATE temp_anc_encs t SET blood_type = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @blood_type,'en');
+UPDATE temp_anc_encs t SET bp_diastolic = obs_value_numeric_from_temp_using_concept_id(encounter_id, @bp_diastolic);
+UPDATE temp_anc_encs t SET bp_systolic = obs_value_numeric_from_temp_using_concept_id(encounter_id, @bp_systolic);
+UPDATE temp_anc_encs t SET counseled_danger_signs = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @counseled_danger_signs);
+UPDATE temp_anc_encs t SET danger_signs = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @danger_signs,'en');
+UPDATE temp_anc_encs t SET drinks_alcohol = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @drinks_alcohol,'en');
+UPDATE temp_anc_encs t SET drinks_per_day = obs_value_numeric_from_temp_using_concept_id(encounter_id, @drinks_per_day);
+UPDATE temp_anc_encs t SET drug_name = obs_value_text_from_temp_using_concept_id(encounter_id, @drug_name);
+UPDATE temp_anc_encs t SET estimated_delivery_date = obs_value_datetime_from_temp_using_concept_id(encounter_id, @estimated_delivery_date);
+UPDATE temp_anc_encs t SET estimated_gestational_age = obs_value_numeric_from_temp_using_concept_id(encounter_id, @estimated_gestational_age);
+UPDATE temp_anc_encs t SET ferrous_sulfate_folic_acid = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @ferrous_sulfate_folic_acid);
+UPDATE temp_anc_encs t SET fetal_heart_rate = obs_value_numeric_from_temp_using_concept_id(encounter_id, @fetal_heart_rate);
+UPDATE temp_anc_encs t SET fundal_height = obs_value_numeric_from_temp_using_concept_id(encounter_id, @fundal_height);
+UPDATE temp_anc_encs t SET gravida = obs_value_numeric_from_temp_using_concept_id(encounter_id, @gravida);
+UPDATE temp_anc_encs t SET height = obs_value_numeric_from_temp_using_concept_id(encounter_id, @height);
+UPDATE temp_anc_encs t SET high_risk_factors = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @high_risk_factors,'en');
+UPDATE temp_anc_encs t SET hiv_counsel_and_test = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @hiv_counsel_and_test);
+UPDATE temp_anc_encs t SET hiv_syphilis_rapid_test = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @hiv_syphilis_rapid_test,'en');
+UPDATE temp_anc_encs t SET insecticide_treated_net = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @insecticide_treated_net);
+UPDATE temp_anc_encs t SET iptp_sp_malaria = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @iptp_sp_malaria);
+UPDATE temp_anc_encs t SET last_menstruation_date = obs_value_datetime_from_temp_using_concept_id(encounter_id, @last_menstruation_date);
+UPDATE temp_anc_encs t SET living = obs_value_numeric_from_temp_using_concept_id(encounter_id, @living);
+UPDATE temp_anc_encs t SET llin = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @llin);
+UPDATE temp_anc_encs t SET malaria_rdt = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @malaria_rdt,'en');
+UPDATE temp_anc_encs t SET number_anc_visit = obs_value_numeric_from_temp_using_concept_id(encounter_id, @number_anc_visit);
+UPDATE temp_anc_encs t SET nutrition_counseling = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @nutrition_counseling);
+UPDATE temp_anc_encs t SET parity = obs_value_numeric_from_temp_using_concept_id(encounter_id, @parity);
+UPDATE temp_anc_encs t SET prior_neonatal_deaths = obs_value_numeric_from_temp_using_concept_id(encounter_id, @prior_neonatal_deaths);
+UPDATE temp_anc_encs t SET prior_stillbirths = obs_value_numeric_from_temp_using_concept_id(encounter_id, @prior_stillbirths);
+UPDATE temp_anc_encs t SET return_visit_date = obs_value_datetime_from_temp_using_concept_id(encounter_id, @return_visit_date);
+UPDATE temp_anc_encs t SET smokes_tobacco = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @smokes_tobacco,'en');
+UPDATE temp_anc_encs t SET trimester_enrolled = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @trimester_enrolled,'en');
+UPDATE temp_anc_encs t SET urine_glucose = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @urine_glucose,'en');
+UPDATE temp_anc_encs t SET urine_protein = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @urine_protein,'en');
+UPDATE temp_anc_encs t SET uses_drugs = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @uses_drugs,'en');
+UPDATE temp_anc_encs t SET weight = obs_value_numeric_from_temp_using_concept_id(encounter_id, @weight);
 UPDATE temp_anc_encs t
 SET other_risk_factors = obs_comments_from_temp(encounter_id, 'PIH','11673','PIH','5622');
 
-UPDATE temp_anc_encs t
-SET prior_neonatal_deaths = obs_value_numeric_from_temp(encounter_id, 'PIH','13241');
+-- calculate actual visit count
+DROP temporary table if exists temp_visit_counts;
+CREATE temporary table temp_visit_counts
+SELECT encounter_id, patient_id, pregnancy_program_id, number_anc_visit, encounter_datetime, visit_type
+from temp_anc_encs t;
+
+DROP temporary table if exists temp_visit_counts_dup;
+CREATE temporary table temp_visit_counts_dup
+select * from temp_visit_counts
+where visit_type = 'ANC Intake';
+
+create index temp_visit_counts_dup_c1 on temp_visit_counts_dup(patient_id, pregnancy_program_id,encounter_datetime);
 
 UPDATE temp_anc_encs t
-SET prior_stillbirths = obs_value_numeric_from_temp(encounter_id, 'PIH','13240');
+inner join temp_visit_counts vc on vc.encounter_id =
+	(select encounter_id from temp_visit_counts_dup vc2
+	where vc2.patient_id = t.patient_id
+	and vc2.pregnancy_program_id = t.pregnancy_program_id
+	and number_anc_visit is not null
+	and vc2.encounter_datetime <= t.encounter_datetime
+	order by encounter_datetime desc, encounter_id desc
+	limit 1)
+SET latest_entered_number_anc_visit = vc.number_anc_visit;	
 
 UPDATE temp_anc_encs t
-SET gravida = obs_value_numeric_from_temp(encounter_id, 'PIH','5624');
-
-UPDATE temp_anc_encs t
-SET parity = obs_value_numeric_from_temp(encounter_id, 'PIH','1053');
-
-UPDATE temp_anc_encs t
-SET abortus = obs_value_numeric_from_temp(encounter_id, 'PIH','7012');
-
-UPDATE temp_anc_encs t
-SET living = obs_value_numeric_from_temp(encounter_id, 'PIH','11117');
-
-UPDATE temp_anc_encs t
-SET last_menstruation_date = obs_value_datetime_from_temp(encounter_id, 'PIH','968');
-
-UPDATE temp_anc_encs t
-SET estimated_delivery_date = obs_value_datetime_from_temp(encounter_id, 'PIH','5596');
-
-UPDATE temp_anc_encs t
-SET return_visit_date = obs_value_datetime_from_temp(encounter_id, 'PIH','5096');
-
-UPDATE temp_anc_encs t
-SET estimated_gestational_age = obs_value_numeric_from_temp(encounter_id, 'PIH','1279');
-
-UPDATE temp_anc_encs t
-SET height = obs_value_numeric_from_temp(encounter_id, 'PIH','5090');
-
-UPDATE temp_anc_encs t
-SET weight = obs_value_numeric_from_temp(encounter_id, 'PIH','5089');
-
-UPDATE temp_anc_encs t
-SET bp_systolic = obs_value_numeric_from_temp(encounter_id, 'PIH','5085');
-
-UPDATE temp_anc_encs t
-SET bp_diastolic = obs_value_numeric_from_temp(encounter_id, 'PIH','5086');
-
-UPDATE temp_anc_encs t
-SET fundal_height = obs_value_numeric_from_temp(encounter_id, 'PIH','13028');
-
-UPDATE temp_anc_encs t
-SET fetal_heart_rate = obs_value_numeric_from_temp(encounter_id, 'PIH','13199');
-
-UPDATE temp_anc_encs t
-SET blood_type = obs_value_coded_list_from_temp(encounter_id, 'PIH','300','en');
-
-UPDATE temp_anc_encs t
-SET urine_glucose = obs_value_coded_list_from_temp(encounter_id, 'PIH','12292','en');
-
-UPDATE temp_anc_encs t
-SET urine_protein = obs_value_coded_list_from_temp(encounter_id, 'PIH','12272','en');
-
-UPDATE temp_anc_encs t
-SET ferrous_sulfate_folic_acid = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','20073');
-
-UPDATE temp_anc_encs t
-SET iptp_sp_malaria = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','20074');
-
-UPDATE temp_anc_encs t
-SET hiv_syphilis_rapid_test = obs_value_coded_list_from_temp(encounter_id, 'PIH','20762', 'en');
-
-UPDATE temp_anc_encs t
-SET nutrition_counseling = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','12878');
-
-UPDATE temp_anc_encs t
-SET insecticide_treated_net = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','13053');
-
-UPDATE temp_anc_encs t
-SET hiv_counsel_and_test = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','11381');
-
-UPDATE temp_anc_encs t
-SET smokes_tobacco = obs_value_coded_list_from_temp(encounter_id, 'PIH','2545','en');
-
-UPDATE temp_anc_encs t
-SET drinks_alcohol = obs_value_coded_list_from_temp(encounter_id, 'PIH','1552','en');
-
-UPDATE temp_anc_encs t
-SET uses_drugs = obs_value_coded_list_from_temp(encounter_id, 'PIH','2546','en');
-
-UPDATE temp_anc_encs t
-SET drinks_per_day = obs_value_numeric_from_temp(encounter_id, 'PIH','2246');
-
-UPDATE temp_anc_encs t
-SET drug_name = obs_value_text_from_temp(encounter_id, 'PIH','6489');
-
-UPDATE temp_anc_encs t
-SET albendazole = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','10570');
-
-UPDATE temp_anc_encs t
-SET malaria_rdt = obs_value_coded_list_from_temp(encounter_id, 'PIH','11464','en');
-
-UPDATE temp_anc_encs t
-SET counseled_danger_signs = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','12750');
-
-UPDATE temp_anc_encs t
-SET llin = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','13053');
+set t.actual_visit_number = 
+	ifnull(latest_entered_number_anc_visit,1) -1  + 
+	(select count(*) from temp_visit_counts vc
+	where vc.patient_id = t.patient_id
+	and ((vc.pregnancy_program_id = t.pregnancy_program_id)
+		or (vc.pregnancy_program_id is null and  t.pregnancy_program_id is null))
+	and vc.encounter_datetime <= t.encounter_datetime);
 
 SELECT
 concat(@partition,"-",patient_id) as patient_id,
@@ -282,6 +280,7 @@ albendazole,
 malaria_rdt,
 counseled_danger_signs,
 llin,
+actual_visit_number,
 index_asc,
 index_desc,
 index_asc_patient_program,
