@@ -211,8 +211,8 @@ UPDATE temp_anc_encs t
 inner join temp_visit_counts vc on vc.encounter_id =
 	(select encounter_id from temp_visit_counts_dup vc2
 	where vc2.patient_id = t.patient_id
-	and vc2.pregnancy_program_id = t.pregnancy_program_id
-	and number_anc_visit is not null
+	and ifnull(vc2.pregnancy_program_id, 9999999) = ifnull(t.pregnancy_program_id, 9999999)
+	and (number_anc_visit is not null and number_anc_visit > 0) 
 	and vc2.encounter_datetime <= t.encounter_datetime
 	order by encounter_datetime desc, encounter_id desc
 	limit 1)
