@@ -29,7 +29,8 @@ CREATE TEMPORARY TABLE temp_vitals
     bp_diastolic		double,
     o2_saturation		double,
     muac_mm				double,
-    glucose             double,
+    fasting_glucose     double,
+    random_glucose      double,
     chief_complaint		text,
     index_asc			int,
     index_desc			int
@@ -133,7 +134,8 @@ set @bpd =  CONCEPT_FROM_MAPPING('PIH', '5086');
 set @o2 =  CONCEPT_FROM_MAPPING('PIH', '5092');
 set @muac =  CONCEPT_FROM_MAPPING('PIH', '7956');
 set @cc =  CONCEPT_FROM_MAPPING('PIH', '10137');
-set @glucose = CONCEPT_FROM_MAPPING('CIEL','1458');
+set @random_glucose = CONCEPT_FROM_MAPPING('PIH','20660');
+set @fasting_glucose = CONCEPT_FROM_MAPPING('PIH','20839');
 
 DROP TEMPORARY TABLE IF EXISTS temp_obs;
 create temporary table temp_obs 
@@ -152,7 +154,9 @@ and o.concept_id in (
 @o2,
 @muac,
 @cc,
-@glucose);
+@random_glucose,
+@fasting_glucose
+);
 
 create index temp_obs_concept_id on temp_obs(encounter_id,concept_id);
    
@@ -210,11 +214,18 @@ inner join temp_obs o ON t.encounter_id = o.encounter_id
         AND o.concept_id = @muac
 SET muac_mm = o.value_numeric;
 
--- glucose
+-- fasting glucose
 UPDATE temp_vitals t
 inner join temp_obs o ON t.encounter_id = o.encounter_id
-        AND o.concept_id = @glucose
-SET glucose = o.value_numeric;
+        AND o.concept_id = @random_glucose
+SET random_glucose = o.value_numeric;
+
+-- random glucose
+UPDATE temp_vitals t
+inner join temp_obs o ON t.encounter_id = o.encounter_id
+        AND o.concept_id = @fasting_glucose
+SET fasting_glucose = o.value_numeric;
+
 
 -- chief_complaint   
 UPDATE temp_vitals t
@@ -302,7 +313,8 @@ select
 	bp_diastolic,
 	o2_saturation,
 	muac_mm,
-	glucose,
+	random_glucose,
+	fasting_glucose,
 	chief_complaint,
 	index_asc,
 	index_desc
