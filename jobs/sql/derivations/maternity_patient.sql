@@ -245,8 +245,8 @@ from maternity_patient_staging m;
 update m
 set most_recent_hiv_status = l.result
 from maternity_patient_staging m
-inner join labs_order_results l on l.lab_results_id = 
-	(select top 1 l2.lab_results_id from labs_order_results l2
+inner join all_lab_results l on l.lab_obs_id = 
+	(select top 1 l2.lab_obs_id from all_lab_results l2
 	where l2.patient_id = m.patient_id
 	and l2.test in ('HIV test result','Rapid test for HIV')
 	order by l2.specimen_collection_date desc);

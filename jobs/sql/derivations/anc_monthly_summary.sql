@@ -92,9 +92,9 @@ from anc_monthly_summary_staging a;
 update a
 set hiv_status = l.result
 from anc_monthly_summary_staging a
-inner join labs_order_results l on lab_results_id = 
-	(select top 1 lab_results_id
-	from labs_order_results l2
+inner join all_lab_results l on lab_obs_id = 
+	(select top 1 lab_obs_id
+	from all_lab_results l2
 	where l2.patient_id = a.patient_id 
 	and l2.test in ('Rapid test for HIV','HIV test result')
 	and l2.specimen_collection_date <= a.reporting_date
@@ -209,8 +209,8 @@ from anc_monthly_summary_staging a where anc_visit9plus is null;
 update a
 set latest_hiv_result_this_month = r.result
 from anc_monthly_summary_staging a 
-inner join labs_order_results r on r.lab_results_id = 
-	(select top 1 r2.lab_results_id from labs_order_results r2
+inner join all_lab_results r on r.lab_obs_id = 
+	(select top 1 r2.lab_obs_id from all_lab_results r2
 	where r2.patient_id = a.patient_id
 	and r2.test in ('Rapid test for HIV','HIV test result')
 	and month(r2.specimen_collection_date) = month(a.reporting_date)
@@ -427,7 +427,7 @@ where anc_visit1 = 1
 and exists
 	(select 1 from anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
-	inner join labs_order_results l on l.specimen_collection_date >= v.visit_date_started 
+	inner join all_lab_results l on l.specimen_collection_date >= v.visit_date_started 
 		and (l.specimen_collection_date <= v.visit_date_stopped or v.visit_date_stopped is null)
 		and l.test = 'Hemoglobin'
 	where e.pregnancy_program_id = a.pregnancy_program_id 
@@ -441,7 +441,7 @@ where anc_visit1 = 1
 and exists
 	(select 1 from anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
-	inner join labs_order_results l on l.patient_id = e.patient_id 
+	inner join all_lab_results l on l.patient_id = e.patient_id 
 		and l.specimen_collection_date >= v.visit_date_started 
 		and (l.specimen_collection_date <= v.visit_date_stopped or v.visit_date_stopped is null)
 		and l.test = 'Rapid syphilis test'
@@ -452,8 +452,8 @@ update a set anc_visit1_syphilis = 0 from anc_monthly_summary_staging a where an
 update a
 set malaria_rdt = iif(l.result like 'Positive%', 'Positive',l.result)
 from anc_monthly_summary_staging a
-inner join labs_order_results l on l.lab_results_id = 
-	(select top 1 l2.lab_results_id from labs_order_results l2
+inner join all_lab_results l on l.lab_obs_id = 
+	(select top 1 l2.lab_obs_id from all_lab_results l2
 	where l2.patient_id = a.patient_id
 	and month(l2.specimen_collection_date) = month(reporting_date)
 	and l2.test = 'Malaria RDT'
@@ -463,7 +463,7 @@ update a
 set syphilis_test = 1
 from anc_monthly_summary_staging a
 where exists
-	(select 1 from labs_order_results l
+	(select 1 from all_lab_results l
 	where l.patient_id = a.patient_id 
 	and l.test = 'Rapid syphilis test'
 	and month(l.specimen_collection_date) = month(reporting_date));

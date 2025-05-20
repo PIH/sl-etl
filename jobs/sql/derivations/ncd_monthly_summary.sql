@@ -285,8 +285,8 @@ update t
 set t.latest_a1c_test_date = e.specimen_collection_date,
 	t.latest_a1c_result = e.result
 from ncd_monthly_summary_staging t
-inner join labs_order_results e on e.encounter_id = (
-    select top 1 e2.encounter_id from labs_order_results e2
+inner join all_lab_results e on e.encounter_id = (
+    select top 1 e2.encounter_id from all_lab_results e2
 	where e2.patient_id= t.patient_id
 	and cast(e2.specimen_collection_date as DATE) <= t.reporting_date
 	and e2.test = 'HbA1c'
@@ -306,8 +306,8 @@ from ncd_monthly_summary_staging t;
 update t 
 set t.latest_inr_datetime = e.specimen_collection_date
 from ncd_monthly_summary_staging t
-inner join labs_order_results e on e.encounter_id = (
-    select top 1 e2.encounter_id from labs_order_results e2
+inner join all_lab_results e on e.encounter_id = (
+    select top 1 e2.encounter_id from all_lab_results e2
 	where e2.patient_id = t.patient_id
 	and cast(e2.specimen_collection_date as DATE) <= t.reporting_date
 	and e2.test = 'International Normalized Ratio'
@@ -429,8 +429,8 @@ inner join ncd_encounter e on e.encounter_id = (
 update t 
 set t.latest_APRI_datetime = e.specimen_collection_date
 from ncd_monthly_summary_staging t
-inner join labs_order_results e on e.encounter_id = (
-    select top 1 e2.encounter_id from labs_order_results e2
+inner join all_lab_results e on e.encounter_id = (
+    select top 1 e2.encounter_id from all_lab_results e2
 	where e2.patient_id = t.patient_id
 	and cast(e2.specimen_collection_date as DATE) <= t.reporting_date
 	and e2.test = 'APRI score'
@@ -441,8 +441,8 @@ inner join labs_order_results e on e.encounter_id = (
 update t 
 set t.latest_HBsAg_datetime = e.specimen_collection_date
 from ncd_monthly_summary_staging t
-inner join labs_order_results e on e.encounter_id = (
-    select top 1 e2.encounter_id from labs_order_results e2
+inner join all_lab_results e on e.encounter_id = (
+    select top 1 e2.encounter_id from all_lab_results e2
 	where e2.patient_id = t.patient_id
 	and cast(e2.specimen_collection_date as DATE) <= t.reporting_date
 	and e2.test = 'Hepatitis B surface antigen test'
@@ -464,8 +464,8 @@ inner join ncd_encounter e on e.encounter_id = (
 update t 
 set t.latest_electrolytes_panel_datetime = e.order_datetime
 from ncd_monthly_summary_staging t
-inner join labs_order_report e on e.order_number = (
-    select top 1 e2.order_number from labs_order_report e2
+inner join all_lab_orders e on e.order_number = (
+    select top 1 e2.order_number from all_lab_orders e2
 	where e2.patient_id = t.patient_id
 	and cast(e2.order_datetime as DATE) <= t.reporting_date
 	and e2.orderable in (
