@@ -425,7 +425,7 @@ update p
 set syphilis_test_ever = 1
 from pregnancy_summary_staging p
 where exists
-	(select 1 from labs_order_results  l
+	(select 1 from all_lab_results  l
 	where l.patient_id = p.patient_id
 	and (cast(l.specimen_collection_date as date) >= date_enrolled
 		and cast(l.specimen_collection_date as date) <= date_completed or date_completed is null)
@@ -436,7 +436,7 @@ update p
 set rdt_during_anc = 1
 from pregnancy_summary_staging p
 where exists
-	(select 1 from labs_order_results  l
+	(select 1 from all_lab_results  l
 	where l.patient_id = p.patient_id
 	and (cast(l.specimen_collection_date as date) >= date_enrolled
 		and cast(l.specimen_collection_date as date) <= date_completed or date_completed is null)
@@ -472,11 +472,11 @@ update p set muac_measured = 0 from pregnancy_summary_staging p where total_anc_
 update p 
 set hiv_status = result
 from pregnancy_summary_staging p 
-inner join labs_order_results l on l.lab_results_id =
-    (select top 1 l2.lab_results_id from labs_order_results l2
+inner join all_lab_results l on l.lab_obs_id =
+    (select top 1 l2.lab_obs_id from all_lab_results l2
     where l2.patient_id = p.patient_id
     and test in ('HIV test result','Rapid test for HIV')
-    order by l2.specimen_collection_date desc, l2.lab_results_id desc);
+    order by l2.specimen_collection_date desc, l2.lab_obs_id desc);
 
 
 -- anc_visit1_hiv_test
@@ -486,7 +486,7 @@ from pregnancy_summary_staging p
 where exists
 	(select 1 from anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
-	inner join labs_order_results l on l.specimen_collection_date >= v.visit_date_started 
+	inner join all_lab_results l on l.specimen_collection_date >= v.visit_date_started 
 		and (l.specimen_collection_date <= v.visit_date_stopped or v.visit_date_stopped is null)
 		and l.test in ('Rapid test for HIV','HIV test result')
 	where e.pregnancy_program_id = p.pregnancy_program_id 
