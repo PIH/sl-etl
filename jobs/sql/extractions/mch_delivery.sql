@@ -13,8 +13,8 @@ pregnancy_program_id int,
 datetime_entered datetime, 
 creator int,
 user_entered text,
-provider varchar(30),
-location varchar(30),
+provider varchar(255),
+encounter_location varchar(255),
 encounter_datetime datetime,
 estimated_delivery_date date, 
 birth_weight float,
@@ -101,7 +101,7 @@ where o.voided = 0;
 
 create index temp_obs_ci3 on temp_obs(encounter_id, concept_id,value_coded);
 
-INSERT INTO mch_delivery_form(patient_id, emr_id, encounter_id,location,provider,encounter_datetime, visit_id, datetime_entered, creator)
+INSERT INTO mch_delivery_form(patient_id, emr_id, encounter_id,encounter_location,provider,encounter_datetime, visit_id, datetime_entered, creator)
 SELECT e.patient_id,patient_identifier(patient_id, metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType')), e.encounter_id,
        encounter_location_name(e.encounter_id),provider(e.encounter_id), encounter_datetime, visit_id, date_created, creator
 FROM temp_encounter e;
@@ -239,7 +239,7 @@ concat(@partition,"-",pregnancy_program_id)  as pregnancy_program_id,
 datetime_entered,
 user_entered,
 provider,
-location,
+encounter_location,
 encounter_datetime,
 estimated_delivery_date, -- NULL 
 birth_weight,
