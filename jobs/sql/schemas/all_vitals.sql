@@ -19,7 +19,8 @@ CREATE TABLE all_vitals
  bp_diastolic       float,        
  o2_saturation      float,        
  muac_mm            float, 
- glucose            float,
+ random_glucose     float,
+ fasting_glucose    float, 
  chief_complaint    text,         
  index_asc          int,          
  index_desc         int           
