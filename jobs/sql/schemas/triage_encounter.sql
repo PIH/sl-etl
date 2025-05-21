@@ -1,4 +1,4 @@
-create table triage_encounters
+create table triage_encounter
 (
 patient_id               varchar(50),
 emr_id                   varchar(50),

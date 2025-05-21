@@ -54,7 +54,7 @@ anc_visit1_weight bit
 drop table if exists #reporting_months;
 select distinct FirstDayOfQuarter as quarter_start_date, FirstDayOfMonth as month_start_date, LastDayOfMonth as month_end_date
 into #reporting_months
-from Dim_Date dd
+from dim_date dd
 where LastDayOfMonth >= '2023-01-01'
 and LastDayOfMonth <= '2025-03-31' -- CHANGE THIS to GETDATE()!
 ;
