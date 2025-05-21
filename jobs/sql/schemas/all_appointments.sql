@@ -1,4 +1,4 @@
-create table appointments
+create table all_appointments
 (
     appointment_id       varchar(25),
     patient_id           varchar(25),
