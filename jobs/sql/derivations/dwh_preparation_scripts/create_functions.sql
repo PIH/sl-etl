@@ -15,7 +15,7 @@ DECLARE @estimated_gestational_age_entered            float,
 				@estimated_gestational_age_entered_datetime = encounter_datetime
 	from 
 	(select estimated_gestational_age, encounter_datetime
-	from anc_encounter e
+	from mch_anc_encounter e
 	where e.pregnancy_program_id = @pregnancy_program_id
 	and estimated_gestational_age is not null
 	union

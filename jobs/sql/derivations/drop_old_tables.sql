@@ -7,3 +7,5 @@ drop table if exists labs_order_report;
 drop table if exists labs_order_results;
 drop table if exists appointments;
 drop table if exists triage_encounters;
+drop table if exists anc_encounter;
+drop table if exists anc_monthly_summary;

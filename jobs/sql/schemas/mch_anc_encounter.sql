@@ -1,4 +1,4 @@
-create table anc_encounter
+create table mch_anc_encounter
 (
 patient_id                 varchar(100), 
 emr_id                     varchar(100), 

@@ -32,8 +32,8 @@ dbcc checkident(#temp_data_warnings, reseed, @maxId);
 drop table if exists #temp_anc_encounter_latest;
 select patient_id, emr_id, visit_id, visit_type, encounter_id, e.pregnancy_program_id, encounter_datetime, datetime_entered, user_entered, site, partition_num 
 into #temp_anc_encounter_latest
-from anc_encounter e where encounter_id =
-(select top 1 encounter_id from anc_encounter e2
+from mch_anc_encounter e where encounter_id =
+(select top 1 encounter_id from mch_anc_encounter e2
 where e2.pregnancy_program_id = e.pregnancy_program_id
 and e2.visit_type = e.visit_type 
 order by encounter_datetime desc, encounter_id desc);
@@ -154,7 +154,7 @@ inner join #temp_dup_encounters t on t.max_encounter_id = e.encounter_id;
 drop table if exists #temp_dup_encounters;
 select e.patient_id, pregnancy_program_id, max(e.encounter_id) max_encounter_id, count(*) count
 into #temp_dup_encounters
-from anc_encounter e
+from mch_anc_encounter e
 where e.visit_type in ('ANC Intake')
 group by e.patient_id, e.pregnancy_program_id
 having count(*) > 1;
@@ -164,7 +164,7 @@ encounter_datetime, datetime_entered, user_entered, site, partition_num, other_d
 select 'Duplicate encounters within program', e.visit_type, e.patient_id, e.emr_id, e.visit_id, e.encounter_id, e.pregnancy_program_id,  
 e.encounter_datetime, e.datetime_entered, e.user_entered, e.site, e.partition_num, 
 concat('number of encounters: ', t.count)
-from anc_encounter e
+from mch_anc_encounter e
 inner join #temp_dup_encounters t on t.max_encounter_id = e.encounter_id;
 
 -- labor and delivery summary
