@@ -81,7 +81,7 @@ from pregnancy_summary_staging ps
 inner join all_patients p on p.patient_id = ps.patient_id;
 
 -- danger signs
--- to get distinct danger signs for each program, we need to unpack the concatenated danger signs from the anc_encounter table
+-- to get distinct danger signs for each program, we need to unpack the concatenated danger signs from the mch_anc_encounter table
 -- and then repack the distinct danger signs into the target table 
 drop table if exists #danger_signs_parsed;
 select encounter_id,pregnancy_program_id, sign_number, sign
@@ -103,7 +103,7 @@ FROM
 	       parsename(REPLACE(cast(danger_signs as varchar(255)), ' | ', '.'), 13) "d13",
 	       parsename(REPLACE(cast(danger_signs as varchar(255)), ' | ', '.'), 14) "d14",
 	       parsename(REPLACE(cast(danger_signs as varchar(255)), ' | ', '.'), 15) "d15"      
-	from anc_encounter where pregnancy_program_id is not null) ds
+	from mch_anc_encounter where pregnancy_program_id is not null) ds
 UNPIVOT
 	(
 	    sign for sign_number in (d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15)
@@ -126,7 +126,7 @@ from pregnancy_summary_staging p
 inner join #danger_signs d on d.pregnancy_program_id = p.pregnancy_program_id;
 
 -- high risk factors 
--- to get distinct risk factors for each program, we need to unpack the concatenated risk factors from the anc_encounter table
+-- to get distinct risk factors for each program, we need to unpack the concatenated risk factors from the mch_anc_encounter table
 -- and then repack the distinct risk factors into the target table 
 drop table if exists #risk_factors_parsed;
 select encounter_id, pregnancy_program_id, rf_number, rf
@@ -148,7 +148,7 @@ FROM
 	       parsename(REPLACE(cast(high_risk_factors as varchar(255)), ' | ', '.'), 13) "r13",
 	       parsename(REPLACE(cast(high_risk_factors as varchar(255)), ' | ', '.'), 14) "r14",
 	       parsename(REPLACE(cast(high_risk_factors as varchar(255)), ' | ', '.'), 15) "r15"      
-	from anc_encounter where pregnancy_program_id is not null) rfs
+	from mch_anc_encounter where pregnancy_program_id is not null) rfs
 UNPIVOT
 	(
 	    rf for rf_number in (r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15)
@@ -158,7 +158,7 @@ UNPIVOT
 update r
 set r.rf = concat(r.rf,': ', e.other_risk_factors)  
 from #risk_factors_parsed r
-inner join anc_encounter e on e.encounter_id = r.encounter_id
+inner join mch_anc_encounter e on e.encounter_id = r.encounter_id
 where r.rf = 'Other';
 
 drop table if exists #risk_factors;
@@ -181,8 +181,8 @@ inner join #risk_factors r on r.pregnancy_program_id = p.pregnancy_program_id;
 update p
 set p.latest_lmp_entered = e.last_menstruation_date
 from pregnancy_summary_staging p 
-inner join anc_encounter e on e.encounter_id =
-    (select top 1 e2.encounter_id from anc_encounter e2
+inner join mch_anc_encounter e on e.encounter_id =
+    (select top 1 e2.encounter_id from mch_anc_encounter e2
     where e2.pregnancy_program_id = p.pregnancy_program_id
     and last_menstruation_date is not null
     order by e2.encounter_datetime desc, e2.encounter_id desc);
@@ -190,8 +190,8 @@ inner join anc_encounter e on e.encounter_id =
 update p
 set p.estimated_delivery_date_entered = e.estimated_delivery_date
 from pregnancy_summary_staging p 
-inner join anc_encounter e on e.encounter_id =
-    (select top 1 e2.encounter_id from anc_encounter e2
+inner join mch_anc_encounter e on e.encounter_id =
+    (select top 1 e2.encounter_id from mch_anc_encounter e2
     where e2.pregnancy_program_id = p.pregnancy_program_id
     and estimated_delivery_date is not null
     order by e2.encounter_datetime desc, e2.encounter_id desc);
@@ -283,7 +283,7 @@ where actual_delivery_date is not null;
 
 update p 
 set total_anc_visits_recorded_in_emr = 
-	(select count(*) from anc_encounter e
+	(select count(*) from mch_anc_encounter e
 	where e.pregnancy_program_id = p.pregnancy_program_id)
 from pregnancy_summary_staging p; 
 
@@ -291,15 +291,15 @@ update p
 set p.number_anc_visit_entered = e.number_anc_visit,
 	number_anc_visit_entered_datetime = e.encounter_datetime
 from pregnancy_summary_staging p 
-inner join anc_encounter e on e.encounter_id =
-    (select top 1 e2.encounter_id from anc_encounter e2
+inner join mch_anc_encounter e on e.encounter_id =
+    (select top 1 e2.encounter_id from mch_anc_encounter e2
     where e2.pregnancy_program_id = p.pregnancy_program_id
     and number_anc_visit is not null
     order by e2.encounter_datetime desc, e2.encounter_id desc);
 
 update p 
 set total_anc_visits_since_entry = 
-	(select count(*) from anc_encounter e
+	(select count(*) from mch_anc_encounter e
 	where e.pregnancy_program_id = p.pregnancy_program_id
 	and e.encounter_datetime > p.number_anc_visit_entered_datetime
 	)
@@ -318,7 +318,7 @@ update p
 set nutrition_counseling_ever = 1
 from pregnancy_summary_staging p
 where exists
-	(select 1 from anc_encounter e 
+	(select 1 from mch_anc_encounter e 
 	where e.pregnancy_program_id = p.pregnancy_program_id
 	and nutrition_counseling = 1);
 update p set nutrition_counseling_ever = 0 from pregnancy_summary_staging p where total_anc_visits_recorded_in_emr > 0 and nutrition_counseling_ever is null;
@@ -328,7 +328,7 @@ update p
 set hiv_counsel_and_test_ever = 1
 from pregnancy_summary_staging p
 where exists
-	(select 1 from anc_encounter e 
+	(select 1 from mch_anc_encounter e 
 	where e.pregnancy_program_id = p.pregnancy_program_id
 	and hiv_counsel_and_test = 1);
 update p set hiv_counsel_and_test_ever = 0 from pregnancy_summary_staging p where total_anc_visits_recorded_in_emr > 0 and hiv_counsel_and_test_ever is null;
@@ -338,7 +338,7 @@ update p
 set insecticide_treated_net_ever = 1
 from pregnancy_summary_staging p
 where exists
-	(select 1 from anc_encounter e 
+	(select 1 from mch_anc_encounter e 
 	where e.pregnancy_program_id = p.pregnancy_program_id
 	and insecticide_treated_net = 1);
 update p set insecticide_treated_net_ever = 0 from pregnancy_summary_staging p where total_anc_visits_recorded_in_emr > 0 and insecticide_treated_net_ever is null;
@@ -448,7 +448,7 @@ update p
 set anc_visit1_weight_recorded = 1
 from pregnancy_summary_staging p
 where exists
-	(select 1 from anc_encounter e
+	(select 1 from mch_anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
 	inner join all_vitals vit on vit.encounter_datetime >= v.visit_date_started 
 		and (vit.encounter_datetime <= v.visit_date_stopped or v.visit_date_stopped is null)
@@ -484,7 +484,7 @@ update p
 set anc_visit1_hiv_test = 1
 from pregnancy_summary_staging p
 where exists
-	(select 1 from anc_encounter e
+	(select 1 from mch_anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
 	inner join all_lab_results l on l.specimen_collection_date >= v.visit_date_started 
 		and (l.specimen_collection_date <= v.visit_date_stopped or v.visit_date_stopped is null)
@@ -496,8 +496,8 @@ update a set anc_visit1_hiv_test = 0 from pregnancy_summary_staging a where tota
 update p
 set p.trimester_enrolled = e.trimester_enrolled
 from pregnancy_summary_staging p 
-inner join anc_encounter e on e.encounter_id =
-    (select top 1 e2.encounter_id from anc_encounter e2
+inner join mch_anc_encounter e on e.encounter_id =
+    (select top 1 e2.encounter_id from mch_anc_encounter e2
     where e2.pregnancy_program_id = p.pregnancy_program_id
     and trimester_enrolled is not null
     order by e2.encounter_datetime desc, e2.encounter_id desc);
