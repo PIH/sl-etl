@@ -1,7 +1,7 @@
 
-DROP TABLE IF EXISTS Dim_Date_Staging;
+DROP TABLE IF EXISTS dim_date_staging;
 
-CREATE TABLE [Dim_Date_Staging]
+CREATE TABLE [dim_date_staging]
 	(	[DateKey] INT primary key, 
 		[Date] DATETIME,
 		[FullDateUK] CHAR(10), -- Date in dd-MM-yyyy format
@@ -116,7 +116,7 @@ FROM @DayOfWeek
 WHERE DOW = DATEPART(DW, @CurrentDate)
 
 
-    INSERT INTO Dim_Date_Staging
+    INSERT INTO dim_date_staging
 SELECT
 
     CONVERT (char(8),@CurrentDate,112) as DateKey,
@@ -205,54 +205,54 @@ END
 -- ------------------------------------------------------------------
 
 -- Good Friday  April 18
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUK = 'Good Friday'
 WHERE [Month] = 4 AND [DayOfMonth]  = 18
 
 -- Easter Monday  April 21
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUK = 'Easter Monday'
 WHERE [Month] = 4 AND [DayOfMonth]  = 21
 
 -- Early May Bank Holiday   May 5
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUK = 'Early May Bank Holiday'
 WHERE [Month] = 5 AND [DayOfMonth]  = 5
 
 -- Spring Bank Holiday  May 26
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUK = 'Spring Bank Holiday'
 WHERE [Month] = 5 AND [DayOfMonth]  = 26
 
 -- Summer Bank Holiday  August 25
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUK = 'Summer Bank Holiday'
 WHERE [Month] = 8 AND [DayOfMonth]  = 25
 
 -- Boxing Day  December 26
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUK = 'Boxing Day'
 WHERE [Month] = 12 AND [DayOfMonth]  = 26
 
 --CHRISTMAS
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUK = 'Christmas Day'
 WHERE [Month] = 12 AND [DayOfMonth]  = 25
 
 --New Years Day
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUK  = 'New Year''s Day'
 WHERE [Month] = 1 AND [DayOfMonth] = 1
 
 -- Update flag for UK Holidays 1= Holiday, 0=No Holiday
 
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET IsHolidayUK  = CASE WHEN HolidayUK   IS NULL THEN 0 WHEN HolidayUK   IS NOT NULL THEN 1 END
 
 
 -- -----------------------------------------------------------
 
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUSA = 'Thanksgiving Day'
 WHERE
     [Month] = 11
@@ -260,30 +260,30 @@ WHERE
   AND DayOfWeekInMonth = 4
 
 -- ------ CHRISTMAS -----------------
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUSA = 'Christmas Day'
 
 WHERE [Month] = 12 AND [DayOfMonth]  = 25
 
 -- ---------- 4th of July ---------------
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUSA = 'Independance Day'
 WHERE [Month] = 7 AND [DayOfMonth] = 4
 
 -- ------------ New Years Day ---------
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUSA = 'New Year''s Day'
 WHERE [Month] = 1 AND [DayOfMonth] = 1
 
 -- ----------------------------
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUSA = 'Memorial Day'
-    FROM Dim_Date_Staging
+    FROM dim_date_staging
 WHERE DateKey IN
     (
     SELECT
     MAX(DateKey)
-    FROM Dim_Date_Staging
+    FROM dim_date_staging
     WHERE
     [MonthName] = 'May'
   AND [DayOfWeekUSA]  = 'Monday'
@@ -293,14 +293,14 @@ WHERE DateKey IN
     )
 
 -- --------- Labor Day - First Monday in September ----------
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUSA = 'Labor Day'
-    FROM Dim_Date_Staging
+    FROM dim_date_staging
 WHERE DateKey IN
     (
     SELECT
     MIN(DateKey)
-    FROM Dim_Date_Staging
+    FROM dim_date_staging
     WHERE
     [MonthName] = 'September'
   AND [DayOfWeekUSA] = 'Monday'
@@ -310,21 +310,21 @@ WHERE DateKey IN
     )
 
 -- --------------- Valentine's Day ----------------
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUSA = 'Valentine''s Day'
 WHERE
     [Month] = 2
   AND [DayOfMonth] = 14
 
 -- ------------ Saint Patrick's Day ------------
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUSA = 'Saint Patrick''s Day'
 WHERE
     [Month] = 3
   AND [DayOfMonth] = 17
 
 -- ------------ Martin Luthor King Day - Third Monday in January starting in 1983*/
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUSA = 'Martin Luthor King Jr Day'
 WHERE
     [Month] = 1
@@ -333,7 +333,7 @@ WHERE
   AND DayOfWeekInMonth = 3
 
 -- ------------- President's Day - Third Monday in February ----------
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUSA = 'President''s Day'
 WHERE
     [Month] = 2
@@ -341,7 +341,7 @@ WHERE
   AND DayOfWeekInMonth = 3
 
 -- --------------- Mother's Day - Second Sunday of May -------------------
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUSA = 'Mother''s Day'
 WHERE
     [Month] = 5
@@ -349,7 +349,7 @@ WHERE
   AND DayOfWeekInMonth = 2
 
 -- -------------- Father's Day - Third Sunday of June -------------
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUSA = 'Father''s Day'
 WHERE
     [Month] = 6
@@ -357,7 +357,7 @@ WHERE
   AND DayOfWeekInMonth = 3
 
 -- ------------------- Halloween 10/31 ---------------------
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUSA = 'Halloween'
 WHERE
     [Month] = 10
@@ -372,7 +372,7 @@ SELECT
     DateKey,
     [Year],
     [DayOfMonth]
-FROM Dim_Date_Staging
+FROM dim_date_staging
 WHERE
     [Month] = 11
   AND [DayOfWeekUSA] = 'Monday'
@@ -416,18 +416,18 @@ END
 SELECT @CURRENTYEAR = @CURRENTYEAR + 1
 END
 
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET HolidayUSA  = 'Election Day'
-    FROM Dim_Date_Staging DT
+    FROM dim_date_staging DT
 			JOIN @Holidays HL ON (HL.DateID + 1) = DT.DateKey
 WHERE
     [Week] = 1
 END
 	--set flag for USA holidays in Dimension
-UPDATE Dim_Date_Staging
+UPDATE dim_date_staging
 SET IsHolidayUSA = CASE WHEN HolidayUSA  IS NULL THEN 0 WHEN HolidayUSA  IS NOT NULL THEN 1 END
 
 -- ------------------------------------------------------------------------------------
 
-DROP TABLE IF EXISTS Dim_Date;
-EXEC sp_rename 'Dim_Date_Staging', 'Dim_Date';
+DROP TABLE IF EXISTS dim_date;
+EXEC sp_rename 'dim_date_staging', 'dim_date';
