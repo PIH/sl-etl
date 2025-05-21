@@ -69,8 +69,8 @@ inner join pregnancy_program pp on pp.pregnancy_program_id =
 update m
 set m.latest_lmp_entered = e.last_menstruation_date
 from maternity_patient_staging m 
-inner join anc_encounter e on e.encounter_id =
-    (select top 1 e2.encounter_id from anc_encounter e2
+inner join mch_anc_encounter e on e.encounter_id =
+    (select top 1 e2.encounter_id from mch_anc_encounter e2
     where e2.patient_id = m.patient_id
     and last_menstruation_date is not null
     order by e2.encounter_datetime desc, e2.encounter_id desc);
@@ -125,7 +125,7 @@ inner join maternity_patient_staging m on m.patient_id = x.patient_id;
 
 insert into #maternity_encounters (patient_id, encounter_id, encounter_type, height, weight, bp_systolic, bp_diastolic, gravida, parity, abortus, living, encounter_datetime )
 select x.patient_id, x.encounter_id, iif(x.visit_type='ANC Intake','ANC Initial',x.visit_type),x.height, x.weight, x.bp_systolic, x.bp_diastolic, x.gravida, x.parity, x.abortus, x.living, x.encounter_datetime  
-from anc_encounter x
+from mch_anc_encounter x
 inner join maternity_patient_staging m on m.patient_id = x.patient_id;
 
 insert into #maternity_encounters (patient_id, encounter_id, encounter_type, encounter_datetime )
