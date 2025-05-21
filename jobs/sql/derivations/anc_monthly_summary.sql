@@ -120,7 +120,7 @@ where delivered_this_month is null;
 
 update a
 set anc_encounters_this_month = 
-	(select count(e.encounter_id) from anc_encounter e
+	(select count(e.encounter_id) from mch_anc_encounter e
 	where e.patient_id = a.patient_id
 	and month(a.reporting_date) = month(e.encounter_datetime)
 	and year(a.reporting_date) = year(e.encounter_datetime)
@@ -131,7 +131,7 @@ from anc_monthly_summary_staging a;
 
 update a
 set total_anc_visits = 
-	(select count(e.encounter_id) from anc_encounter e
+	(select count(e.encounter_id) from mch_anc_encounter e
 	where e.patient_id = a.patient_id
 	and month(a.reporting_date) >= month(e.encounter_datetime)
 	and year(a.reporting_date) >= year(e.encounter_datetime)
@@ -142,55 +142,55 @@ from anc_monthly_summary_staging a;
 update a
 set anc_visit1 = iif(encounter_id is null, 0,1)
 from anc_monthly_summary_staging a 
-left outer join anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
+left outer join mch_anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 1
 	and month(e.encounter_datetime) = month(a.reporting_date);
 
 update a
 set anc_visit2 = iif(encounter_id is null, 0,1)
 from anc_monthly_summary_staging a 
-left outer join anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
+left outer join mch_anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 2
 	and month(e.encounter_datetime) = month(a.reporting_date);
 
 update a
 set anc_visit3 = iif(encounter_id is null, 0,1)
 from anc_monthly_summary_staging a 
-left outer join anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
+left outer join mch_anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 3
 	and month(e.encounter_datetime) = month(a.reporting_date);
 
 update a
 set anc_visit4 = iif(encounter_id is null, 0,1)
 from anc_monthly_summary_staging a 
-left outer join anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
+left outer join mch_anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 4
 	and month(e.encounter_datetime) = month(a.reporting_date);
 update a
 set anc_visit5 = iif(encounter_id is null, 0,1)
 from anc_monthly_summary_staging a 
-left outer join anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
+left outer join mch_anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 5
 	and month(e.encounter_datetime) = month(a.reporting_date);
 
 update a
 set anc_visit6 = iif(encounter_id is null, 0,1)
 from anc_monthly_summary_staging a 
-left outer join anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
+left outer join mch_anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 6
 	and month(e.encounter_datetime) = month(a.reporting_date);
 
 update a
 set anc_visit7 = iif(encounter_id is null, 0,1)
 from anc_monthly_summary_staging a 
-left outer join anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
+left outer join mch_anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 7
 	and month(e.encounter_datetime) = month(a.reporting_date);
 
 update a
 set anc_visit8 = iif(encounter_id is null, 0,1)
 from anc_monthly_summary_staging a 
-left outer join anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
+left outer join mch_anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 8
 	and month(e.encounter_datetime) = month(a.reporting_date);
 
@@ -198,7 +198,7 @@ update a
 set anc_visit9plus = 1
 from anc_monthly_summary_staging a 
 where exists 
-	(select 1 from anc_encounter e 
+	(select 1 from mch_anc_encounter e 
 	where e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program > 8
 	and month(e.encounter_datetime) = month(a.reporting_date));
@@ -269,7 +269,7 @@ set anc_visit1_iron = 1
 from anc_monthly_summary_staging a
 where anc_visit1 = 1
 and exists
-	(select 1 from anc_encounter e
+	(select 1 from mch_anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
 	inner join #iron_indexes i on i.pregnancy_program_id = a.pregnancy_program_id
 		and i.encounter_datetime >= v.visit_date_started 
@@ -375,7 +375,7 @@ set anc_visit1_albendazole = 1
 from anc_monthly_summary_staging a
 where anc_visit1 = 1
 and exists
-	(select 1 from anc_encounter e
+	(select 1 from mch_anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
 	inner join #albendazole_indexes i on i.pregnancy_program_id = a.pregnancy_program_id
 		and i.encounter_datetime >= v.visit_date_started 
@@ -390,7 +390,7 @@ set anc_visit2_albendazole = 1
 from anc_monthly_summary_staging a
 where anc_visit2 = 1
 and exists
-	(select 1 from anc_encounter e
+	(select 1 from mch_anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
 	inner join #albendazole_indexes i on i.pregnancy_program_id = a.pregnancy_program_id
 		and i.encounter_datetime >= v.visit_date_started 
@@ -414,7 +414,7 @@ set anc_visit1_llin = 1
 from anc_monthly_summary_staging a
 where anc_visit1 = 1
 and exists
-	(select 1 from anc_encounter e
+	(select 1 from mch_anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
 	where e.pregnancy_program_id = a.pregnancy_program_id
 		and e.index_asc_patient_program = 1)
@@ -425,7 +425,7 @@ set anc_visit1_haemoglobin = 1
 from anc_monthly_summary_staging a
 where anc_visit1 = 1
 and exists
-	(select 1 from anc_encounter e
+	(select 1 from mch_anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
 	inner join all_lab_results l on l.specimen_collection_date >= v.visit_date_started 
 		and (l.specimen_collection_date <= v.visit_date_stopped or v.visit_date_stopped is null)
@@ -439,7 +439,7 @@ set anc_visit1_syphilis = 1
 from anc_monthly_summary_staging a
 where anc_visit1 = 1
 and exists
-	(select 1 from anc_encounter e
+	(select 1 from mch_anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
 	inner join all_lab_results l on l.patient_id = e.patient_id 
 		and l.specimen_collection_date >= v.visit_date_started 
@@ -473,7 +473,7 @@ update a
 set counsel_for_danger_signs = 1
 from anc_monthly_summary_staging a
 where exists
-	(select 1 from anc_encounter e
+	(select 1 from mch_anc_encounter e
 	where e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.counseled_danger_signs = 1
 	and month(e.encounter_datetime) = month(reporting_date));
@@ -536,7 +536,7 @@ set anc_visit1_weight = 1
 from anc_monthly_summary_staging a
 where anc_visit1 = 1
 and exists
-	(select 1 from anc_encounter e
+	(select 1 from mch_anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
 	inner join all_vitals vit on vit.encounter_datetime >= v.visit_date_started 
 		and (vit.encounter_datetime <= v.visit_date_stopped or v.visit_date_stopped is null)
