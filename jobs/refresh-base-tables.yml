@@ -43,7 +43,7 @@ configuration:
           - tableName: "maternal_discharge_encounter"
           - tableName: "labor_progress_encounter"
           - tableName: "delivery_summary_encounter"
-          - tableName: "anc_encounter"
+          - tableName: "mch_anc_encounter"
           - tableName: "labor_summary_encounter"
           - tableName: "newborn_assessment_encounter"
           - tableName: "admission_note_encounter"
