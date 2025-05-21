@@ -6,3 +6,4 @@ drop table if exists outpatient_patients;
 drop table if exists labs_order_report;
 drop table if exists labs_order_results;
 drop table if exists appointments;
+drop table if exists triage_encounters;
