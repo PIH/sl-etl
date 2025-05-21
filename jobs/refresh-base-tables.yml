@@ -49,7 +49,7 @@ configuration:
           - tableName: "admission_note_encounter"
           - tableName: "newborn_progress_discharge_encounter"
           - tableName: "postpartum_daily_encounter"
-          - tableName: "appointments"
+          - tableName: "all_appointments"
           - tableName: "pregnancy_program"
           - tableName: "pregnancy_state"
           - tableName: "mother_child_relationship"
