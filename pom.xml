@@ -33,24 +33,6 @@
         <url>scm:git:git@github.com:PIH/sl-etl.git</url>
     </scm>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
-
-    <repositories>
-        <repository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/content/repositories/public</url>
-        </repository>
-    </repositories>
-
     <properties>
         <dataExportSqlDir>${project.build.directory}/openmrs-config-pihsl/reports/reportdescriptors/dataexports/sql/</dataExportSqlDir>
         <liquibaseSourceDir>${project.build.directory}/openmrs-config-pihsl/pih/liquibase/sql/</liquibaseSourceDir>
