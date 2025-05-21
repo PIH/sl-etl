@@ -34,7 +34,7 @@ configuration:
           - tableName: "drug_categories"
           - tableName: "ncd_monthly_summary"
           - tableName: "maternity_patient"
-          - tableName: "anc_monthly_summary"
+          - tableName: "mch_anc_monthly_summary"
           - tableName: "pregnancy_summary"
           - tableName: "append_data_warnings"
           - tableName: "duplicate_patient_warnings"
