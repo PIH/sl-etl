@@ -186,7 +186,7 @@
                                 </fileSet>
                                 <fileSet>
                                     <sourceFile>${dataExportSqlDir}/triage.sql</sourceFile>
-                                    <destinationFile>${petlJobExtractionSqlDir}/triage_encounters.sql</destinationFile>
+                                    <destinationFile>${petlJobExtractionSqlDir}/triage_encounter.sql</destinationFile>
                                 </fileSet>                                
                                 <fileSet>
                                     <sourceFile>${dataExportSqlDir}/all_medication_dispensing.sql</sourceFile>
