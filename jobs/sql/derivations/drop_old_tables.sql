@@ -11,3 +11,4 @@ drop table if exists anc_encounter;
 drop table if exists anc_monthly_summary;
 drop table if exists delivery_summary_encounter;
 drop table if exists labor_progress_encounter;
+drop table if exists labor_summary_encounter;
