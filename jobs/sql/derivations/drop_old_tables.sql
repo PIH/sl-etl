@@ -9,3 +9,4 @@ drop table if exists appointments;
 drop table if exists triage_encounters;
 drop table if exists anc_encounter;
 drop table if exists anc_monthly_summary;
+drop table if exists delivery_summary_encounter;
