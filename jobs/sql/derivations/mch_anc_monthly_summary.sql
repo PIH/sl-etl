@@ -547,4 +547,4 @@ update a set anc_visit1_weight = 0 from mch_anc_monthly_summary_staging a where 
 
 -- -------------------------------------
 DROP TABLE IF EXISTS mch_anc_monthly_summary;
-EXEC sp_rename 'anc_monthly_summary_staging', 'anc_monthly_summary';
+EXEC sp_rename 'mch_anc_monthly_summary_staging', 'mch_anc_monthly_summary';
