@@ -132,7 +132,7 @@ inner join person p on p.uuid = t.baby_uuid
 set baby_patient_id = p.person_id;
 
 set @primary_emr_uuid = metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType');
-UPDATE temp_labor_encs SET baby_emr_id=patient_identifier(patient_id,@primary_emr_uuid );
+UPDATE temp_labor_encs SET baby_emr_id=patient_identifier(baby_patient_id,@primary_emr_uuid );
 
 SELECT
 concat(@partition,"-",obs_group_id)  as baby_obs_id,
