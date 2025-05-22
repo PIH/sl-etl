@@ -19,7 +19,7 @@ DECLARE @estimated_gestational_age_entered            float,
 	where e.pregnancy_program_id = @pregnancy_program_id
 	and estimated_gestational_age is not null
 	union
-	select gestational_age, lpe.encounter_datetime  from labor_progress_encounter lpe
+	select gestational_age, lpe.encounter_datetime  from mch_labor_progress_encounter lpe
 	where pregnancy_program_id = @pregnancy_program_id
 	and  lpe.gestational_age is not null) a
 	order by encounter_datetime desc
