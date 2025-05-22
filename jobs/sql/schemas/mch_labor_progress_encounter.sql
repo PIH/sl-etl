@@ -1,4 +1,4 @@
-create table labor_progress_encounter
+create table mch_labor_progress_encounter
 (
 patient_id                varchar(100),
 emr_id                    varchar(100), 

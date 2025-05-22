@@ -135,12 +135,12 @@ inner join maternity_patient_staging m on m.patient_id = x.mother_patient_id;
 
 insert into #maternity_encounters (patient_id, encounter_id, encounter_type, encounter_datetime )
 select x.patient_id, x.encounter_id, 'Labor and Delivery Summary',  x.encounter_datetime  
-from labor_summary_encounter x
+from mch_labor_summary_encounter x
 inner join maternity_patient_staging m on m.patient_id = x.patient_id;
 
 insert into #maternity_encounters (patient_id, encounter_id, encounter_type, bp_systolic, bp_diastolic, gravida, parity, encounter_datetime )
 select x.patient_id, x.encounter_id, 'Labour Progress', x.bp_systolic, x.bp_diastolic, x.gravida, x.parity, x.encounter_datetime  
-from labor_progress_encounter x
+from mch_labor_progress_encounter x
 inner join maternity_patient_staging m on m.patient_id = x.patient_id;
 
 insert into #maternity_encounters (patient_id, encounter_id, encounter_type, bp_systolic, bp_diastolic, encounter_datetime )

@@ -171,7 +171,7 @@ inner join #temp_dup_encounters t on t.max_encounter_id = e.encounter_id;
 drop table if exists #temp_dup_encounters;
 select e.patient_id, pregnancy_program_id, max(e.encounter_id) max_encounter_id, count(*) count
 into #temp_dup_encounters
-from labor_summary_encounter e
+from mch_labor_summary_encounter e
 group by e.patient_id, e.pregnancy_program_id
 having count(*) > 1;
 
@@ -181,7 +181,7 @@ encounter_datetime, datetime_entered, user_entered, site, partition_num, other_d
 select 'Duplicate encounters within program', 'Labor and Delivery Summary', e.patient_id, e.emr_id, e.visit_id, e.encounter_id, e.pregnancy_program_id,  
 e.encounter_datetime, e.datetime_entered, e.user_entered, e.site, e.partition_num,
 concat('number of encounters: ', t.count)
-from labor_summary_encounter e
+from mch_labor_summary_encounter e
 inner join #temp_dup_encounters t on t.max_encounter_id = e.encounter_id;
 
 -- mch delivery

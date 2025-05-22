@@ -109,7 +109,7 @@ update a
 set delivered_this_month = 1 
 from mch_anc_monthly_summary_staging a
 where exists 
-	(select 1 from labor_summary_encounter l
+	(select 1 from mch_labor_summary_encounter l
 	where l.patient_id = a.patient_id 
 	and month(l.encounter_datetime) = month(a.reporting_date));
 
