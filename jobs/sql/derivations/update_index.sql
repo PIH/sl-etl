@@ -88,7 +88,7 @@ select  encounter_id,
         ROW_NUMBER() over (PARTITION by emr_id order by encounter_datetime, encounter_id) as index_asc,
         ROW_NUMBER() over (PARTITION by emr_id order by encounter_datetime DESC, encounter_id DESC) as index_desc
 into    #derived_indexes
-from    anc_encounter;
+from    mch_anc_encounter;
 
 update t
 set t.index_asc = i.index_asc,
@@ -102,7 +102,7 @@ select  encounter_id,
         ROW_NUMBER() over (PARTITION by pregnancy_program_id  order by encounter_datetime, encounter_id) as index_asc_patient_program,
         ROW_NUMBER() over (PARTITION by pregnancy_program_id order by encounter_datetime DESC, encounter_id DESC) as index_desc_patient_program
 into    #derived_indexes
-from    anc_encounter;
+from    mch_anc_encounter;
 
 update t
 set t.index_asc_patient_program = i.index_asc_patient_program,
