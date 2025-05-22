@@ -206,15 +206,15 @@ from pregnancy_summary_staging p;
 
 update p 
 set actual_delivery_date =
-	(select min(birthdate) from delivery_summary_encounter d
+	(select min(birthdate) from mch_delivery_summary_encounter d
 	where d.pregnancy_program_id = p.pregnancy_program_id)
 from pregnancy_summary_staging p; 
 
 update p
 set p.delivery_location = site
 from pregnancy_summary_staging p 
-inner join delivery_summary_encounter e on e.encounter_id =
-    (select top 1 e2.encounter_id from delivery_summary_encounter e2
+inner join mch_delivery_summary_encounter e on e.encounter_id =
+    (select top 1 e2.encounter_id from mch_delivery_summary_encounter e2
     where e2.pregnancy_program_id = p.pregnancy_program_id
     order by e2.encounter_datetime desc, e2.encounter_id desc);
 
@@ -237,7 +237,7 @@ from pregnancy_summary_staging p;
 
 update p 
 set number_of_fetuses = 
-	(select count(*) from delivery_summary_encounter d
+	(select count(*) from mch_delivery_summary_encounter d
 	where d.pregnancy_program_id = p.pregnancy_program_id)
 from pregnancy_summary_staging p; 
 
@@ -248,21 +248,21 @@ where number_of_fetuses = 0 ;
 
 update p 
 set delivery_num_alive = 
-	(select count(*) from delivery_summary_encounter d
+	(select count(*) from mch_delivery_summary_encounter d
 	where d.pregnancy_program_id = p.pregnancy_program_id
 	and d.outcome = 'Livebirth')
 from pregnancy_summary_staging p; 
 
 update p 
 set delivery_num_fsb = 
-	(select count(*) from delivery_summary_encounter d
+	(select count(*) from mch_delivery_summary_encounter d
 	where d.pregnancy_program_id = p.pregnancy_program_id
 	and d.outcome = 'Fresh stillbirth')
 from pregnancy_summary_staging p; 
 
 update p 
 set delivery_num_msb = 
-	(select count(*) from delivery_summary_encounter d
+	(select count(*) from mch_delivery_summary_encounter d
 	where d.pregnancy_program_id = p.pregnancy_program_id
 	and d.outcome = 'Macerated stillbirth')
 from pregnancy_summary_staging p; 
