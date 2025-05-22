@@ -1,4 +1,4 @@
-create table delivery_summary_encounter
+create table mch_delivery_summary_encounter
 (
     baby_obs_id              varchar(50),
     patient_id               varchar(50),

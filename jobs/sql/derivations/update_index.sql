@@ -68,18 +68,18 @@ set t.index_asc = i.index_asc,
 from labor_progress_encounter t inner join #derived_indexes i on i.encounter_id = t.encounter_id
 ;
 
--- update index asc/desc on delivery_summary_encounter table
+-- update index asc/desc on mch_delivery_summary_encounter table
 drop table if exists #derived_indexes;
 select  encounter_id,
         ROW_NUMBER() over (PARTITION by emr_id_mother order by encounter_datetime, birthdate, encounter_id) as index_asc,
         ROW_NUMBER() over (PARTITION by emr_id_mother order by encounter_datetime DESC, birthdate DESC, encounter_id DESC) as index_desc
 into    #derived_indexes
-from    delivery_summary_encounter;
+from    mch_delivery_summary_encounter;
 
 update t
 set t.index_asc = i.index_asc,
     t.index_desc = i.index_desc
-from delivery_summary_encounter t inner join #derived_indexes i on i.encounter_id = t.encounter_id
+from mch_delivery_summary_encounter t inner join #derived_indexes i on i.encounter_id = t.encounter_id
 ;
 
 -- update index asc/desc on mch_anc_encounter table
