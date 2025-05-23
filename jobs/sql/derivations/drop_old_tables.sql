@@ -12,3 +12,5 @@ drop table if exists anc_monthly_summary;
 drop table if exists delivery_summary_encounter;
 drop table if exists labor_progress_encounter;
 drop table if exists labor_summary_encounter;
+drop table if exists maternal_discharge_encounter;
+drop table if exists maternity_patient;
