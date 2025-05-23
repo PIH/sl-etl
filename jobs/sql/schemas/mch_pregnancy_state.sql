@@ -1,4 +1,4 @@
-create table pregnancy_state
+create table mch_pregnancy_state
 (
 pregnancy_program_state_id varchar(30),  
 emr_id                     varchar(50),  
