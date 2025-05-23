@@ -1,5 +1,5 @@
-drop table if exists maternity_patient_staging;
-create table maternity_patient_staging
+drop table if exists mch_maternity_patient_staging;
+create table mch_maternity_patient_staging
 (
 emr_id varchar(50),
 patient_id varchar(100),
@@ -28,7 +28,7 @@ death_date datetime,
 cause_of_death varchar(255)
 );
 
-insert into maternity_patient_staging(emr_id, patient_id)
+insert into mch_maternity_patient_staging(emr_id, patient_id)
 select DISTINCT emr_id, patient_id
 from all_encounters ae 
 where encounter_type in
@@ -52,14 +52,14 @@ set birthdate = p.birthdate,
 	dead = p.dead,
 	death_date = p.death_date,
 	cause_of_death = p.cause_of_death 
-from maternity_patient_staging m
+from mch_maternity_patient_staging m
 inner join all_patients p on p.patient_id  = m.patient_id;
 
 -- most_recent_pregnancy_program_id
 update m
 set most_recent_pregnancy_program_id = pp.pregnancy_program_id,
 	most_recent_date_enrolled = pp.date_enrolled
-from maternity_patient_staging m
+from mch_maternity_patient_staging m
 inner join pregnancy_program pp on pp.pregnancy_program_id = 
 	(select top 1 pp2.pregnancy_program_id 
 	from pregnancy_program pp2
@@ -68,7 +68,7 @@ inner join pregnancy_program pp on pp.pregnancy_program_id =
 
 update m
 set m.latest_lmp_entered = e.last_menstruation_date
-from maternity_patient_staging m 
+from mch_maternity_patient_staging m 
 inner join mch_anc_encounter e on e.encounter_id =
     (select top 1 e2.encounter_id from mch_anc_encounter e2
     where e2.patient_id = m.patient_id
@@ -78,13 +78,13 @@ inner join mch_anc_encounter e on e.encounter_id =
 -- calculate estimated_gestational_age in this function using the actual delivery date and latest lmp entered on forms
 update m
 set estimated_gestational_age = dbo.estimated_gestational_age(m.most_recent_pregnancy_program_id, m.actual_delivery_date, m.latest_lmp_entered)
-from maternity_patient_staging m;
+from mch_maternity_patient_staging m;
 
 -- this is necessary because estimated_gestational_age currently contains the string "<45" sometimes:
 update m 
 set m.current_pregnancy_state = pp.current_state,
  m.pregnancy_outcome = pp.outcome
-from maternity_patient_staging m
+from mch_maternity_patient_staging m
 inner join pregnancy_program pp on pp.pregnancy_program_id = 
 	(select top 1 pp2.pregnancy_program_id from pregnancy_program pp2
 	where pp2.patient_id = m.patient_id
@@ -98,7 +98,7 @@ case
 		then 1
 	else 0	
 end
-from maternity_patient_staging m;
+from mch_maternity_patient_staging m;
 
 -- most recent observations from maternity forms
 drop table if exists #maternity_encounters;
@@ -121,37 +121,37 @@ encounter_datetime datetime
 insert into #maternity_encounters (patient_id, encounter_id, encounter_type, height, weight, bp_systolic, bp_diastolic, encounter_datetime )
 select x.patient_id, x.encounter_id, 'vitals',x.height, x.weight, x.bp_systolic, x.bp_diastolic, x.encounter_datetime  
 from all_vitals x
-inner join maternity_patient_staging m on m.patient_id = x.patient_id;
+inner join mch_maternity_patient_staging m on m.patient_id = x.patient_id;
 
 insert into #maternity_encounters (patient_id, encounter_id, encounter_type, height, weight, bp_systolic, bp_diastolic, gravida, parity, abortus, living, encounter_datetime )
 select x.patient_id, x.encounter_id, iif(x.visit_type='ANC Intake','ANC Initial',x.visit_type),x.height, x.weight, x.bp_systolic, x.bp_diastolic, x.gravida, x.parity, x.abortus, x.living, x.encounter_datetime  
 from mch_anc_encounter x
-inner join maternity_patient_staging m on m.patient_id = x.patient_id;
+inner join mch_maternity_patient_staging m on m.patient_id = x.patient_id;
 
 insert into #maternity_encounters (patient_id, encounter_id, encounter_type, encounter_datetime )
 select x.mother_patient_id,x.encounter_id, 'Labor and Delivery Summary', x.encounter_datetime  
 from mch_delivery_summary_encounter x
-inner join maternity_patient_staging m on m.patient_id = x.mother_patient_id;
+inner join mch_maternity_patient_staging m on m.patient_id = x.mother_patient_id;
 
 insert into #maternity_encounters (patient_id, encounter_id, encounter_type, encounter_datetime )
 select x.patient_id, x.encounter_id, 'Labor and Delivery Summary',  x.encounter_datetime  
 from mch_labor_summary_encounter x
-inner join maternity_patient_staging m on m.patient_id = x.patient_id;
+inner join mch_maternity_patient_staging m on m.patient_id = x.patient_id;
 
 insert into #maternity_encounters (patient_id, encounter_id, encounter_type, bp_systolic, bp_diastolic, gravida, parity, encounter_datetime )
 select x.patient_id, x.encounter_id, 'Labour Progress', x.bp_systolic, x.bp_diastolic, x.gravida, x.parity, x.encounter_datetime  
 from mch_labor_progress_encounter x
-inner join maternity_patient_staging m on m.patient_id = x.patient_id;
+inner join mch_maternity_patient_staging m on m.patient_id = x.patient_id;
 
 insert into #maternity_encounters (patient_id, encounter_id, encounter_type, bp_systolic, bp_diastolic, encounter_datetime )
 select x.patient_id, x.encounter_id, 'Postpartum progress', x.bp_systolic, x.bp_diastolic, x.encounter_datetime  
 from postpartum_daily_encounter x
-inner join maternity_patient_staging m on m.patient_id = x.patient_id;
+inner join mch_maternity_patient_staging m on m.patient_id = x.patient_id;
 
 insert into #maternity_encounters (patient_id, encounter_id, encounter_type, encounter_datetime )
 select x.patient_id, x.encounter_id, x.encounter_type, x.encounter_datetime  
 from all_encounters x
-inner join maternity_patient_staging m on m.patient_id = x.patient_id
+inner join mch_maternity_patient_staging m on m.patient_id = x.patient_id
 where x.encounter_type in 
 ('Sierra Leone Maternal Check-in',
 'Maternal Discharge',
@@ -161,7 +161,7 @@ where x.encounter_type in
 
 update m
 set most_recent_height = e.height
-from maternity_patient_staging m
+from mch_maternity_patient_staging m
 inner join #maternity_encounters e on e.encounter_id = 
 	(select top 1 e2.encounter_id from #maternity_encounters e2
 	where e2.patient_id = m.patient_id
@@ -170,7 +170,7 @@ inner join #maternity_encounters e on e.encounter_id =
 
 update m
 set most_recent_weight = e.weight
-from maternity_patient_staging m
+from mch_maternity_patient_staging m
 inner join #maternity_encounters e on e.encounter_id = 
 	(select top 1 e2.encounter_id from #maternity_encounters e2
 	where e2.patient_id = m.patient_id
@@ -179,7 +179,7 @@ inner join #maternity_encounters e on e.encounter_id =
 
 update m
 set most_recent_bp_systolic = e.bp_systolic
-from maternity_patient_staging m
+from mch_maternity_patient_staging m
 inner join #maternity_encounters e on e.encounter_id = 
 	(select top 1 e2.encounter_id from #maternity_encounters e2
 	where e2.patient_id = m.patient_id
@@ -188,7 +188,7 @@ inner join #maternity_encounters e on e.encounter_id =
 
 update m
 set most_recent_bp_diastolic = e.bp_diastolic
-from maternity_patient_staging m
+from mch_maternity_patient_staging m
 inner join #maternity_encounters e on e.encounter_id = 
 	(select top 1 e2.encounter_id from #maternity_encounters e2
 	where e2.patient_id = m.patient_id
@@ -197,7 +197,7 @@ inner join #maternity_encounters e on e.encounter_id =
 
 update m
 set most_recent_gravida = e.gravida
-from maternity_patient_staging m
+from mch_maternity_patient_staging m
 inner join #maternity_encounters e on e.encounter_id = 
 	(select top 1 e2.encounter_id from #maternity_encounters e2
 	where e2.patient_id = m.patient_id 
@@ -206,7 +206,7 @@ inner join #maternity_encounters e on e.encounter_id =
 
 update m
 set most_recent_parity = e.parity
-from maternity_patient_staging m
+from mch_maternity_patient_staging m
 inner join #maternity_encounters e on e.encounter_id = 
 	(select top 1 e2.encounter_id from #maternity_encounters e2
 	where e2.patient_id = m.patient_id
@@ -215,7 +215,7 @@ inner join #maternity_encounters e on e.encounter_id =
 
 update m
 set most_recent_abortus = e.abortus
-from maternity_patient_staging m
+from mch_maternity_patient_staging m
 inner join #maternity_encounters e on e.encounter_id = 
 	(select top 1 e2.encounter_id from #maternity_encounters e2
 	where e2.patient_id = m.patient_id
@@ -224,7 +224,7 @@ inner join #maternity_encounters e on e.encounter_id =
 
 update m
 set most_recent_living = e.living
-from maternity_patient_staging m
+from mch_maternity_patient_staging m
 inner join #maternity_encounters e on e.encounter_id = 
 	(select top 1 e2.encounter_id from #maternity_encounters e2
 	where e2.patient_id = m.patient_id
@@ -233,18 +233,18 @@ inner join #maternity_encounters e on e.encounter_id =
 
 update m
 set m.latest_maternity_encounter_date = (select max(e.encounter_datetime) from #maternity_encounters e where e.patient_id = m.patient_id and e.encounter_type <> 'vitals') 
-from maternity_patient_staging m;
+from mch_maternity_patient_staging m;
 
 update m
 set m.latest_maternity_encounter_type = (select max(e.encounter_type) from #maternity_encounters e where e.patient_id = m.patient_id and e.encounter_datetime = m.latest_maternity_encounter_date) 
-from maternity_patient_staging m;
+from mch_maternity_patient_staging m;
 update m
 set m.latest_maternity_encounter_type = iif(latest_maternity_encounter_date is null, 'enrollment only',latest_maternity_encounter_type )
-from maternity_patient_staging m;
+from mch_maternity_patient_staging m;
 
 update m
 set most_recent_hiv_status = l.result
-from maternity_patient_staging m
+from mch_maternity_patient_staging m
 inner join all_lab_results l on l.lab_obs_id = 
 	(select top 1 l2.lab_obs_id from all_lab_results l2
 	where l2.patient_id = m.patient_id
@@ -258,10 +258,10 @@ set m.most_recent_hiv_status =
 		when most_recent_hiv_status	= 'Indeterminate' then 'Unknown'
 	    else most_recent_hiv_status
 	 END   
-from maternity_patient_staging m;
+from mch_maternity_patient_staging m;
 
 -- --------------------------
-ALTER TABLE maternity_patient_staging DROP COLUMN estimated_gestational_age, current_pregnancy_state, pregnancy_outcome, actual_delivery_date, latest_lmp_entered;
+ALTER TABLE mch_maternity_patient_staging DROP COLUMN estimated_gestational_age, current_pregnancy_state, pregnancy_outcome, actual_delivery_date, latest_lmp_entered;
 
-DROP TABLE IF EXISTS maternity_patient;
-EXEC sp_rename 'maternity_patient_staging', 'maternity_patient';
+DROP TABLE IF EXISTS mch_maternity_patient;
+EXEC sp_rename 'mch_maternity_patient_staging', 'mch_maternity_patient';

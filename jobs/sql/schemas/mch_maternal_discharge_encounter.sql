@@ -1,4 +1,4 @@
-create table maternal_discharge_encounter
+create table mch_maternal_discharge_encounter
 (
 emr_id                varchar(255), 
 patient_id            varchar(50),   

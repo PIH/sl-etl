@@ -33,7 +33,7 @@ configuration:
           - tableName: "drop_old_tables"
           - tableName: "drug_categories"
           - tableName: "ncd_monthly_summary"
-          - tableName: "maternity_patient"
+          - tableName: "mch_maternity_patient"
           - tableName: "mch_anc_monthly_summary"
           - tableName: "pregnancy_summary"
           - tableName: "append_data_warnings"
