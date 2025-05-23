@@ -75,6 +75,8 @@ family_planning                 varchar(10),
 maternal_outcome_date           date,          
 maternal_disposition            varchar(100),  
 hcw_delivery                    varchar(100),  
-hcw_type                        varchar(100)   
+hcw_type                        varchar(100),
+index_asc                       int,
+index_desc                      int  
 )
 ;
