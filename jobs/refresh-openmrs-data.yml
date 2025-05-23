@@ -35,7 +35,7 @@ configuration:
           - tableName: "ncd_monthly_summary"
           - tableName: "mch_maternity_patient"
           - tableName: "mch_anc_monthly_summary"
-          - tableName: "pregnancy_summary"
+          - tableName: "mch_pregnancy_summary"
           - tableName: "append_data_warnings"
           - tableName: "duplicate_patient_warnings"
           - tableName: "update_patient_url"
