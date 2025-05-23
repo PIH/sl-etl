@@ -1,4 +1,4 @@
-create table newborn_admission_encounter
+create table mch_newborn_admission_encounter
 (
 	patient_id                  varchar(100),          
 	emr_id                      varchar(255), 
