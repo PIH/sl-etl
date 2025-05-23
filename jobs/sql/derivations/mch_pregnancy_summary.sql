@@ -67,7 +67,7 @@ select
 	date_completed,
 	outcome,
     current_state
-from pregnancy_program pp;
+from mch_pregnancy_program pp;
 
 
 update ps
@@ -531,4 +531,4 @@ post_partum_state_date,
 anc_state_date;
 
 DROP TABLE IF EXISTS pregnancy_summary;
-EXEC sp_rename 'pregnancy_summary_staging', 'pregnancy_summary';
+EXEC sp_rename 'pregnancy_summary_staging', 'mch_pregnancy_summary';

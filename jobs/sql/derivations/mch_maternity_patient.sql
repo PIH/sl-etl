@@ -14,7 +14,7 @@ most_recent_living int,
 actual_delivery_date date,
 latest_lmp_entered date,
 estimated_gestational_age float,
-current_mch_pregnancy_state varchar(255),
+current_pregnancy_state varchar(255),
 pregnancy_outcome varchar(255),
 most_recent_height float,
 most_recent_weight float, 
@@ -82,18 +82,18 @@ from mch_maternity_patient_staging m;
 
 -- this is necessary because estimated_gestational_age currently contains the string "<45" sometimes:
 update m 
-set m.current_mch_pregnancy_state = pp.current_state,
+set m.current_pregnancy_state = pp.current_state,
  m.pregnancy_outcome = pp.outcome
 from mch_maternity_patient_staging m
 inner join mch_pregnancy_program pp on pp.pregnancy_program_id = 
-	(select top 1 pp2.pregnancy_program_id from pregnancy_program pp2
+	(select top 1 pp2.pregnancy_program_id from mch_pregnancy_program pp2
 	where pp2.patient_id = m.patient_id
 	order by date_enrolled desc);
 
 update m
 set currently_pregnant = 
 case	
-	when current_mch_pregnancy_state = 'Antenatal' 
+	when current_pregnancy_state = 'Antenatal' 
 		and (estimated_gestational_age <= 45 or (estimated_gestational_age is null and datediff(week, most_recent_date_enrolled, getdate()) <= 45))
 		then 1
 	else 0	
@@ -261,7 +261,7 @@ set m.most_recent_hiv_status =
 from mch_maternity_patient_staging m;
 
 -- --------------------------
-ALTER TABLE mch_maternity_patient_staging DROP COLUMN estimated_gestational_age, current_mch_pregnancy_state, pregnancy_outcome, actual_delivery_date, latest_lmp_entered;
+ALTER TABLE mch_maternity_patient_staging DROP COLUMN estimated_gestational_age, current_pregnancy_state, pregnancy_outcome, actual_delivery_date, latest_lmp_entered;
 
 DROP TABLE IF EXISTS mch_maternity_patient;
 EXEC sp_rename 'mch_maternity_patient_staging', 'mch_maternity_patient';
