@@ -78,8 +78,8 @@ drop table if exists #temp_mh_encounter_latest;
 select patient_id, emr_id, visit_id, encounter_type, encounter_id, e.mh_program_id, encounter_datetime, datetime_entered, user_entered, 
 site, partition_num 
 into #temp_mh_encounter_latest
-from mh_encounters e where encounter_id =
-(select top 1 encounter_id from mh_encounters e2
+from mh_encounter e where encounter_id =
+(select top 1 encounter_id from mh_encounter e2
 where e2.mh_program_id = e.mh_program_id
 and e2.encounter_type = e.encounter_type 
 order by encounter_datetime desc, encounter_id desc);

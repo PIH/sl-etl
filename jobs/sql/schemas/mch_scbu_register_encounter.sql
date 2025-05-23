@@ -1,4 +1,4 @@
-create table scbu_register_encounter (                            
+create table mch_scbu_register_encounter (                            
 patient_id                   varchar(50),  
 emr_id                       varchar(255), 
 encounter_id                 int,          

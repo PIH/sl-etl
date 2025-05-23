@@ -192,7 +192,7 @@
                                 </fileSet>				    
                                 <fileSet>
                                     <sourceFile>${dataExportSqlDir}/summary_db_restore.sql</sourceFile>
-                                    <destinationFile>${petlJobExtractionSqlDir}/summary_db_restore.sql</destinationFile>
+                                    <destinationFile>${petlJobExtractionSqlDir}/petl_summary_db_restore.sql</destinationFile>
                                 </fileSet>                                   
 			                </fileSets>
                         </configuration>

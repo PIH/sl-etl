@@ -1,4 +1,4 @@
-create table mh_encounters
+create table mh_encounter
 (
  patient_id                                   varchar(50),
  emr_id                                       varchar(50),   
