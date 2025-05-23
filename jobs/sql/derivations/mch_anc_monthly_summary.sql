@@ -63,8 +63,8 @@ and LastDayOfMonth <= '2025-03-31' -- CHANGE THIS to GETDATE()!
 -- if the patient had multiple qualifying enrollments, set date_enrolled to the most recent
 insert into mch_anc_monthly_summary_staging (patient_id, emr_id, reporting_date, pregnancy_program_id, date_enrolled, program_outcome_date, program_outcome)
 select  distinct pp.patient_id, pp.emr_id, r.month_end_date, pp.pregnancy_program_id,pp.date_enrolled, pp.date_completed, pp.outcome
-from    pregnancy_program pp
-inner join pregnancy_state ps on ps.pregnancy_program_id = pp.pregnancy_program_id and state = 'Antenatal'
+from    mch_pregnancy_program pp
+inner join mch_pregnancy_state ps on ps.pregnancy_program_id = pp.pregnancy_program_id and state = 'Antenatal'
 inner join #reporting_months r
 	on ps.state_start_date <= r.month_end_date
 	and     (ps.state_end_date is null or ps.state_end_date >= r.month_start_date);
@@ -237,7 +237,7 @@ drop table if exists #pregnancy_dispensing;
 select d.patient_id, pp.pregnancy_program_id, d.encounter_datetime, d.drug_name  
 into #pregnancy_dispensing
 from all_medication_dispensing d  
-inner join pregnancy_program pp on pp.patient_id = d.patient_id
+inner join mch_pregnancy_program pp on pp.patient_id = d.patient_id
     and pp.date_enrolled <= CAST(d.encounter_datetime AS date)
     and (pp.date_completed >= CAST(d.encounter_datetime AS date) or pp.date_completed is null);
 
