@@ -18,3 +18,5 @@ drop table if exists postpartum_daily_encounter;
 drop table if exists pregnancy_program;
 drop table if exists pregnancy_state;
 drop table if exists pregnancy_summary;
+drop table if exists newborn_admission_encounter;
+drop table if exists newborn_assessment_encounter;
