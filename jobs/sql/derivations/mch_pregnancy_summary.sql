@@ -530,5 +530,5 @@ total_anc_visits_since_entry,
 post_partum_state_date,
 anc_state_date;
 
-DROP TABLE IF EXISTS pregnancy_summary;
+DROP TABLE IF EXISTS mch_pregnancy_summary;
 EXEC sp_rename 'pregnancy_summary_staging', 'mch_pregnancy_summary';
