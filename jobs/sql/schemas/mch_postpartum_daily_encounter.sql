@@ -1,4 +1,4 @@
-create table postpartum_daily_encounter
+create table mch_postpartum_daily_encounter
 (
     encounter_id                  varchar(100),
     visit_id                      varchar(100),
