@@ -14,7 +14,7 @@ most_recent_living int,
 actual_delivery_date date,
 latest_lmp_entered date,
 estimated_gestational_age float,
-current_pregnancy_state varchar(255),
+current_mch_pregnancy_state varchar(255),
 pregnancy_outcome varchar(255),
 most_recent_height float,
 most_recent_weight float, 
@@ -44,7 +44,7 @@ where encounter_type in
 'Postpartum progress')
 union
 select DISTINCT emr_id, patient_id 
-from pregnancy_program ; 
+from mch_pregnancy_program ; 
 
 -- all_patient fields
 update m
@@ -60,9 +60,9 @@ update m
 set most_recent_pregnancy_program_id = pp.pregnancy_program_id,
 	most_recent_date_enrolled = pp.date_enrolled
 from mch_maternity_patient_staging m
-inner join pregnancy_program pp on pp.pregnancy_program_id = 
+inner join mch_pregnancy_program pp on pp.pregnancy_program_id = 
 	(select top 1 pp2.pregnancy_program_id 
-	from pregnancy_program pp2
+	from mch_pregnancy_program pp2
 	where pp2.patient_id = m.patient_id
 	order by date_enrolled desc, pregnancy_program_id desc);
 
@@ -82,10 +82,10 @@ from mch_maternity_patient_staging m;
 
 -- this is necessary because estimated_gestational_age currently contains the string "<45" sometimes:
 update m 
-set m.current_pregnancy_state = pp.current_state,
+set m.current_mch_pregnancy_state = pp.current_state,
  m.pregnancy_outcome = pp.outcome
 from mch_maternity_patient_staging m
-inner join pregnancy_program pp on pp.pregnancy_program_id = 
+inner join mch_pregnancy_program pp on pp.pregnancy_program_id = 
 	(select top 1 pp2.pregnancy_program_id from pregnancy_program pp2
 	where pp2.patient_id = m.patient_id
 	order by date_enrolled desc);
@@ -93,7 +93,7 @@ inner join pregnancy_program pp on pp.pregnancy_program_id =
 update m
 set currently_pregnant = 
 case	
-	when current_pregnancy_state = 'Antenatal' 
+	when current_mch_pregnancy_state = 'Antenatal' 
 		and (estimated_gestational_age <= 45 or (estimated_gestational_age is null and datediff(week, most_recent_date_enrolled, getdate()) <= 45))
 		then 1
 	else 0	
@@ -145,7 +145,7 @@ inner join mch_maternity_patient_staging m on m.patient_id = x.patient_id;
 
 insert into #maternity_encounters (patient_id, encounter_id, encounter_type, bp_systolic, bp_diastolic, encounter_datetime )
 select x.patient_id, x.encounter_id, 'Postpartum progress', x.bp_systolic, x.bp_diastolic, x.encounter_datetime  
-from postpartum_daily_encounter x
+from mch_postpartum_daily_encounter x
 inner join mch_maternity_patient_staging m on m.patient_id = x.patient_id;
 
 insert into #maternity_encounters (patient_id, encounter_id, encounter_type, encounter_datetime )
@@ -261,7 +261,7 @@ set m.most_recent_hiv_status =
 from mch_maternity_patient_staging m;
 
 -- --------------------------
-ALTER TABLE mch_maternity_patient_staging DROP COLUMN estimated_gestational_age, current_pregnancy_state, pregnancy_outcome, actual_delivery_date, latest_lmp_entered;
+ALTER TABLE mch_maternity_patient_staging DROP COLUMN estimated_gestational_age, current_mch_pregnancy_state, pregnancy_outcome, actual_delivery_date, latest_lmp_entered;
 
 DROP TABLE IF EXISTS mch_maternity_patient;
 EXEC sp_rename 'mch_maternity_patient_staging', 'mch_maternity_patient';

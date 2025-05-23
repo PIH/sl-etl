@@ -14,3 +14,7 @@ drop table if exists labor_progress_encounter;
 drop table if exists labor_summary_encounter;
 drop table if exists maternal_discharge_encounter;
 drop table if exists maternity_patient;
+drop table if exists postpartum_daily_encounter;
+drop table if exists pregnancy_program;
+drop table if exists pregnancy_state;
+drop table if exists pregnancy_summary;

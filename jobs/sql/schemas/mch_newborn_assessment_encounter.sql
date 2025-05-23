@@ -1,4 +1,4 @@
-create table newborn_assessment_encounter
+create table mch_newborn_assessment_encounter
 (
     encounter_id             varchar(100),
     visit_id                 varchar(100),

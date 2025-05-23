@@ -166,18 +166,18 @@ set t.index_asc = i.index_asc,
 from newborn_progress_discharge_encounter t inner join #derived_indexes i on i.encounter_id = t.encounter_id
 ;
 
--- update index asc/desc on postpartum_daily_encounter table
+-- update index asc/desc on mch_postpartum_daily_encounter table
 drop table if exists #derived_indexes;
 select  encounter_id,
         ROW_NUMBER() over (PARTITION by emr_id order by encounter_datetime, encounter_id) as index_asc,
         ROW_NUMBER() over (PARTITION by emr_id order by encounter_datetime DESC, encounter_id DESC) as index_desc
 into    #derived_indexes
-from    postpartum_daily_encounter;
+from    mch_postpartum_daily_encounter;
 
 update t
 set t.index_asc = i.index_asc,
     t.index_desc = i.index_desc
-from postpartum_daily_encounter t inner join #derived_indexes i on i.encounter_id = t.encounter_id
+from mch_postpartum_daily_encounter t inner join #derived_indexes i on i.encounter_id = t.encounter_id
 ;
 
 -- update index asc/desc on all_appointments table
@@ -194,7 +194,7 @@ set t.index_asc = i.index_asc,
 from all_appointments t inner join #derived_indexes i on i.appointment_id = t.appointment_id
 ;
 
--- update index asc/desc on pregnancy_program table
+-- update index asc/desc on mch_pregnancy_program table
 drop table if exists #derived_indexes;
 select  pregnancy_program_id,
         ROW_NUMBER() over (PARTITION by patient_id order by date_enrolled, pregnancy_program_id) as index_asc,
@@ -205,7 +205,7 @@ from    pregnancy_program;
 update t
 set t.index_asc = i.index_asc,
     t.index_desc = i.index_desc
-from pregnancy_program t inner join #derived_indexes i on i.pregnancy_program_id = t.pregnancy_program_id
+from mch_pregnancy_program t inner join #derived_indexes i on i.pregnancy_program_id = t.pregnancy_program_id
 ;
 
 -- update index asc/desc on newborn_admission_encounter table
@@ -222,7 +222,7 @@ set t.index_asc = i.index_asc,
 from newborn_admission_encounter t inner join #derived_indexes i on i.encounter_id = t.encounter_id
 ;
 
--- update patient index asc/desc on pregnancy_state table
+-- update patient index asc/desc on mch_pregnancy_state table
 drop table if exists #derived_indexes;
 select  pregnancy_program_state_id,
         ROW_NUMBER() over (PARTITION by emr_id order by state_start_date, pregnancy_program_state_id) as index_asc,
@@ -233,10 +233,10 @@ from    pregnancy_state;
 update t
 set t.index_asc = i.index_asc,
     t.index_desc = i.index_desc
-from pregnancy_state t inner join #derived_indexes i on i.pregnancy_program_state_id = t.pregnancy_program_state_id
+from mch_pregnancy_state t inner join #derived_indexes i on i.pregnancy_program_state_id = t.pregnancy_program_state_id
 ;
 
--- update patient program index asc/desc on pregnancy_state table
+-- update patient program index asc/desc on mch_pregnancy_state table
 drop table if exists #derived_indexes;
 select  pregnancy_program_state_id,
         ROW_NUMBER() over (PARTITION by pregnancy_program_id order by state_start_date, pregnancy_program_state_id) as index_asc_patient_program,
@@ -247,5 +247,5 @@ from    pregnancy_state;
 update t
 set t.index_asc_patient_program = i.index_asc_patient_program,
     t.index_desc_patient_program = i.index_desc_patient_program
-from pregnancy_state t inner join #derived_indexes i on i.pregnancy_program_state_id = t.pregnancy_program_state_id
+from mch_pregnancy_state t inner join #derived_indexes i on i.pregnancy_program_state_id = t.pregnancy_program_state_id
 ;
