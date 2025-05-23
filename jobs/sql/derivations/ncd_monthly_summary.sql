@@ -493,8 +493,8 @@ update t
 set latest_seizure_frequency = seizure_frequency,
 	latest_seizure_frequency_datetime = e.encounter_datetime
 from ncd_monthly_summary_staging t
-inner join mh_encounters e on e.encounter_id = (
-    select top 1 e2.encounter_id from mh_encounters e2
+inner join mh_encounter e on e.encounter_id = (
+    select top 1 e2.encounter_id from mh_encounter e2
 	where e2.patient_id = t.patient_id
 	and cast(e2.encounter_datetime as DATE) <= t.reporting_date
 	and e2.seizure_frequency is not null
