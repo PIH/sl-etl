@@ -38,7 +38,9 @@ CREATE TEMPORARY TABLE temp_report
  specimen_collection_datetime DATETIME,      
  collection_date_estimated    VARCHAR(255),  
  test_location                VARCHAR(255),  
- results_date                  DATETIME       
+ results_date                 DATETIME,    
+ index_asc                    INT,
+ index_desc                   INT 
  );
 
 -- load temporary table with all lab test orders within the date range 
@@ -226,5 +228,7 @@ urgency,
 specimen_collection_datetime,
 collection_date_estimated,
 test_location,
-results_date
+results_date,
+index_asc,
+index_desc
 FROM temp_report;
