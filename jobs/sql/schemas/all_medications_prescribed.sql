@@ -28,6 +28,8 @@ CREATE TABLE all_medications_prescribed
     order_duration              int,
     order_duration_units        varchar(50),
     order_reason                text,
-    order_comments              text
+    order_comments              text,
+    index_asc                   int,
+    index_desc                  int
 )
 ;
