@@ -200,7 +200,7 @@ select  pregnancy_program_id,
         ROW_NUMBER() over (PARTITION by patient_id order by date_enrolled, pregnancy_program_id) as index_asc,
         ROW_NUMBER() over (PARTITION by patient_id order by date_enrolled DESC, pregnancy_program_id DESC) as index_desc
 into    #derived_indexes
-from    pregnancy_program;
+from    mch_pregnancy_program;
 
 update t
 set t.index_asc = i.index_asc,
@@ -228,7 +228,7 @@ select  pregnancy_program_state_id,
         ROW_NUMBER() over (PARTITION by emr_id order by state_start_date, pregnancy_program_state_id) as index_asc,
         ROW_NUMBER() over (PARTITION by emr_id order by state_start_date DESC, pregnancy_program_state_id DESC) as index_desc
 into    #derived_indexes
-from    pregnancy_state;
+from    mch_pregnancy_state;
 
 update t
 set t.index_asc = i.index_asc,
@@ -242,7 +242,7 @@ select  pregnancy_program_state_id,
         ROW_NUMBER() over (PARTITION by pregnancy_program_id order by state_start_date, pregnancy_program_state_id) as index_asc_patient_program,
         ROW_NUMBER() over (PARTITION by pregnancy_program_id order by state_start_date DESC, pregnancy_program_state_id DESC) as index_desc_patient_program
 into    #derived_indexes
-from    pregnancy_state;
+from    mch_pregnancy_state;
 
 update t
 set t.index_asc_patient_program = i.index_asc_patient_program,
