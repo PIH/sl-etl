@@ -27,6 +27,8 @@ latest_medication_date date,
 last_visit_date date,
 next_scheduled_visit_date date,
 three_months_since_latest_return_date varchar(50),
-six_months_since_latest_return_date varchar(50)
+six_months_since_latest_return_date varchar(50),
+index_asc int,
+index_desc int
 )
 ;
