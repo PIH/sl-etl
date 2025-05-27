@@ -48,6 +48,8 @@ order_duration              int,
 order_duration_units        varchar(50),
 order_reason                text,
 order_comments              text,
+index_asc                   int,
+index_desc                  int,
 PRIMARY KEY (medication_prescription_id)
 );
 
@@ -249,5 +251,7 @@ SELECT
     order_duration,
     order_duration_units,
     order_reason,
-    order_comments
+    order_comments,
+    index_asc,
+    index_desc
 FROM all_medication_prescribed;

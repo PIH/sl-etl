@@ -1,51 +1,77 @@
-
 -- All Programs 
-set @partition = '${partitionNum}';
-SELECT patient_identifier_type_id INTO @identifier_type FROM patient_identifier_type pit WHERE uuid ='1a2acce0-7426-11e5-a837-0800200c9a66';
-SELECT patient_identifier_type_id INTO @kgh_identifier_type FROM patient_identifier_type pit WHERE uuid ='c09a1d24-7162-11eb-8aa6-0242ac110002';
+SET @partition = '${partitionNum}';
 
-DROP temporary TABLE IF EXISTS all_programs;
-create temporary table all_programs(
-patient_id int,
-wellbody_emr_id varchar(50),
-kgh_emr_id varchar(50),
-program_name varchar(50),
-date_enrolled date,
-date_completed date,
-final_program_status varchar(100),
-created_by varchar(50)
+-- Get patient identifier types
+SELECT patient_identifier_type_id INTO @identifier_type FROM patient_identifier_type pit WHERE uuid = '1a2acce0-7426-11e5-a837-0800200c9a66';
+SELECT patient_identifier_type_id INTO @kgh_identifier_type FROM patient_identifier_type pit WHERE uuid = 'c09a1d24-7162-11eb-8aa6-0242ac110002';
+
+-- Drop and create temporary table
+DROP TEMPORARY TABLE IF EXISTS all_programs;
+
+CREATE TEMPORARY TABLE all_programs (
+    patient_id            INT,
+    wellbody_emr_id       VARCHAR(50),
+    kgh_emr_id            VARCHAR(50),
+    program_name          VARCHAR(50),
+    date_enrolled         DATE,
+    date_completed        DATE,
+    final_program_status  VARCHAR(100),
+    created_by            VARCHAR(50),
+    index_asc             INT,
+    index_desc            INT
 );
 
-insert into all_programs(patient_id,program_name,date_enrolled,date_completed,final_program_status,created_by)
-select  pp.patient_id,
-		p.name program_name,
-		pp.date_enrolled,
-		pp.date_completed,
-		cn.name final_program_status,
-		u.username created_by
-from patient_program pp
-left outer join program p on pp.program_id =p.program_id 
-left outer join users u on pp.creator =u.user_id
-left outer join concept_name cn on pp.outcome_concept_id = cn.concept_id and cn.voided=0 and cn.locale='en'
-where pp.voided=0 ;
+-- Insert program data
+INSERT INTO all_programs (
+    patient_id,
+    program_name,
+    date_enrolled,
+    date_completed,
+    final_program_status,
+    created_by
+)
+SELECT 
+    pp.patient_id,
+    p.name AS program_name,
+    pp.date_enrolled,
+    pp.date_completed,
+    cn.name AS final_program_status,
+    u.username AS created_by
+FROM 
+    patient_program pp
+    LEFT JOIN program p ON pp.program_id = p.program_id
+    LEFT JOIN users u ON pp.creator = u.user_id
+    LEFT JOIN concept_name cn 
+        ON pp.outcome_concept_id = cn.concept_id 
+        AND cn.voided = 0 
+        AND cn.locale = 'en'
+WHERE 
+    pp.voided = 0;
+
+-- Update identifiers
+UPDATE all_programs ae
+SET ae.wellbody_emr_id = patient_identifier(ae.patient_id, '1a2acce0-7426-11e5-a837-0800200c9a66');
 
 UPDATE all_programs ae
-SET ae.wellbody_emr_id=patient_identifier(ae.patient_id,'1a2acce0-7426-11e5-a837-0800200c9a66');
+SET ae.kgh_emr_id = patient_identifier(ae.patient_id, 'c09a1d24-7162-11eb-8aa6-0242ac110002');
 
-UPDATE all_programs ae
-SET ae.kgh_emr_id=patient_identifier(ae.patient_id,'c09a1d24-7162-11eb-8aa6-0242ac110002');
+-- Remove rows with no EMR IDs
+DELETE FROM all_programs 
+WHERE wellbody_emr_id IS NULL 
+  AND kgh_emr_id IS NULL;
 
-delete from all_programs 
-where wellbody_emr_id is null and kgh_emr_id is null;
-
-select 
-concat(@partition,"-",patient_id) patient_id,
-wellbody_emr_id,
-kgh_emr_id ,
-COALESCE(wellbody_emr_id, kgh_emr_id) emr_id,
-program_name,
-date_enrolled , 
-date_completed ,
-final_program_status,
-created_by as user_entered
-from all_programs;
+-- Final output
+SELECT 
+    CONCAT(@partition, "-", patient_id) AS patient_id,
+    wellbody_emr_id,
+    kgh_emr_id,
+    COALESCE(wellbody_emr_id, kgh_emr_id) AS emr_id,
+    program_name,
+    date_enrolled,
+    date_completed,
+    final_program_status,
+    created_by AS user_entered,
+    index_asc,
+    index_desc
+FROM 
+    all_programs;

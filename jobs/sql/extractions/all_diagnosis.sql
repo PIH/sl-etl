@@ -45,7 +45,9 @@ CREATE TEMPORARY TABLE all_diagnosis (
     visit_id             INT,
     birthdate            DATETIME,
     birthdate_estimated  BIT,
-    encounter_type       VARCHAR(255)
+    encounter_type       VARCHAR(255),
+    index_asc            INT,
+    index_desc           INT
 );
 
 -- Set concept mappings
@@ -326,5 +328,7 @@ SELECT
     CONCAT(@partition, "-", d.visit_id) AS visit_id, 
     d.birthdate,
     d.birthdate_estimated,
-    d.encounter_type
+    d.encounter_type,
+    d.index_asc,
+    d.index_desc
 FROM all_diagnosis d;
