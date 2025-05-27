@@ -224,5 +224,7 @@ create table mh_encounter
  quetiapine_fumarate_tab_route                varchar(50),   
  additional_medication_comments               text,  
  assigned_chw                                 varchar(50),   
- return_visit_date                            datetime       
-    );  
+ return_visit_date                            datetime,
+ index_asc                                    int,
+ index_desc                                   int
+);  
