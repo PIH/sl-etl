@@ -1,4 +1,4 @@
-CREATE TABLE #all_medication_dispensing
+CREATE TABLE all_medication_dispensing
 (
 form                varchar(10),  
 patient_id          varchar(50),  
