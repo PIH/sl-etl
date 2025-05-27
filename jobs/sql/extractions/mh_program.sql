@@ -45,7 +45,9 @@ last_visit_date date,
 next_scheduled_visit_date date,
 patient_came_within_14_days_appt varchar(50),
 three_months_since_latest_return_date varchar(50),
-six_months_since_latest_return_date varchar(50)
+six_months_since_latest_return_date varchar(50),
+index_asc int,
+index_desc int
 );
 
 insert into temp_mentalhealth_program (patient_id, patient_program_id, prog_location_id, emr_id, gender, date_enrolled, date_completed, number_of_days_in_care, program_status_outcome)
@@ -328,5 +330,7 @@ latest_medication_date,
 last_visit_date,
 next_scheduled_visit_date,
 three_months_since_latest_return_date,
-six_months_since_latest_return_date
+six_months_since_latest_return_date,
+index_asc,
+index_desc
 from temp_mentalhealth_program;

@@ -235,8 +235,9 @@ create temporary table temp_mh
  quetiapine_fumarate_tab_route                varchar(50),   
  additional_medication_comments               text,          
  assigned_chw                                 varchar(50),   
- return_visit_date                            datetime       
-    );  
+ return_visit_date                            datetime,
+ index_asc                                    int,
+ index_desc                                   int);  
 
 -- load temporary table with all mh encounters within the date range 
 insert into temp_mh (
@@ -913,5 +914,7 @@ select
     quetiapine_fumarate_tab_route,
     additional_medication_comments,
     assigned_chw,
-    return_visit_date
+    return_visit_date,
+    index_asc,
+    index_desc
 from temp_mh;

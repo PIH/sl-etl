@@ -44,5 +44,7 @@ Pain                     varchar(255),
 Other_Symptom            varchar(255), 
 Clinical_Impression      text, 
 Glucose_Value            float,
-Referral_Destination     varchar(255)
+Referral_Destination     varchar(255),
+index_asc                int,
+index_desc               int
 );
