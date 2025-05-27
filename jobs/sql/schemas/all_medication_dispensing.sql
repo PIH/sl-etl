@@ -21,5 +21,5 @@ quantity_unit varchar(30),
 order_id int, 
 instructions text,
 index_asc int,
-index_desc
+index_desc int
 );
