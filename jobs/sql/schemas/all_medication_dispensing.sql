@@ -9,7 +9,7 @@ encounter_location varchar(100),
 datetime_entered datetime,
 user_entered varchar(30),
 encounter_provider varchar(30),
-drug_name varchar(500),
+drug_name varchar(500),a
 drug_openboxes_code int,
 duration int,
 duration_unit varchar(20),
@@ -19,5 +19,7 @@ frequency varchar(50),
 quantity_dispensed int,
 quantity_unit varchar(30),
 order_id int, 
-instructions text
+instructions text,
+index_asc int,
+index_desc
 );
