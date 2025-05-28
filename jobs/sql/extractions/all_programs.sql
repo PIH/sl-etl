@@ -9,6 +9,7 @@ SELECT patient_identifier_type_id INTO @kgh_identifier_type FROM patient_identif
 DROP TEMPORARY TABLE IF EXISTS all_programs;
 
 CREATE TEMPORARY TABLE all_programs (
+	patient_program_id    INT,
     patient_id            INT,
     wellbody_emr_id       VARCHAR(50),
     kgh_emr_id            VARCHAR(50),
@@ -23,6 +24,7 @@ CREATE TEMPORARY TABLE all_programs (
 
 -- Insert program data
 INSERT INTO all_programs (
+	patient_program_id,
     patient_id,
     program_name,
     date_enrolled,
@@ -31,7 +33,8 @@ INSERT INTO all_programs (
     created_by
 )
 SELECT 
-    pp.patient_id,
+    pp.patient_program_id,
+	pp.patient_id,
     p.name AS program_name,
     pp.date_enrolled,
     pp.date_completed,
@@ -62,6 +65,7 @@ WHERE wellbody_emr_id IS NULL
 
 -- Final output
 SELECT 
+    CONCAT(@partition, "-", patient_program_id) AS patient_program_id,
     CONCAT(@partition, "-", patient_id) AS patient_id,
     wellbody_emr_id,
     kgh_emr_id,
