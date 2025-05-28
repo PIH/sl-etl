@@ -305,3 +305,60 @@ set t.index_asc = i.index_asc,
     t.index_desc = i.index_desc
 from all_lab_results t inner join #derived_indexes i on i.lab_obs_id = t.lab_obs_id
 ;
+
+-- update patient  index asc/desc on mch_delivery table
+drop table if exists #derived_indexes;
+select  encounter_id,
+        ROW_NUMBER() over (PARTITION by patient_id order by encounter_datetime, encounter_id) as index_asc,
+        ROW_NUMBER() over (PARTITION by patient_id order by encounter_datetime DESC, encounter_id DESC) as index_desc
+into    #derived_indexes
+from    mch_delivery;
+
+update t
+set t.index_asc = i.index_asc,
+    t.index_desc = i.index_desc
+from mch_delivery t inner join #derived_indexes i on i.encounter_id = t.encounter_id
+;
+
+-- update patient  index asc/desc on mh_encounter table
+drop table if exists #derived_indexes;
+select  encounter_id,
+        ROW_NUMBER() over (PARTITION by patient_id order by encounter_datetime, encounter_id) as index_asc,
+        ROW_NUMBER() over (PARTITION by patient_id order by encounter_datetime DESC, encounter_id DESC) as index_desc
+into    #derived_indexes
+from    mh_encounter;
+
+update t
+set t.index_asc = i.index_asc,
+    t.index_desc = i.index_desc
+from mh_encounter t inner join #derived_indexes i on i.encounter_id = t.encounter_id
+;
+
+-- update patient  index asc/desc on triage_encounter table
+drop table if exists #derived_indexes;
+select  encounter_id,
+        ROW_NUMBER() over (PARTITION by patient_id order by encounter_datetime, encounter_id) as index_asc,
+        ROW_NUMBER() over (PARTITION by patient_id order by encounter_datetime DESC, encounter_id DESC) as index_desc
+into    #derived_indexes
+from    triage_encounter;
+
+update t
+set t.index_asc = i.index_asc,
+    t.index_desc = i.index_desc
+from triage_encounter t inner join #derived_indexes i on i.encounter_id = t.encounter_id
+;
+
+
+-- update patient  index asc/desc on user_logins table
+drop table if exists #derived_indexes;
+select  login_id,
+        ROW_NUMBER() over (PARTITION by username order by date_logged_in, login_id) as index_asc,
+        ROW_NUMBER() over (PARTITION by username order by date_logged_in DESC, login_id DESC) as index_desc
+into    #derived_indexes
+from    user_logins;
+
+update t
+set t.index_asc = i.index_asc,
+    t.index_desc = i.index_desc
+from user_logins t inner join #derived_indexes i on i.login_id = t.login_id
+;
