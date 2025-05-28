@@ -249,3 +249,59 @@ set t.index_asc_patient_program = i.index_asc_patient_program,
     t.index_desc_patient_program = i.index_desc_patient_program
 from mch_pregnancy_state t inner join #derived_indexes i on i.pregnancy_program_state_id = t.pregnancy_program_state_id
 ;
+
+-- update patient  index asc/desc on all_medications_prescribed table
+drop table if exists #derived_indexes;
+select  medication_prescription_id,
+        ROW_NUMBER() over (PARTITION by patient_id order by order_date_activated, medication_prescription_id) as index_asc,
+        ROW_NUMBER() over (PARTITION by patient_id order by order_date_activated DESC, medication_prescription_id DESC) as index_desc
+into    #derived_indexes
+from    all_medications_prescribed;
+
+update t
+set t.index_asc = i.index_asc,
+    t.index_desc = i.index_desc
+from all_medications_prescribed t inner join #derived_indexes i on i.medication_prescription_id = t.medication_prescription_id
+;
+
+-- update patient  index asc/desc on all_diagnosis table
+drop table if exists #derived_indexes;
+select  obs_id,
+        ROW_NUMBER() over (PARTITION by patient_id order by obs_datetime, obs_id) as index_asc,
+        ROW_NUMBER() over (PARTITION by patient_id order by obs_datetime DESC, obs_id DESC) as index_desc
+into    #derived_indexes
+from    all_diagnosis;
+
+update t
+set t.index_asc = i.index_asc,
+    t.index_desc = i.index_desc
+from all_diagnosis t inner join #derived_indexes i on i.obs_id = t.obs_id
+;
+
+-- update patient  index asc/desc on all_lab_orders table
+drop table if exists #derived_indexes;
+select  order_number,
+        ROW_NUMBER() over (PARTITION by patient_id order by order_datetime, order_number) as index_asc,
+        ROW_NUMBER() over (PARTITION by patient_id order by order_datetime DESC, order_number DESC) as index_desc
+into    #derived_indexes
+from    all_lab_orders;
+
+update t
+set t.index_asc = i.index_asc,
+    t.index_desc = i.index_desc
+from all_lab_orders t inner join #derived_indexes i on i.order_number = t.order_number
+;
+
+-- update patient  index asc/desc on all_lab_results table
+drop table if exists #derived_indexes;
+select  lab_obs_id,
+        ROW_NUMBER() over (PARTITION by patient_id order by specimen_collection_date, lab_obs_id) as index_asc,
+        ROW_NUMBER() over (PARTITION by patient_id order by specimen_collection_date DESC, lab_obs_id DESC) as index_desc
+into    #derived_indexes
+from    all_lab_results;
+
+update t
+set t.index_asc = i.index_asc,
+    t.index_desc = i.index_desc
+from all_lab_results t inner join #derived_indexes i on i.lab_obs_id = t.lab_obs_id
+;
