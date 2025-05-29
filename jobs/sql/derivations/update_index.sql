@@ -348,7 +348,6 @@ set t.index_asc = i.index_asc,
 from triage_encounter t inner join #derived_indexes i on i.encounter_id = t.encounter_id
 ;
 
-
 -- update patient  index asc/desc on user_logins table
 drop table if exists #derived_indexes;
 select  login_id,
@@ -361,4 +360,60 @@ update t
 set t.index_asc = i.index_asc,
     t.index_desc = i.index_desc
 from user_logins t inner join #derived_indexes i on i.login_id = t.login_id
+;
+
+-- update patient  index asc/desc on all_medication_dispensing table
+drop table if exists #derived_indexes;
+select  dispensing_id,
+        ROW_NUMBER() over (PARTITION by patient_id order by encounter_datetime, dispensing_id) as index_asc,
+        ROW_NUMBER() over (PARTITION by patient_id order by encounter_datetime DESC, dispensing_id DESC) as index_desc
+into    #derived_indexes
+from    all_medication_dispensing;
+
+update t
+set t.index_asc = i.index_asc,
+    t.index_desc = i.index_desc
+from all_medication_dispensing t inner join #derived_indexes i on i.dispensing_id = t.dispensing_id
+;
+
+-- update patient  index asc/desc on all_programs table
+drop table if exists #derived_indexes;
+select  patient_program_id,
+        ROW_NUMBER() over (PARTITION by patient_id order by date_enrolled, patient_program_id) as index_asc,
+        ROW_NUMBER() over (PARTITION by patient_id order by date_enrolled DESC, patient_program_id DESC) as index_desc
+into    #derived_indexes
+from    all_programs;
+
+update t
+set t.index_asc = i.index_asc,
+    t.index_desc = i.index_desc
+from all_programs t inner join #derived_indexes i on i.patient_program_id = t.patient_program_id
+;
+
+-- update patient  index asc/desc on mh_program table
+drop table if exists #derived_indexes;
+select  patient_program_id,
+        ROW_NUMBER() over (PARTITION by patient_id order by date_enrolled, patient_program_id) as index_asc,
+        ROW_NUMBER() over (PARTITION by patient_id order by date_enrolled DESC, patient_program_id DESC) as index_desc
+into    #derived_indexes
+from    mh_program;
+
+update t
+set t.index_asc = i.index_asc,
+    t.index_desc = i.index_desc
+from mh_program t inner join #derived_indexes i on i.patient_program_id = t.patient_program_id
+;
+
+-- update patient  index asc/desc on ncd_program table
+drop table if exists #derived_indexes;
+select  patient_program_id,
+        ROW_NUMBER() over (PARTITION by patient_id order by date_enrolled, patient_program_id) as index_asc,
+        ROW_NUMBER() over (PARTITION by patient_id order by date_enrolled DESC, patient_program_id DESC) as index_desc
+into    #derived_indexes
+from    ncd_program;
+
+update t
+set t.index_asc = i.index_asc,
+    t.index_desc = i.index_desc
+from ncd_program t inner join #derived_indexes i on i.patient_program_id = t.patient_program_id
 ;
