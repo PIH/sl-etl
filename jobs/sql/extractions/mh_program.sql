@@ -24,7 +24,6 @@ emr_id varchar(255),
 gender varchar(50),
 age double,
 assigned_chw text,
-location_when_registered_in_program varchar(255),
 date_enrolled date,
 date_completed date,
 number_of_days_in_care double,
@@ -81,11 +80,6 @@ inner join (select patient_program_id, patient_id, person_a, GROUP_CONCAT(' ',CO
 and r.voided = 0 and relationship = relation_type('Community Health Worker') join person_name pn on person_a = pn.person_id and pn.voided = 0 group by patient_program_id) relationship
 on relationship.patient_id = tmhp.patient_id and tmhp.patient_program_id = relationship.patient_program_id
 set tmhp.assigned_chw = relationship.chw;
-
--- location registered in Program
-update temp_mentalhealth_program tmhp
-left join location l on location_id = tmhp.prog_location_id and l.retired = 0
-set tmhp.location_when_registered_in_program = l.name;
 
 -- latest diagnosis
 -- The approach below in finding the latest diagnosis is to:
@@ -309,12 +303,6 @@ emr_id,
 gender,
 age,
 assigned_chw,
-person_address_state_province(patient_id) 'province',
-person_address_city_village(patient_id) 'city_village',
-person_address_three(patient_id) 'address3',
-person_address_one(patient_id) 'address1',
-person_address_two(patient_id) 'address2',
-location_when_registered_in_program,
 date_enrolled,
 date_completed,
 number_of_days_in_care,
