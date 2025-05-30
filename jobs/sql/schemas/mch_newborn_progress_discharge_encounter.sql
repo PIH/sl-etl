@@ -1,4 +1,4 @@
-create table newborn_progress_discharge_encounter
+create table mch_newborn_progress_discharge_encounter
 (
     encounter_id        varchar(100),
     visit_id            varchar(100),
