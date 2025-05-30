@@ -23,3 +23,4 @@ drop table if exists newborn_assessment_encounter;
 drop table if exists scbu_register_encounter;
 drop table if exists mh_encounters;
 drop table if exists summary_db_restore;
+drop table if exists newborn_progress_discharge_encounter;
