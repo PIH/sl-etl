@@ -47,7 +47,7 @@ configuration:
           - tableName: "mch_labor_summary_encounter"
           - tableName: "mch_newborn_assessment_encounter"
           - tableName: "admission_note_encounter"
-          - tableName: "newborn_progress_discharge_encounter"
+          - tableName: "mch_newborn_progress_discharge_encounter"
           - tableName: "mch_postpartum_daily_encounter"
           - tableName: "all_appointments"
           - tableName: "mch_pregnancy_program"
