@@ -22,7 +22,6 @@ CREATE TEMPORARY TABLE temp_report
  unknown_patient              CHAR(1),       
  gender                       CHAR(1),       
  age_at_encounter             INT,           
- patient_address              VARCHAR(1000), 
  order_number                 VARCHAR(255),  
  accession_number             VARCHAR(255),  
  order_concept_id             INT,           
