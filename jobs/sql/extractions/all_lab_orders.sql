@@ -129,8 +129,7 @@ wellbody_emr_id VARCHAR(255),
 kgh_emr_id      VARCHAR(255), 
 gender          varchar(20),  
 loc_registered  VARCHAR(255), 
-unknown_patient char(1),      
-patient_address varchar(1000) 
+unknown_patient char(1)
 );
 
 create index dist_patients_pi on dist_patients(patient_id);
@@ -151,7 +150,6 @@ SET dp.kgh_emr_id= patient_identifier(patient_id,'c09a1d24-7162-11eb-8aa6-0242ac
 UPDATE dist_patients SET gender = GENDER(patient_id);
 UPDATE dist_patients SET loc_registered = LOC_REGISTERED(patient_id);
 UPDATE dist_patients SET unknown_patient = IF(UNKNOWN_PATIENT(patient_id) IS NULL,NULL,'1'); 
-UPDATE dist_patients SET patient_address = PERSON_ADDRESS(patient_id);
 
 UPDATE temp_report tr
 LEFT OUTER JOIN dist_patients dp ON tr.patient_id=dp.patient_id
@@ -161,8 +159,7 @@ tr.wellbody_emr_id=dp.wellbody_emr_id,
 tr.kgh_emr_id=dp.kgh_emr_id,
 tr.gender=dp.gender,
 tr.loc_registered=dp.loc_registered,
-tr.unknown_patient=dp.unknown_patient,
-tr.patient_address=dp.patient_address;
+tr.unknown_patient=dp.unknown_patient;
 
 UPDATE temp_report SET age_at_encounter = AGE_AT_ENC(patient_id,order_encounter_id);
 UPDATE temp_report SET orderable = IFNULL(CONCEPT_NAME(order_concept_id, @locale),CONCEPT_NAME(order_concept_id, 'en'));
@@ -214,7 +211,6 @@ loc_registered,
 unknown_patient, 
 gender, 
 age_at_encounter,
-patient_address,
 order_number,
 accession_number "Lab_ID",
 orderable,
