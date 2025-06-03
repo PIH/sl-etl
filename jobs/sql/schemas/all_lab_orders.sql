@@ -10,7 +10,6 @@ CREATE TABLE all_lab_orders
  unknown_patient              CHAR(1),       
  gender                       CHAR(1),       
  age_at_encounter             INT,           
- patient_address              VARCHAR(1000), 
  order_number                 VARCHAR(255),  
  accession_number             VARCHAR(255),  
  orderable                    VARCHAR(255),  
