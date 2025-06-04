@@ -21,8 +21,9 @@ latest_medication_given varchar(500),
 latest_medication_date date,
 last_visit_date date,
 next_scheduled_visit_date date,
-three_months_since_latest_return_date varchar(50),
-six_months_since_latest_return_date varchar(50),
+patient_came_within_14_days_appt bit,
+three_months_since_latest_return_date bit,
+six_months_since_latest_return_date bit,
 index_asc int,
 index_desc int
 )
