@@ -1,6 +1,6 @@
 CREATE TABLE ncd_program
 (
-    patient_program_id   varchar(50),
+    ncd_program_id       varchar(50),
     patient_id           varchar(50),
     emr_id               varchar(30),
     program_name         varchar(50),
