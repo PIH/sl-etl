@@ -1,5 +1,6 @@
 set @partition = '${partitionNum}';
 SET sql_safe_updates = 0;
+SET @locale = GLOBAL_PROPERTY_VALUE('default_locale', 'en');
 
 DROP TEMPORARY TABLE IF EXISTS temp_mentalhealth_program;
 
@@ -42,9 +43,9 @@ latest_medication_given text,
 latest_medication_date date,
 last_visit_date date,
 next_scheduled_visit_date date,
-patient_came_within_14_days_appt varchar(50),
-three_months_since_latest_return_date varchar(50),
-six_months_since_latest_return_date varchar(50),
+patient_came_within_14_days_appt boolean,
+three_months_since_latest_return_date boolean,
+six_months_since_latest_return_date boolean,
 index_asc int,
 index_desc int
 );
@@ -58,7 +59,7 @@ select patient_id,
 	   date(date_enrolled),
        date(date_completed),
        If(date_completed is null, datediff(now(), date_enrolled), datediff(date_completed, date_enrolled)),
-       concept_name(outcome_concept_id, 'fr')
+       concept_name(outcome_concept_id, @locale)
        from patient_program where program_id = @program_id and voided = 0
      ;
 
@@ -292,9 +293,9 @@ inner join temp_obs t on t.temp_id =
 	where t2.patient_program_id = tmh.patient_program_id
   	order by t2.encounter_datetime desc limit 1)
 set tmh.next_scheduled_visit_date = date(t.value_datetime),
-    tmh.patient_came_within_14_days_appt = IF(datediff(now(), tmh.last_visit_date) <= 14, 'Oui', 'No'),
-    tmh.three_months_since_latest_return_date = IF(datediff(now(), tmh.last_visit_date) <= 91.2501, 'No', 'Oui'),
-	tmh.six_months_since_latest_return_date = IF(datediff(now(), tmh.last_visit_date) <= 182.5, 'No', 'Oui');
+    tmh.patient_came_within_14_days_appt = IF(datediff(now(), tmh.last_visit_date) <= 14, 1, null),
+    tmh.three_months_since_latest_return_date = IF(datediff(now(), tmh.last_visit_date) <= 91.2501, null, 1),
+	tmh.six_months_since_latest_return_date = IF(datediff(now(), tmh.last_visit_date) <= 182.5, null, 1);
         
 select 
 concat(@partition,"-",patient_program_id)  as mh_program_id,
@@ -318,6 +319,7 @@ latest_medication_given,
 latest_medication_date,
 last_visit_date,
 next_scheduled_visit_date,
+patient_came_within_14_days_appt,
 three_months_since_latest_return_date,
 six_months_since_latest_return_date,
 index_asc,
