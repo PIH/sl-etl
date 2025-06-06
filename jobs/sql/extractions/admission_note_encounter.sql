@@ -14,7 +14,6 @@ create temporary table temp_enc
     encounter_location       varchar(255),
     datetime_entered         datetime,
     user_entered             varchar(255),
-    provider                 varchar(255),
     admitting_clinician      varchar(255),
     admitted_to              varchar(255),
     admission_date           datetime,
@@ -32,7 +31,6 @@ ORDER BY encounter_datetime desc;
 create index temp_enc_ei on temp_enc (encounter_id);
 
 UPDATE temp_enc set user_entered = person_name_of_user(user_entered);
-UPDATE temp_enc SET provider = provider(encounter_id);
 UPDATE temp_enc t SET emr_id = patient_identifier(patient_id, 'c09a1d24-7162-11eb-8aa6-0242ac110002');
 UPDATE temp_enc SET encounter_location=encounter_location_name(encounter_id);
 
@@ -60,7 +58,6 @@ SELECT
     encounter_location,
     datetime_entered,
     user_entered,
-    provider,
     admitting_clinician,
     admitted_to,
     admission_date,
