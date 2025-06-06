@@ -12,7 +12,7 @@ create table all_appointments
     duration             int,
     provider             varchar(255),
     status               varchar(45),
-    note                 varchar(255),
+    note                 text,
     datetime_entered     datetime,
     user_entered         varchar(255),
     index_asc            int,
