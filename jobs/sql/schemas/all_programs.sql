@@ -8,7 +8,7 @@ create table all_programs
   program_name          varchar(50),
   date_enrolled         date,
   date_completed        date,
-  final_program_status  varchar(255),
+  program_outcome       varchar(255),
   user_entered          varchar(50),
   index_asc             int,
   index_desc            int  
