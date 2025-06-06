@@ -43,7 +43,7 @@ CREATE TEMPORARY TABLE all_diagnosis (
     date_created         DATETIME,
     retrospective        INT,
     visit_id             INT,
-    birthdate            DATETIME,
+    birthdate            DATE,
     birthdate_estimated  BIT,
     encounter_type       VARCHAR(255),
     index_asc            INT,

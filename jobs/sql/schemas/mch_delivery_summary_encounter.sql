@@ -13,7 +13,7 @@ create table mch_delivery_summary_encounter
     user_entered             varchar(255),
     provider                 varchar(255),
     pregnancy_program_id     varchar(100),
-    birthdate                datetime,
+    birthdate                date,
     outcome                  varchar(255),
     sex                      varchar(10),
     birth_weight             decimal(3, 2),

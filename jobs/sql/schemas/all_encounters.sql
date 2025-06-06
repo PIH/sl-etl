@@ -11,7 +11,7 @@ encounter_type_id int,
 encounter_location varchar(255),
 provider varchar(50),
 encounter_datetime datetime,
-date_entered date,
+datetime_entered datetime,
 user_entered varchar(30),
 index_asc int, 
 index_desc int
