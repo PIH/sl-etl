@@ -19,14 +19,14 @@ location_id int(11),
 encounter_location varchar(255),
 encounter_year int,
 encounter_month int,
-date_entered date,
+datetime_entered datetime,
 created_by varchar(30),
 index_asc int, 
 index_desc int
 );
 
 insert into all_encounters(encounter_id,patient_id, visit_id, encounter_type,encounter_type_id, encounter_datetime, location_id,
-		encounter_year, encounter_month, date_entered, created_by)
+		encounter_year, encounter_month, datetime_entered, created_by)
 select e.encounter_id,
 	e.patient_id,
 	e.visit_id,
@@ -88,7 +88,7 @@ encounter_type_id,
 encounter_location,
 provider,
 encounter_datetime,
-date_entered,
+datetime_entered,
 created_by AS user_entered,
 index_asc,
 index_desc
