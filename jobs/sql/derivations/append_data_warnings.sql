@@ -108,7 +108,7 @@ having count(*) > 1;
 insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id,
 encounter_datetime, datetime_entered, user_entered, site, partition_num, other_details) 
 select 'Duplicate encounters for patient', e.encounter_type, e.patient_id, e.emr_id, e.visit_id, e.encounter_id, 
-e.encounter_datetime, e.date_entered, e.user_entered, e.site, e.partition_num, 
+e.encounter_datetime, e.datetime_entered, e.user_entered, e.site, e.partition_num, 
 concat('number of encounters: ', t.count)
 from all_encounters e
 inner join #temp_dup_encounters t on t.max_encounter_id = e.encounter_id;
@@ -144,7 +144,7 @@ having count(*) > 1;
 insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id,
 encounter_datetime, datetime_entered, user_entered, site, partition_num, other_details) 
 select 'Duplicate encounters within visit', e.encounter_type, e.patient_id, e.emr_id, e.visit_id, e.encounter_id, 
-e.encounter_datetime, e.date_entered, e.user_entered, e.site, e.partition_num, 
+e.encounter_datetime, e.datetime_entered, e.user_entered, e.site, e.partition_num, 
 concat('number of encounters: ', t.count)
 from all_encounters e
 inner join #temp_dup_encounters t on t.max_encounter_id = e.encounter_id;
@@ -203,7 +203,7 @@ inner join #temp_dup_encounters t on t.max_encounter_id = e.encounter_id;
 
 -- -------------------------------------------------- inpatient encounters without admission
 drop table if exists #temp_all_encounters_latest
-select patient_id, emr_id, visit_id, encounter_type, encounter_id, encounter_datetime, date_entered, user_entered, site, partition_num 
+select patient_id, emr_id, visit_id, encounter_type, encounter_id, encounter_datetime, datetime_entered, user_entered, site, partition_num 
 into #temp_all_encounters_latest
 from all_encounters e where encounter_id =
 (select top 1 encounter_id from all_encounters e2
@@ -223,7 +223,7 @@ order by encounter_datetime desc, encounter_id desc);
 insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id, 
 encounter_datetime, datetime_entered, user_entered, site, partition_num) 
 select 'Inpatient encounters without admission', encounter_type, patient_id, emr_id, visit_id, encounter_id,
-encounter_datetime, date_entered, user_entered, site, partition_num  
+encounter_datetime, datetime_entered, user_entered, site, partition_num  
 from #temp_all_encounters_latest e
 where not exists
 	(select 1 from all_encounters e2
