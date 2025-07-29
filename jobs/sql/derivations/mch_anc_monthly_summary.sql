@@ -47,7 +47,8 @@ iron_this_month bit,
 syphilis_test bit,
 arv_medication bit,
 muac_measured bit,
-anc_visit1_weight bit
+anc_visit1_weight bit,
+site varchar(100)
 );
 
 -- create list of reporting_months (since 2023)
@@ -61,8 +62,8 @@ and LastDayOfMonth <= '2025-03-31' -- CHANGE THIS to GETDATE()!
 
 -- enter a row for every month-end the patient was active in the program
 -- if the patient had multiple qualifying enrollments, set date_enrolled to the most recent
-insert into mch_anc_monthly_summary_staging (patient_id, emr_id, reporting_date, pregnancy_program_id, date_enrolled, program_outcome_date, program_outcome)
-select  distinct pp.patient_id, pp.emr_id, r.month_end_date, pp.pregnancy_program_id,pp.date_enrolled, pp.date_completed, pp.outcome
+insert into mch_anc_monthly_summary_staging (patient_id, emr_id, reporting_date, pregnancy_program_id, date_enrolled, program_outcome_date, program_outcome, site)
+select  distinct pp.patient_id, pp.emr_id, r.month_end_date, pp.pregnancy_program_id,pp.date_enrolled, pp.date_completed, pp.outcome, pp.site
 from    mch_pregnancy_program pp
 inner join mch_pregnancy_state ps on ps.pregnancy_program_id = pp.pregnancy_program_id and state = 'Antenatal'
 inner join #reporting_months r
