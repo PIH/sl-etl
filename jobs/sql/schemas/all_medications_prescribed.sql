@@ -29,6 +29,9 @@ CREATE TABLE all_medications_prescribed
     order_duration_units        varchar(50),
     order_reason                text,
     order_comments              text,
+    quantity_dispensed          int,
+    dispensing_status           varchar(255),
+    refills_remaining           int,
     index_asc                   int,
     index_desc                  int
 )
