@@ -48,6 +48,9 @@ order_duration              int,
 order_duration_units        varchar(50),
 order_reason                text,
 order_comments              text,
+quantity_dispensed          int,
+dispensing_status           varchar(255),
+refills_remaining           int,
 index_asc                   int,
 index_desc                  int,
 PRIMARY KEY (medication_prescription_id)
@@ -222,6 +225,36 @@ UPDATE all_medication_prescribed SET order_location = encounter_location_name(en
 set @primary_emr_uuid = metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType');
 UPDATE all_medication_prescribed SET emr_id=patient_identifier(patient_id,@primary_emr_uuid );
 
+drop temporary table if exists temp_dispense_qty;
+create temporary table temp_dispense_qty
+select md.drug_order_id, sum(quantity) "quantity_dispensed"
+from medication_dispense md
+inner join all_medication_prescribed t on t.order_id = md.drug_order_id
+where md.voided = 0
+group by md.drug_order_id;
+
+create index temp_dispense_qty_oi on temp_dispense_qty(drug_order_id);
+
+update all_medication_prescribed a
+inner join  temp_dispense_qty t on t.drug_order_id = a.order_id
+set a.quantity_dispensed = t.quantity_dispensed;
+
+update all_medication_prescribed a
+set dispensing_status = 
+CASE
+	when quantity_dispensed is null or quantity_dispensed = 0 then 'Not Dispensed'
+	when quantity_dispensed < order_quantity then 'Partially Dispensed'
+	else 'Dispensed' 
+END;
+
+update all_medication_prescribed a
+set refills_remaining =
+CASE 
+	when dispensing_status = 'Dispensed' then 
+  	CEILING(order_quantity_num_refills - ((quantity_dispensed- order_quantity)/order_quantity))
+END;
+
+
 SELECT 
     concat(@partition, '-', medication_prescription_id) as medication_prescription_id,	
     concat(@partition, '-', order_id) as order_id,
@@ -252,6 +285,9 @@ SELECT
     order_duration_units,
     order_reason,
     order_comments,
+    quantity_dispensed,
+    dispensing_status,
+    refills_remaining,
     index_asc,
     index_desc
 FROM all_medication_prescribed;
