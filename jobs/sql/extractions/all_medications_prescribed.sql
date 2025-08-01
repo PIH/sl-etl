@@ -23,8 +23,9 @@ encounter_id                int(11),
 visit_id                    int(11),
 order_id                    int(11),
 order_location              varchar(255),
-date_entered          date,
+date_entered                date,
 order_date_activated        date,
+expiration_datetime         datetime,
 orderer                     int(11),
 user_entered                text,
 prescriber                  varchar(255),
@@ -50,6 +51,7 @@ order_reason                text,
 order_comments              text,
 quantity_dispensed          int,
 dispensing_status           varchar(255),
+status_reason               varchar(255),
 refills_remaining           int,
 index_asc                   int,
 index_desc                  int,
@@ -156,6 +158,7 @@ order_creator,
 orderer,
 date_entered,
 order_date_activated, 
+expiration_datetime,
 order_drug, 
 order_reason, 
 order_comments)
@@ -169,11 +172,14 @@ o.creator,
 o.orderer,
 o.date_created,
 o.date_activated,
+o.auto_expire_date,
 concept_name(o.concept_id, 'en') as order_drug,
 concept_name(o.order_reason,'en') AS order_reason,
 o.comment_to_fulfiller AS order_comments
 FROM orders o
-where o.order_type_id = @order_type_id;
+where o.order_type_id = @order_type_id
+and o.voided = 0;
+
 
 create index all_medication_prescribed_oi on all_medication_prescribed(order_id);
 
@@ -225,6 +231,36 @@ UPDATE all_medication_prescribed SET order_location = encounter_location_name(en
 set @primary_emr_uuid = metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType');
 UPDATE all_medication_prescribed SET emr_id=patient_identifier(patient_id,@primary_emr_uuid );
 
+-- status
+drop temporary table if exists temp_order_statuses;
+create temporary table temp_order_statuses
+select md.medication_dispense_id, md.drug_order_id, md.status, md.status_reason, md.date_created
+from medication_dispense md
+inner join all_medication_prescribed t on t.order_id = md.drug_order_id
+where md.voided = 0; 
+
+create index temp_order_statuses_mdi on temp_order_statuses(medication_dispense_id);
+create index temp_order_statuses_oi_dc on temp_order_statuses(drug_order_id, date_created);
+
+set @completed = concept_from_mapping('PIH','1267');
+set @refused = concept_from_mapping('PIH','7080');
+set @onHold = concept_from_mapping('PIH','14356');
+
+update 
+all_medication_prescribed a
+inner join medication_dispense md on md.medication_dispense_id = 
+	(select t.medication_dispense_id from temp_order_statuses t 
+	where t.drug_order_id = a.order_id
+	order by date_created desc, medication_dispense_id desc
+	limit 1)
+set a.dispensing_status = 
+	CASE
+		when md.status = @refused then 'Paused'
+		when md.status = @onHold then 'Closed'
+	END,
+	a.status_reason = concept_name(md.status_reason, @locale)
+where md.status in (@refused, @onHold);
+
 drop temporary table if exists temp_dispense_qty;
 create temporary table temp_dispense_qty
 select md.drug_order_id, sum(quantity) "quantity_dispensed"
@@ -245,7 +281,13 @@ CASE
 	when quantity_dispensed is null or quantity_dispensed = 0 then 'Not Dispensed'
 	when quantity_dispensed < order_quantity then 'Partially Dispensed'
 	else 'Dispensed' 
-END;
+END
+where dispensing_status is null;
+
+update all_medication_prescribed
+set dispensing_status = 'Expired'
+where dispensing_status = 'Not Dispensed'
+and expiration_datetime < now();
 
 update all_medication_prescribed a
 set refills_remaining =
@@ -267,6 +309,7 @@ SELECT
     order_location,
     date_entered,
     order_date_activated,
+    expiration_datetime,
     user_entered,
     prescriber,
     order_drug,
@@ -287,6 +330,7 @@ SELECT
     order_comments,
     quantity_dispensed,
     dispensing_status,
+    status_reason,
     refills_remaining,
     index_asc,
     index_desc
