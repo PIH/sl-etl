@@ -11,6 +11,7 @@ CREATE TABLE all_medications_prescribed
     order_location              varchar(255),
     date_entered                date,
     order_date_activated        date,
+    expiration_datetime         datetime,
     user_entered                varchar(255),
     prescriber                  varchar(255),
     order_drug                  varchar(255),
@@ -31,6 +32,7 @@ CREATE TABLE all_medications_prescribed
     order_comments              text,
     quantity_dispensed          int,
     dispensing_status           varchar(255),
+    status_reason               varchar(255),
     refills_remaining           int,
     index_asc                   int,
     index_desc                  int
