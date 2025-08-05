@@ -255,8 +255,8 @@ inner join medication_dispense md on md.medication_dispense_id =
 	limit 1)
 set a.dispensing_status = 
 	CASE
-		when md.status = @refused then 'Paused'
-		when md.status = @onHold then 'Closed'
+		when md.status = @refused then 'Closed'
+		when md.status = @onHold then 'Paused'
 	END,
 	a.status_reason = concept_name(md.status_reason, @locale)
 where md.status in (@refused, @onHold);
