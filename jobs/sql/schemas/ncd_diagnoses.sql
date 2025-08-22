@@ -1,0 +1,20 @@
+CREATE TABLE ncd_diagnoses
+(
+    dx_obs_id              VARCHAR(50),
+    patient_id             VARCHAR(50),
+    emr_id                 VARCHAR(50),
+    ncd_program_id         VARCHAR(50),
+    encounter_id           VARCHAR(50),
+    encounter_datetime     DATETIME,
+    encounter_location     VARCHAR(255),
+    datetime_entered       DATETIME,
+    user_entered           VARCHAR(255),
+    encounter_provider     VARCHAR(255),
+    encounter_type         VARCHAR(255),
+    diagnosis              VARCHAR(255),
+    diagnosis_order        VARCHAR(255),
+    diagnosis_certainty    VARCHAR(255),
+    non_coded_diagnosis    TEXT,
+    index_asc              INT,
+    index_desc             INT
+);
