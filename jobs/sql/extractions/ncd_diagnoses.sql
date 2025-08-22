@@ -12,8 +12,8 @@ SELECT encounter_type_id INTO @ncd_followup
 SET @partition = '${partitionNum}';
 
 -- Diagnoses table
-DROP TEMPORARY TABLE IF EXISTS ncd_diagnoses;
-CREATE TEMPORARY TABLE ncd_diagnoses (
+DROP TEMPORARY TABLE IF EXISTS temp_ncd_diagnoses;
+CREATE TEMPORARY TABLE temp_ncd_diagnoses (
     dx_obs_id               INT(11),
     patient_id              INT(11),
     emr_id                  VARCHAR(50),
@@ -41,7 +41,7 @@ SET @dx_coded_concept_id    = concept_from_mapping('PIH','3064');
 SET @dx_non_coded_concept_id= concept_from_mapping('PIH','7416');
 
 -- Insert coded diagnoses
-INSERT INTO ncd_diagnoses (
+INSERT INTO temp_ncd_diagnoses (
     dx_obs_id,
     patient_id,
     encounter_id,
@@ -71,7 +71,7 @@ WHERE o.concept_id = @dx_coded_concept_id
   AND e.voided = 0;
 
 -- Insert non-coded diagnoses
-INSERT INTO ncd_diagnoses (
+INSERT INTO temp_ncd_diagnoses (
     dx_obs_id,
     patient_id,
     encounter_id,
@@ -100,11 +100,11 @@ WHERE o.concept_id = @dx_non_coded_concept_id
   AND o.voided = 0
   AND e.voided = 0;
 
-CREATE INDEX ncd_diagnoses_ei ON ncd_diagnoses(encounter_id);
+CREATE INDEX temp_ncd_diagnoses_ei ON temp_ncd_diagnoses(encounter_id);
 
 -- Encounter-level columns
-DROP TEMPORARY TABLE IF EXISTS ncd_dx_encounters;
-CREATE TEMPORARY TABLE ncd_dx_encounters (
+DROP TEMPORARY TABLE IF EXISTS  temp_ncd_dx_encounters;
+CREATE TEMPORARY TABLE  temp_ncd_dx_encounters (
     patient_id              INT(11),
     encounter_id            INT(11),
     ncd_program_id          INT(11),
@@ -117,7 +117,7 @@ CREATE TEMPORARY TABLE ncd_dx_encounters (
     encounter_type          VARCHAR(255)
 );
 
-INSERT INTO ncd_dx_encounters (
+INSERT INTO  temp_ncd_dx_encounters (
     patient_id,
     encounter_id,
     encounter_location_id,
@@ -130,30 +130,30 @@ SELECT DISTINCT
     encounter_location_id,
     creator,
     encounter_type_id
-FROM ncd_diagnoses;
+FROM temp_ncd_diagnoses;
 
-CREATE INDEX ncd_dx_encounters_ei ON ncd_dx_encounters(encounter_id);
+CREATE INDEX  temp_ncd_dx_encounters_ei ON  temp_ncd_dx_encounters(encounter_id);
 
-UPDATE ncd_dx_encounters
+UPDATE  temp_ncd_dx_encounters
 SET encounter_location = location_name(encounter_location_id);
 
-UPDATE ncd_dx_encounters
+UPDATE  temp_ncd_dx_encounters
 SET user_entered = person_name_of_user(creator);
 
-UPDATE ncd_dx_encounters n
+UPDATE  temp_ncd_dx_encounters n
 INNER JOIN encounter_type et
     ON et.encounter_type_id = n.encounter_type_id
 SET encounter_type = et.name;
 
-UPDATE ncd_dx_encounters
+UPDATE  temp_ncd_dx_encounters
 SET encounter_provider = provider(encounter_id);
 
 SET @ncdProgramId = program('NCD');
-UPDATE ncd_dx_encounters
+UPDATE  temp_ncd_dx_encounters
 SET ncd_program_id = patient_program_id_from_encounter(patient_id, @ncdProgramId, encounter_id);
 
-UPDATE ncd_diagnoses d
-INNER JOIN ncd_dx_encounters de
+UPDATE temp_ncd_diagnoses d
+INNER JOIN  temp_ncd_dx_encounters de
     ON de.encounter_id = d.encounter_id
 SET d.encounter_location = de.encounter_location,
     d.user_entered = de.user_entered,
@@ -170,7 +170,7 @@ CREATE TEMPORARY TABLE temp_emrids (
 
 INSERT INTO temp_emrids(patient_id)
 SELECT DISTINCT patient_id
-FROM ncd_diagnoses;
+FROM temp_ncd_diagnoses;
 
 CREATE INDEX temp_emrids_patient_id ON temp_emrids(patient_id);
 
@@ -178,7 +178,7 @@ SET @primary_emr_id_type = metadata_uuid('org.openmrs.module.emrapi', 'emr.prima
 UPDATE temp_emrids
 SET emr_id = patient_identifier(patient_id, @primary_emr_id_type);
 
-UPDATE ncd_diagnoses n
+UPDATE temp_ncd_diagnoses n
 INNER JOIN temp_emrids e
     ON e.patient_id = n.patient_id
 SET n.emr_id = e.emr_id;
@@ -200,19 +200,19 @@ SELECT
     o.value_coded_name_id,
     o.comments
 FROM obs o
-INNER JOIN ncd_diagnoses n
+INNER JOIN temp_ncd_diagnoses n
     ON n.dx_obs_id = o.obs_group_id
 WHERE o.voided = 0;
 
 CREATE INDEX temp_obs_ogi ON temp_obs(obs_group_id);
 
-UPDATE ncd_diagnoses
+UPDATE temp_ncd_diagnoses
 SET diagnosis = concept_name(diagnosis_concept_id, @locale);
 
-UPDATE ncd_diagnoses
+UPDATE temp_ncd_diagnoses
 SET diagnosis_order = obs_from_group_id_value_coded_list_from_temp(dx_obs_id, 'PIH','7537', @locale);
 
-UPDATE ncd_diagnoses
+UPDATE temp_ncd_diagnoses
 SET diagnosis_order = obs_from_group_id_value_coded_list_from_temp(dx_obs_id, 'PIH','1379', @locale);
 
 -- Final output
@@ -234,4 +234,4 @@ SELECT
     non_coded_diagnosis,
     index_asc,
     index_desc
-FROM ncd_diagnoses;
+FROM temp_ncd_diagnoses;
