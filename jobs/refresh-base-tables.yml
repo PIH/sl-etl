@@ -39,6 +39,7 @@ configuration:
           - tableName: "ncd_encounter"
           - tableName: "ncd_patient"
           - tableName: "ncd_program"
+          - tableName: "ncd_diagnoses"
           - tableName: "mch_scbu_register_encounter"
           - tableName: "mch_maternal_discharge_encounter"
           - tableName: "mch_labor_progress_encounter"
