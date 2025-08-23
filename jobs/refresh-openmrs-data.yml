@@ -37,5 +37,6 @@ configuration:
           - tableName: "mch_anc_monthly_summary"
           - tableName: "mch_pregnancy_summary"
           - tableName: "append_data_warnings"
+          - tableName: "ncd_penplus_disease_condition"
           - tableName: "duplicate_patient_warnings"
           - tableName: "update_patient_url"
