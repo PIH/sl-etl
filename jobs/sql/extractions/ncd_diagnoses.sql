@@ -14,7 +14,8 @@ SET @partition = '${partitionNum}';
 -- Diagnoses table
 DROP TEMPORARY TABLE IF EXISTS temp_ncd_diagnoses;
 CREATE TEMPORARY TABLE temp_ncd_diagnoses (
-    dx_obs_id               INT(11),
+    obs_id                  INT(11),
+    obs_group_id            INT(11),
     patient_id              INT(11),
     emr_id                  VARCHAR(50),
     ncd_program_id          INT(11),
@@ -25,14 +26,16 @@ CREATE TEMPORARY TABLE temp_ncd_diagnoses (
     datetime_entered        DATE,
     creator                 INT(11),
     user_entered            VARCHAR(255),
-    encounter_provider      VARCHAR(255),
+    provider                VARCHAR(255),
     encounter_type_id       INT(11),
     encounter_type          VARCHAR(255),
-    diagnosis_order         VARCHAR(255),
-    diagnosis_certainty     VARCHAR(255),
+    dx_order                VARCHAR(255),
+    certainty               VARCHAR(255),
+    coded                   BIT,
     diagnosis_concept_id    INT(11),
-    diagnosis               VARCHAR(255),
+    coded_diagnosis         VARCHAR(255),
     non_coded_diagnosis     VARCHAR(255),
+    diagnosis_entered       VARCHAR(255),
     index_asc               INT,
     index_desc              INT
 );
@@ -42,7 +45,8 @@ SET @dx_non_coded_concept_id= concept_from_mapping('PIH','7416');
 
 -- Insert coded diagnoses
 INSERT INTO temp_ncd_diagnoses (
-    dx_obs_id,
+	obs_id,
+	obs_group_id,
     patient_id,
     encounter_id,
     encounter_type_id,
@@ -50,9 +54,11 @@ INSERT INTO temp_ncd_diagnoses (
     encounter_location_id,
     datetime_entered,
     creator,
-    diagnosis_concept_id
+    diagnosis_concept_id,
+    coded
 )
 SELECT
+    obs_id,
     obs_group_id,
     patient_id,
     o.encounter_id,
@@ -61,7 +67,8 @@ SELECT
     e.location_id,
     o.date_created,
     o.creator,
-    o.value_coded
+    o.value_coded,
+    1
 FROM obs o
 INNER JOIN encounter e
     ON o.encounter_id = e.encounter_id
@@ -72,7 +79,8 @@ WHERE o.concept_id = @dx_coded_concept_id
 
 -- Insert non-coded diagnoses
 INSERT INTO temp_ncd_diagnoses (
-    dx_obs_id,
+    obs_id,
+    obs_group_id,
     patient_id,
     encounter_id,
     encounter_type_id,
@@ -80,9 +88,11 @@ INSERT INTO temp_ncd_diagnoses (
     encounter_location_id,
     datetime_entered,
     creator,
-    non_coded_diagnosis
+    non_coded_diagnosis,
+    coded
 )
 SELECT
+    obs_id,
     obs_group_id,
     patient_id,
     o.encounter_id,
@@ -91,7 +101,8 @@ SELECT
     e.location_id,
     o.date_created,
     o.creator,
-    o.value_text
+    o.value_text,
+    0
 FROM obs o
 INNER JOIN encounter e
     ON o.encounter_id = e.encounter_id
@@ -112,7 +123,7 @@ CREATE TEMPORARY TABLE  temp_ncd_dx_encounters (
     encounter_location      VARCHAR(255),
     creator                 INT(11),
     user_entered            VARCHAR(255),
-    encounter_provider      VARCHAR(255),
+    provider      VARCHAR(255),
     encounter_type_id       INT(11),
     encounter_type          VARCHAR(255)
 );
@@ -146,7 +157,7 @@ INNER JOIN encounter_type et
 SET encounter_type = et.name;
 
 UPDATE  temp_ncd_dx_encounters
-SET encounter_provider = provider(encounter_id);
+SET provider = provider(encounter_id);
 
 SET @ncdProgramId = program('NCD');
 UPDATE  temp_ncd_dx_encounters
@@ -158,7 +169,7 @@ INNER JOIN  temp_ncd_dx_encounters de
 SET d.encounter_location = de.encounter_location,
     d.user_entered = de.user_entered,
     d.encounter_type = de.encounter_type,
-    d.encounter_provider = de.encounter_provider,
+    d.provider = de.provider,
     d.ncd_program_id = de.ncd_program_id;
 
 -- Patient-level columns
@@ -201,23 +212,31 @@ SELECT
     o.comments
 FROM obs o
 INNER JOIN temp_ncd_diagnoses n
-    ON n.dx_obs_id = o.obs_group_id
+    ON n.obs_group_id = o.obs_group_id
 WHERE o.voided = 0;
 
 CREATE INDEX temp_obs_ogi ON temp_obs(obs_group_id);
 
 UPDATE temp_ncd_diagnoses
-SET diagnosis = concept_name(diagnosis_concept_id, @locale);
+SET coded_diagnosis = concept_name(diagnosis_concept_id, @locale);
 
 UPDATE temp_ncd_diagnoses
-SET diagnosis_order = obs_from_group_id_value_coded_list_from_temp(dx_obs_id, 'PIH','7537', @locale);
+SET certainty = obs_from_group_id_value_coded_list_from_temp(obs_group_id, 'PIH','1379', @locale);
 
 UPDATE temp_ncd_diagnoses
-SET diagnosis_order = obs_from_group_id_value_coded_list_from_temp(dx_obs_id, 'PIH','1379', @locale);
+SET dx_order= obs_from_group_id_value_coded_list_from_temp(obs_group_id, 'PIH','7537', @locale); 
+
+UPDATE temp_ncd_diagnoses
+SET diagnosis_entered =
+CASE
+	when coded = 1 then coded_diagnosis 
+	else non_coded_diagnosis
+END;
+
 
 -- Final output
 SELECT
-    CONCAT(@partition, '-', dx_obs_id)         AS "dx_obs_id",
+    CONCAT(@partition, '-', obs_id)         AS "obs_id",
     CONCAT(@partition, '-', patient_id)        AS "patient_id",
     emr_id,
     CONCAT(@partition, '-', ncd_program_id)    AS "ncd_program_id",
@@ -226,12 +245,12 @@ SELECT
     encounter_location,
     datetime_entered,
     user_entered,
-    encounter_provider,
+    provider,
     encounter_type,
-    diagnosis,
-    diagnosis_order,
-    diagnosis_certainty,
-    non_coded_diagnosis,
+    diagnosis_entered,
+    dx_order,
+    certainty,
+    coded,
     index_asc,
     index_desc
 FROM temp_ncd_diagnoses;
