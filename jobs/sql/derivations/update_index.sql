@@ -420,7 +420,7 @@ from ncd_program t inner join #derived_indexes i on i.ncd_program_id = t.ncd_pro
 
 -- update index asc/desc on ncd_diagnoses table
 drop table if exists #derived_indexes;
-select  dx_obs_id,
+select  obs_id,
         ROW_NUMBER() over (PARTITION by patient_id order by encounter_datetime, obs_id) as index_asc,
         ROW_NUMBER() over (PARTITION by patient_id order by encounter_datetime DESC, obs_id DESC) as index_desc
 into    #derived_indexes
@@ -429,5 +429,5 @@ from    ncd_diagnoses;
 update t
 set t.index_asc = i.index_asc,
     t.index_desc = i.index_desc
-from ncd_diagnoses t inner join #derived_indexes i on i.dx_obs_id = t.dx_obs_id
+from ncd_diagnoses t inner join #derived_indexes i on i.obs_id = t.obs_id
 ;
