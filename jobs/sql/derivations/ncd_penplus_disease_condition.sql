@@ -52,7 +52,7 @@ INSERT INTO ncd_penplus_disease_condition_staging
     (ncd_program_id, patient_id, emr_id, site, first_instance, latest_instance, disease_category, disease_condition)
 SELECT ncd_program_id, patient_id, emr_id, site, MIN(encounter_datetime), MAX(encounter_datetime), 'Cardiac', 'Rheumatic heart disease'
 FROM ncd_diagnoses
-WHERE diagnosis = 'Rheumatic heart disease'
+WHERE diagnosis_entered = 'Rheumatic heart disease'
 GROUP BY ncd_program_id, patient_id, emr_id, site;
 
 -- Cardiac: Congenital heart disease
@@ -60,7 +60,7 @@ INSERT INTO ncd_penplus_disease_condition_staging
     (ncd_program_id, patient_id, emr_id, site, first_instance, latest_instance, disease_category, disease_condition)
 SELECT ncd_program_id, patient_id, emr_id, site, MIN(encounter_datetime), MAX(encounter_datetime), 'Cardiac', 'Congenital heart disease'
 FROM ncd_diagnoses
-WHERE diagnosis = 'Congenital heart disease'
+WHERE diagnosis_entered = 'Congenital heart disease'
 GROUP BY ncd_program_id, patient_id, emr_id, site;
 
 -- Cardiac: Heart Failure
@@ -68,7 +68,7 @@ INSERT INTO ncd_penplus_disease_condition_staging
     (ncd_program_id, patient_id, emr_id, site, first_instance, latest_instance, disease_category, disease_condition)
 SELECT ncd_program_id, patient_id, emr_id, site, MIN(encounter_datetime), MAX(encounter_datetime), 'Cardiac', 'Heart Failure'
 FROM ncd_diagnoses
-WHERE diagnosis IN (
+WHERE diagnosis_entered IN (
     'Cardiomyopathy',
     'Degenerative heart disease',
     'Right heart failure',
@@ -85,7 +85,7 @@ SELECT ncd_program_id, patient_id, emr_id, site, MIN(encounter_datetime), MAX(en
 FROM ncd_encounter
 WHERE heart_failure_section_populated = 1
   AND NOT EXISTS (
-    SELECT 1 FROM ncd_diagnoses WHERE diagnosis IN (
+    SELECT 1 FROM ncd_diagnoses WHERE diagnosis_entered IN (
         'Cardiomyopathy',
         'Hypertensive cardiomyopathy',
         'Rheumatic heart disease',
@@ -112,7 +112,7 @@ INSERT INTO ncd_penplus_disease_condition_staging
     (ncd_program_id, patient_id, emr_id, site, first_instance, latest_instance, disease_category, disease_condition)
 SELECT ncd_program_id, patient_id, emr_id, site, MIN(encounter_datetime), MAX(encounter_datetime), 'Sickle Cell', 'Sickle Cell'
 FROM ncd_diagnoses
-WHERE diagnosis IN (
+WHERE diagnosis_entered IN (
     'Sickle cell beta thalassemia',
     'Sickle cell disease',
     'Sickle-cell trait',
@@ -125,7 +125,7 @@ INSERT INTO ncd_penplus_disease_condition_staging
     (ncd_program_id, patient_id, emr_id, site, first_instance, latest_instance, disease_category, disease_condition)
 SELECT ncd_program_id, patient_id, emr_id, site, MIN(encounter_datetime), MAX(encounter_datetime), 'Sickle Cell', 'Thalessemia'
 FROM ncd_diagnoses
-WHERE diagnosis = 'Sickle cell beta thalassemia'
+WHERE diagnosis_entered = 'Sickle cell beta thalassemia'
 GROUP BY ncd_program_id, patient_id, emr_id, site;
 
 -- Respiratory: Chronic Respiratory Disease
@@ -161,7 +161,7 @@ WHERE palliative_care_section_populated = 1
    OR EXISTS (
         SELECT 1 FROM ncd_diagnoses d
         WHERE d.encounter_id = n.encounter_id
-          AND diagnosis = 'Hemoglobinopathy'
+          AND diagnosis_entered = 'Hemoglobinopathy'
       )
 GROUP BY ncd_program_id, patient_id, emr_id, site;
 
