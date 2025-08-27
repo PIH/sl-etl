@@ -36,6 +36,7 @@ CREATE TEMPORARY TABLE temp_ncd_diagnoses (
     coded_diagnosis         VARCHAR(255),
     non_coded_diagnosis     VARCHAR(255),
     diagnosis_entered       VARCHAR(255),
+    icd10_code              varchar(255),
     index_asc               INT,
     index_desc              INT
 );
@@ -233,6 +234,8 @@ CASE
 	else non_coded_diagnosis
 END;
 
+UPDATE temp_ncd_diagnoses
+SET icd10_code = retrieveICD10(diagnosis_concept_id); 
 
 -- Final output
 SELECT
@@ -251,6 +254,7 @@ SELECT
     dx_order,
     certainty,
     coded,
+    icd10_code,
     index_asc,
     index_desc
 FROM temp_ncd_diagnoses;

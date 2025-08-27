@@ -14,6 +14,7 @@ CREATE TABLE ncd_diagnoses
     diagnosis_entered      VARCHAR(255),
     dx_order               VARCHAR(255),
     certainty              VARCHAR(255),
+    icd10_code             VARCHAR(255),
     coded                  BIT,
     index_asc              INT,
     index_desc             INT
