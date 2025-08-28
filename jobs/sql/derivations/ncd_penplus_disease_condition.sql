@@ -43,7 +43,7 @@ INSERT INTO ncd_penplus_disease_condition_staging
     (ncd_program_id, patient_id, emr_id, site, first_instance, latest_instance, disease_category, disease_condition)
 SELECT ncd_program_id, patient_id, emr_id, site, MIN(encounter_datetime), MAX(encounter_datetime), 'Diabetes', 'Unspecified/Gestational Diabetes'
 FROM ncd_encounter
-WHERE diabetes_type NOT IN ('Type 1 diabetes', 'Type 2 diabetes')
+WHERE (diabetes_type NOT IN ('Type 1 diabetes', 'Type 2 diabetes') or diabetes_type is null)
   AND diabetes_section_populated = 1
 GROUP BY ncd_program_id, patient_id, emr_id, site;
 
@@ -155,7 +155,7 @@ GROUP BY ncd_program_id, patient_id, emr_id, site;
 -- Other NCD condition (palliative care or Hemoglobinopathy)
 INSERT INTO ncd_penplus_disease_condition_staging 
     (ncd_program_id, patient_id, emr_id, site, first_instance, latest_instance, disease_category, disease_condition)
-SELECT ncd_program_id, patient_id, emr_id, site, MIN(encounter_datetime), MAX(encounter_datetime), 'NCD condition', 'Other NCD condition'
+SELECT ncd_program_id, patient_id, emr_id, site, MIN(encounter_datetime), MAX(encounter_datetime), 'other NCD', 'Other NCD condition'
 FROM ncd_encounter n
 WHERE palliative_care_section_populated = 1
    OR EXISTS (
@@ -168,11 +168,11 @@ GROUP BY ncd_program_id, patient_id, emr_id, site;
 -- Other NCD condition (not already captured)
 INSERT INTO ncd_penplus_disease_condition_staging 
     (ncd_program_id, patient_id, emr_id, site, first_instance, latest_instance, disease_category, disease_condition)
-SELECT ncd_program_id, patient_id, emr_id, site, MIN(encounter_datetime), MAX(encounter_datetime), 'NCD condition', 'Other NCD condition'
+SELECT ncd_program_id, patient_id, emr_id, site, MIN(encounter_datetime), MAX(encounter_datetime), 'other NCD', 'Other NCD condition'
 FROM ncd_encounter n
 WHERE NOT EXISTS (
     SELECT 1 FROM ncd_penplus_disease_condition_staging d
-    WHERE d.ncd_program_id = n.ncd_program_id
+    WHERE isnull(d.ncd_program_id,0) = isnull(n.ncd_program_id,0)
       AND n.encounter_datetime >= d.first_instance
       AND n.encounter_datetime <= d.latest_instance
 )
