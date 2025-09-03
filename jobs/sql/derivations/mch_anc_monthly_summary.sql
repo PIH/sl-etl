@@ -418,6 +418,7 @@ and exists
 	(select 1 from mch_anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
 	where e.pregnancy_program_id = a.pregnancy_program_id
+	and e.llin = 1
 		and e.index_asc_patient_program = 1)
 update a set anc_visit1_llin = 0 from mch_anc_monthly_summary_staging a where anc_visit1_llin is null;
 

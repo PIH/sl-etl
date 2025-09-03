@@ -53,7 +53,6 @@ hiv_syphilis_rapid_test    varchar(255),
 iptp_sp_malaria            boolean,      
 nutrition_counseling       boolean,      
 hiv_counsel_and_test       boolean,      
-insecticide_treated_net    boolean,      
 smokes_tobacco             varchar(255), 
 drinks_alcohol             varchar(255), 
 drinks_per_day             int,          
@@ -133,7 +132,6 @@ SET @height = concept_from_mapping('PIH','5090');
 SET @high_risk_factors = concept_from_mapping('PIH','11673');
 SET @hiv_counsel_and_test = concept_from_mapping('PIH','11381');
 SET @hiv_syphilis_rapid_test = concept_from_mapping('PIH','20762');
-SET @insecticide_treated_net = concept_from_mapping('PIH','13053');
 SET @iptp_sp_malaria = concept_from_mapping('PIH','20074');
 SET @last_menstruation_date = concept_from_mapping('PIH','968');
 SET @living = concept_from_mapping('PIH','11117');
@@ -173,7 +171,6 @@ UPDATE temp_anc_encs t SET height = obs_value_numeric_from_temp_using_concept_id
 UPDATE temp_anc_encs t SET high_risk_factors = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @high_risk_factors,'en');
 UPDATE temp_anc_encs t SET hiv_counsel_and_test = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @hiv_counsel_and_test);
 UPDATE temp_anc_encs t SET hiv_syphilis_rapid_test = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @hiv_syphilis_rapid_test,'en');
-UPDATE temp_anc_encs t SET insecticide_treated_net = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @insecticide_treated_net);
 UPDATE temp_anc_encs t SET iptp_sp_malaria = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @iptp_sp_malaria);
 UPDATE temp_anc_encs t SET last_menstruation_date = obs_value_datetime_from_temp_using_concept_id(encounter_id, @last_menstruation_date);
 UPDATE temp_anc_encs t SET living = obs_value_numeric_from_temp_using_concept_id(encounter_id, @living);
@@ -270,7 +267,6 @@ iptp_sp_malaria,
 hiv_syphilis_rapid_test,
 nutrition_counseling,
 hiv_counsel_and_test,
-insecticide_treated_net,
 smokes_tobacco,
 drinks_alcohol,
 drinks_per_day,
