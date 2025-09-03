@@ -340,7 +340,7 @@ from pregnancy_summary_staging p
 where exists
 	(select 1 from mch_anc_encounter e 
 	where e.pregnancy_program_id = p.pregnancy_program_id
-	and insecticide_treated_net = 1);
+	and llin = 1);
 update p set insecticide_treated_net_ever = 0 from pregnancy_summary_staging p where total_anc_visits_recorded_in_emr > 0 and insecticide_treated_net_ever is null;
 
 -- fields from dispensing
