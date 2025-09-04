@@ -43,7 +43,7 @@ INSERT INTO ncd_penplus_disease_condition_staging
     (ncd_program_id, patient_id, emr_id, site, first_instance, latest_instance, disease_category, disease_condition)
 SELECT ncd_program_id, patient_id, emr_id, site, MIN(encounter_datetime), MAX(encounter_datetime), 'Diabetes', 'Unspecified/Gestational Diabetes'
 FROM ncd_encounter
-WHERE (diabetes_type NOT IN ('Type 1 diabetes', 'Type 2 diabetes') or diabetes_type is null)
+WHERE diabetes_type NOT IN ('Type 1 diabetes', 'Type 2 diabetes')
   AND diabetes_section_populated = 1
 GROUP BY ncd_program_id, patient_id, emr_id, site;
 
@@ -82,10 +82,10 @@ GROUP BY ncd_program_id, patient_id, emr_id, site;
 INSERT INTO ncd_penplus_disease_condition_staging 
     (ncd_program_id, patient_id, emr_id, site, first_instance, latest_instance, disease_category, disease_condition)
 SELECT ncd_program_id, patient_id, emr_id, site, MIN(encounter_datetime), MAX(encounter_datetime), 'Cardiac', 'Other/Unspecified Cardiac Condition'
-FROM ncd_encounter
+FROM ncd_encounter e
 WHERE heart_failure_section_populated = 1
   AND NOT EXISTS (
-    SELECT 1 FROM ncd_diagnoses WHERE diagnosis_entered IN (
+    SELECT 1 FROM ncd_diagnoses d WHERE d.diagnosis_entered IN (
         'Cardiomyopathy',
         'Hypertensive cardiomyopathy',
         'Rheumatic heart disease',
@@ -96,6 +96,7 @@ WHERE heart_failure_section_populated = 1
         'Other heart valve disease or congenital heart disease',
         'Unknown heart failure without echocardiogram'
     )
+    AND d.encounter_id = e.encounter_id
 )
 GROUP BY ncd_program_id, patient_id, emr_id, site;
 
@@ -173,8 +174,8 @@ FROM ncd_encounter n
 WHERE NOT EXISTS (
     SELECT 1 FROM ncd_penplus_disease_condition_staging d
     WHERE isnull(d.ncd_program_id,0) = isnull(n.ncd_program_id,0)
-      AND n.encounter_datetime >= d.first_instance
-      AND n.encounter_datetime <= d.latest_instance
+--      AND n.encounter_datetime >= d.first_instance
+--      AND n.encounter_datetime <= d.latest_instance
 )
 GROUP BY ncd_program_id, patient_id, emr_id, site;
 
