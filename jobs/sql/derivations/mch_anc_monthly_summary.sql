@@ -422,6 +422,8 @@ and exists
 		and e.index_asc_patient_program = 1)
 update a set anc_visit1_llin = 0 from mch_anc_monthly_summary_staging a where anc_visit1_llin is null;
 
+-- for hemoglobin look for both results and orders:
+-- results
 update a
 set anc_visit1_haemoglobin = 1 
 from mch_anc_monthly_summary_staging a
@@ -432,6 +434,21 @@ and exists
 	inner join all_lab_results l on l.specimen_collection_date >= v.visit_date_started 
 		and (l.specimen_collection_date <= v.visit_date_stopped or v.visit_date_stopped is null)
 		and l.test = 'Hemoglobin'
+	where e.pregnancy_program_id = a.pregnancy_program_id 
+	and e.index_asc_patient_program = 1);
+update a set anc_visit1_haemoglobin = 0 from mch_anc_monthly_summary_staging a where anc_visit1_haemoglobin is null;
+
+-- orders
+update a
+set anc_visit1_haemoglobin = 1 
+from mch_anc_monthly_summary_staging a
+where anc_visit1 = 1
+and exists
+	(select 1 from mch_anc_encounter e
+	inner join all_visits v on v.visit_id = e.visit_id
+	inner join all_lab_orders o on o.order_datetime >= v.visit_date_started 
+		and (o.order_datetime <= v.visit_date_stopped or v.visit_date_stopped is null)
+		and o.orderable = 'Hemoglobin'
 	where e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 1);
 update a set anc_visit1_haemoglobin = 0 from mch_anc_monthly_summary_staging a where anc_visit1_haemoglobin is null;
