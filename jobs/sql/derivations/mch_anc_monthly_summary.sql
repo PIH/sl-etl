@@ -555,10 +555,19 @@ where anc_visit1 = 1
 and exists
 	(select 1 from mch_anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
-	inner join all_vitals vit on vit.encounter_datetime >= v.visit_date_started 
-		and (vit.encounter_datetime <= v.visit_date_stopped or v.visit_date_stopped is null)
+	inner join all_vitals vit on vit.visit_id = e.visit_id 
 		and vit.weight is not null
 	where e.pregnancy_program_id = a.pregnancy_program_id 
+	and e.index_asc_patient_program = 1);
+
+update a
+set anc_visit1_weight = 1
+from mch_anc_monthly_summary_staging a
+where anc_visit1 = 1
+and exists
+	(select 1 from mch_anc_encounter e
+	where e.pregnancy_program_id = a.pregnancy_program_id 
+	and e.weight is not null
 	and e.index_asc_patient_program = 1);
 update a set anc_visit1_weight = 0 from mch_anc_monthly_summary_staging a where anc_visit1_weight is null;
 
