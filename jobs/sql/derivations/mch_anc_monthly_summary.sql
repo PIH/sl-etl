@@ -329,20 +329,40 @@ where exists
 	and e.ferrous_sulfate_folic_acid  = 1);
 update a set iron_this_month = 0 from mch_anc_monthly_summary_staging a where iron_this_month is null;
 
--- create an index of all ipt dispensings
+-- columns regarding IPT dispensed
+-- create an index of all IPT dispensings
 drop table if exists #ipt_indexes;
-select  patient_id,
+create table #ipt_indexes
+(ipt_key int IDENTITY(1,1) primary key,
+patient_id varchar(50),
+pregnancy_program_id varchar(50),
+encounter_date date,
+index_asc int,
+index_desc int);
+
+insert into #ipt_indexes (patient_id, pregnancy_program_id, encounter_date) 
+select distinct 
+        patient_id,
 		pregnancy_program_id,
- 		encounter_datetime,
-        ROW_NUMBER() over (PARTITION by pregnancy_program_id order by encounter_datetime) as index_asc,
-        ROW_NUMBER() over (PARTITION by pregnancy_program_id order by encounter_datetime DESC) as index_desc
-into    #ipt_indexes
+ 		cast(encounter_datetime as date)
 from #pregnancy_dispensing 
 where drug_name = 'Sulfadoxine (S) 500mg + Pyrimethamine (P) 25mg tablet';
 
+drop table if exists #derived_indexes;
+select  ipt_key,
+        ROW_NUMBER() over (PARTITION by pregnancy_program_id order by encounter_date, ipt_key) as index_asc,
+        ROW_NUMBER() over (PARTITION by pregnancy_program_id order by encounter_date DESC, ipt_key DESC) as index_desc
+into    #derived_indexes
+from    #ipt_indexes;
+
+update t
+set t.index_asc = i.index_asc,
+    t.index_desc = i.index_desc
+from #ipt_indexes t inner join #derived_indexes i on i.ipt_key = t.ipt_key;
+
 -- ipt_doses_to_date
 update a
-set ipt_doses_to_date = (select count(*) from #ipt_indexes i where i.pregnancy_program_id = a.pregnancy_program_id and i.encounter_datetime <= a.reporting_date )   
+set ipt_doses_to_date = (select count(*) from #ipt_indexes i where i.pregnancy_program_id = a.pregnancy_program_id and i.encounter_date <= a.reporting_date )   
 from mch_anc_monthly_summary_staging a;
 update a set ipt_doses_to_date = 0 from mch_anc_monthly_summary_staging a where ipt_doses_to_date is null;
 
@@ -354,7 +374,7 @@ where exists
 	(select 1 from #ipt_indexes i
 	where i.pregnancy_program_id = a.pregnancy_program_id
 	and i.index_asc = 1
-	and month(i.encounter_datetime) = month(a.reporting_date))
+	and month(i.encounter_date) = month(a.reporting_date))
 update a set ipt_dose1 = 0 from mch_anc_monthly_summary_staging a where ipt_dose1 is null;
 
 -- ipt_dose2
@@ -365,7 +385,7 @@ where exists
 	(select 1 from #ipt_indexes i
 	where i.pregnancy_program_id = a.pregnancy_program_id
 	and i.index_asc = 2
-	and month(i.encounter_datetime) = month(a.reporting_date))
+	and month(i.encounter_date) = month(a.reporting_date))
 update a set ipt_dose2 = 0 from mch_anc_monthly_summary_staging a where ipt_dose2 is null;
 
 -- ipt_dose3
@@ -376,26 +396,45 @@ where exists
 	(select 1 from #ipt_indexes i
 	where i.pregnancy_program_id = a.pregnancy_program_id
 	and i.index_asc = 3
-	and month(i.encounter_datetime) = month(a.reporting_date))
+	and month(i.encounter_date) = month(a.reporting_date))
 update a set ipt_dose3 = 0 from mch_anc_monthly_summary_staging a where ipt_dose3 is null;
 
 -- create an index of all albendazole dispensings
 drop table if exists #albendazole_indexes;
-select  patient_id,
+create table #albendazole_indexes
+(albendazole_key int IDENTITY(1,1) primary key,
+patient_id varchar(50),
+pregnancy_program_id varchar(50),
+encounter_date date,
+index_asc int,
+index_desc int);
+
+insert into #albendazole_indexes (patient_id, pregnancy_program_id, encounter_date) 
+select distinct 
+        patient_id,
 		pregnancy_program_id,
- 		encounter_datetime,
-        ROW_NUMBER() over (PARTITION by pregnancy_program_id order by encounter_datetime) as index_asc,
-        ROW_NUMBER() over (PARTITION by pregnancy_program_id order by encounter_datetime DESC) as index_desc
-into    #albendazole_indexes
+ 		cast(encounter_datetime as date)
 from #pregnancy_dispensing 
 where drug_name in ('Albendazole, 200mg chewable tablet',
 					'Albendazole, 400mg chewable tablet');
+
+drop table if exists #derived_indexes;
+select  albendazole_key,
+        ROW_NUMBER() over (PARTITION by pregnancy_program_id order by encounter_date, albendazole_key) as index_asc,
+        ROW_NUMBER() over (PARTITION by pregnancy_program_id order by encounter_date DESC, albendazole_key DESC) as index_desc
+into    #derived_indexes
+from    #albendazole_indexes;
+
+update t
+set t.index_asc = i.index_asc,
+    t.index_desc = i.index_desc
+from #albendazole_indexes t inner join #derived_indexes i on i.albendazole_key = t.albendazole_key;
 
 -- albendazole_to_date
 update a
 set albendazole_to_date = (select count(*) from #albendazole_indexes i 
 	where i.pregnancy_program_id = a.pregnancy_program_id
-	and i.encounter_datetime < a.reporting_date)   
+	and i.encounter_date < a.reporting_date)   
 from mch_anc_monthly_summary_staging a;
 update a set albendazole_to_date = 0 from mch_anc_monthly_summary_staging a where albendazole_to_date is null;
 
@@ -408,9 +447,19 @@ and exists
 	(select 1 from mch_anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
 	inner join #albendazole_indexes i on i.pregnancy_program_id = a.pregnancy_program_id
-		and i.encounter_datetime >= v.visit_date_started 
-		and (i.encounter_datetime <= v.visit_date_stopped or v.visit_date_stopped is null)
+		and i.encounter_date >= v.visit_date_started 
+		and (i.encounter_date <= v.visit_date_stopped or v.visit_date_stopped is null)
 	where e.pregnancy_program_id = a.pregnancy_program_id 
+	and e.index_asc_patient_program = 1);
+
+update a
+set anc_visit1_albendazole = 1 
+from mch_anc_monthly_summary_staging a
+where anc_visit1 = 1
+and exists
+	(select 1 from mch_anc_encounter e
+	where e.pregnancy_program_id = a.pregnancy_program_id 
+	and e.albendazole = 1
 	and e.index_asc_patient_program = 1);
 update a set anc_visit1_albendazole = 0 from mch_anc_monthly_summary_staging a where anc_visit1_albendazole is null;
 
@@ -423,10 +472,20 @@ and exists
 	(select 1 from mch_anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
 	inner join #albendazole_indexes i on i.pregnancy_program_id = a.pregnancy_program_id
-		and i.encounter_datetime >= v.visit_date_started 
-		and (i.encounter_datetime <= v.visit_date_stopped or v.visit_date_stopped is null)
+		and i.encounter_date >= v.visit_date_started 
+		and (i.encounter_date <= v.visit_date_stopped or v.visit_date_stopped is null)
 	where e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 2);
+update a
+set anc_visit2_albendazole = 1 
+from mch_anc_monthly_summary_staging a
+where anc_visit1 = 1
+and exists
+	(select 1 from mch_anc_encounter e
+	where e.pregnancy_program_id = a.pregnancy_program_id 
+	and e.albendazole = 1
+	and e.index_asc_patient_program = 2);
+update a set anc_visit1_albendazole = 0 from mch_anc_monthly_summary_staging a where anc_visit1_albendazole is null;
 update a set anc_visit2_albendazole = 0 from mch_anc_monthly_summary_staging a where anc_visit2_albendazole is null;
 
 -- anc_albendazole_this_month
@@ -436,7 +495,16 @@ from mch_anc_monthly_summary_staging a
 where exists
 	(select 1 from #albendazole_indexes i
 	where i.pregnancy_program_id = a.pregnancy_program_id
-	and month(i.encounter_datetime) = month(a.reporting_date))
+	and month(i.encounter_date) = month(a.reporting_date));
+
+update a
+set anc_albendazole_this_month = 1
+from mch_anc_monthly_summary_staging a 
+where exists 
+	(select 1 from mch_anc_encounter e 
+	where e.pregnancy_program_id = a.pregnancy_program_id 
+	and month(e.encounter_datetime) = month(a.reporting_date)
+	and e.albendazole  = 1);
 update a set anc_albendazole_this_month = 0 from mch_anc_monthly_summary_staging a where anc_albendazole_this_month is null;
 
 update a
