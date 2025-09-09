@@ -245,22 +245,42 @@ inner join mch_pregnancy_program pp on pp.patient_id = d.patient_id
 -- columns regarding iron dispensed
 -- create an index of all iron dispensings
 drop table if exists #iron_indexes;
-select  patient_id,
+create table #iron_indexes
+(iron_key int IDENTITY(1,1) primary key,
+patient_id varchar(50),
+pregnancy_program_id varchar(50),
+encounter_date date,
+index_asc int,
+index_desc int);
+
+insert into #iron_indexes (patient_id, pregnancy_program_id, encounter_date) 
+select distinct 
+        patient_id,
 		pregnancy_program_id,
- 		encounter_datetime,
-        ROW_NUMBER() over (PARTITION by pregnancy_program_id order by encounter_datetime) as index_asc,
-        ROW_NUMBER() over (PARTITION by pregnancy_program_id order by encounter_datetime DESC) as index_desc
-into    #iron_indexes
+ 		cast(encounter_datetime as date)
 from #pregnancy_dispensing 
 where drug_name in ('Ferrous sulfate 200mg + folic acid 250 microgram tablet',
 					'Ferrous sulfate, 200mg (eq. 65mg elemental Fe) + folic acid 400 microgram tablet',
 					'Ferrous sulfate, 200mg (eq. 65mg elemental Fe) tablet');
 
+drop table if exists #derived_indexes;
+select  iron_key,
+        ROW_NUMBER() over (PARTITION by pregnancy_program_id order by encounter_date, iron_key) as index_asc,
+        ROW_NUMBER() over (PARTITION by pregnancy_program_id order by encounter_date DESC, iron_key DESC) as index_desc
+into    #derived_indexes
+from    #iron_indexes;
+
+update t
+set t.index_asc = i.index_asc,
+    t.index_desc = i.index_desc
+from #iron_indexes t inner join #derived_indexes i on i.iron_key = t.iron_key;
+
+
 -- iron_doses_to_date
 update a
 set iron_doses_to_date = (select count(*) from #iron_indexes i 
 	where i.pregnancy_program_id = a.pregnancy_program_id
-	and i.encounter_datetime < a.reporting_date)   
+	and i.encounter_date < a.reporting_date)   
 from mch_anc_monthly_summary_staging a;
 update a set iron_doses_to_date = 0 from mch_anc_monthly_summary_staging a where iron_doses_to_date is null;
 
@@ -273,8 +293,8 @@ and exists
 	(select 1 from mch_anc_encounter e
 	inner join all_visits v on v.visit_id = e.visit_id
 	inner join #iron_indexes i on i.pregnancy_program_id = a.pregnancy_program_id
-		and i.encounter_datetime >= v.visit_date_started 
-		and (i.encounter_datetime <= v.visit_date_stopped or v.visit_date_stopped is null)
+		and i.encounter_date >= cast(v.visit_date_started as date) 
+		and (i.encounter_date <= cast(v.visit_date_stopped as date) or v.visit_date_stopped is null)
 	where e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 1);
 update a set anc_visit1_iron = 0 from mch_anc_monthly_summary_staging a where anc_visit1_iron is null;
@@ -287,7 +307,7 @@ where exists
 	(select 1 from #iron_indexes i
 	where i.pregnancy_program_id = a.pregnancy_program_id
 	and i.index_asc = 3
-	and month(i.encounter_datetime) = month(a.reporting_date))
+	and month(i.encounter_date) = month(a.reporting_date))
 update a set iron_dose3 = 0 from mch_anc_monthly_summary_staging a where iron_dose3 is null;
 
 -- iron_this_month
@@ -297,7 +317,16 @@ from mch_anc_monthly_summary_staging a
 where exists
 	(select 1 from #iron_indexes i
 	where i.pregnancy_program_id = a.pregnancy_program_id
-	and month(i.encounter_datetime) = month(a.reporting_date))
+	and month(i.encounter_date) = month(a.reporting_date))
+
+update a
+set iron_this_month = 1
+from mch_anc_monthly_summary_staging a 
+where exists 
+	(select 1 from mch_anc_encounter e 
+	where e.pregnancy_program_id = a.pregnancy_program_id 
+	and month(e.encounter_datetime) = month(a.reporting_date)
+	and e.ferrous_sulfate_folic_acid  = 1);
 update a set iron_this_month = 0 from mch_anc_monthly_summary_staging a where iron_this_month is null;
 
 -- create an index of all ipt dispensings
