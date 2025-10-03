@@ -57,7 +57,7 @@ select distinct FirstDayOfQuarter as quarter_start_date, FirstDayOfMonth as mont
 into #reporting_months
 from dim_date dd
 where LastDayOfMonth >= '2023-01-01'
-and LastDayOfMonth <= '2025-03-31' -- CHANGE THIS to GETDATE()!
+and LastDayOfMonth <= GETDATE();
 ;
 
 -- enter a row for every month-end the patient was active in the program
@@ -71,6 +71,13 @@ inner join #reporting_months r
 	and     (ps.state_end_date is null or ps.state_end_date >= r.month_start_date);
 
 create index mch_anc_monthly_summary_staging_pi on mch_anc_monthly_summary_staging(patient_id);
+
+update a
+set a.program_outcome = null, 
+	a.program_outcome_date = null
+from mch_anc_monthly_summary_staging a
+where month(a.program_outcome_date) <> month(a.reporting_date) ;
+
 
 update a
 set birthdate = p.birthdate
