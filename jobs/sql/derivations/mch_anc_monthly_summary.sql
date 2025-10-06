@@ -76,8 +76,8 @@ update a
 set a.program_outcome = null, 
 	a.program_outcome_date = null
 from mch_anc_monthly_summary_staging a
-where month(a.program_outcome_date) <> month(a.reporting_date) ;
-
+where (month(a.program_outcome_date) <> month(a.reporting_date) or 
+      year(a.program_outcome_date) <> year(a.reporting_date));
 
 update a
 set birthdate = p.birthdate
@@ -119,7 +119,8 @@ from mch_anc_monthly_summary_staging a
 where exists 
 	(select 1 from mch_labor_summary_encounter l
 	where l.patient_id = a.patient_id 
-	and month(l.encounter_datetime) = month(a.reporting_date));
+	and month(l.encounter_datetime) = month(a.reporting_date)
+    and month(l.encounter_datetime) = month(a.reporting_date));
 
 update a
 set delivered_this_month = 0 
@@ -152,55 +153,64 @@ set anc_visit1 = iif(encounter_id is null, 0,1)
 from mch_anc_monthly_summary_staging a 
 left outer join mch_anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 1
-	and month(e.encounter_datetime) = month(a.reporting_date);
+	and month(e.encounter_datetime) = month(a.reporting_date)
+    and year(e.encounter_datetime) = year(a.reporting_date);
 
 update a
 set anc_visit2 = iif(encounter_id is null, 0,1)
 from mch_anc_monthly_summary_staging a 
 left outer join mch_anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 2
-	and month(e.encounter_datetime) = month(a.reporting_date);
+	and month(e.encounter_datetime) = month(a.reporting_date)
+    and year(e.encounter_datetime) = year(a.reporting_date);
 
 update a
 set anc_visit3 = iif(encounter_id is null, 0,1)
 from mch_anc_monthly_summary_staging a 
 left outer join mch_anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 3
-	and month(e.encounter_datetime) = month(a.reporting_date);
+	and month(e.encounter_datetime) = month(a.reporting_date)
+    and year(e.encounter_datetime) = year(a.reporting_date);;
 
 update a
 set anc_visit4 = iif(encounter_id is null, 0,1)
 from mch_anc_monthly_summary_staging a 
 left outer join mch_anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 4
-	and month(e.encounter_datetime) = month(a.reporting_date);
+	and month(e.encounter_datetime) = month(a.reporting_date)
+    and year(e.encounter_datetime) = year(a.reporting_date);
+
 update a
 set anc_visit5 = iif(encounter_id is null, 0,1)
 from mch_anc_monthly_summary_staging a 
 left outer join mch_anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 5
-	and month(e.encounter_datetime) = month(a.reporting_date);
+	and month(e.encounter_datetime) = month(a.reporting_date)
+    and year(e.encounter_datetime) = year(a.reporting_date);
 
 update a
 set anc_visit6 = iif(encounter_id is null, 0,1)
 from mch_anc_monthly_summary_staging a 
 left outer join mch_anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 6
-	and month(e.encounter_datetime) = month(a.reporting_date);
+	and month(e.encounter_datetime) = month(a.reporting_date)
+    and year(e.encounter_datetime) = year(a.reporting_date);
 
 update a
 set anc_visit7 = iif(encounter_id is null, 0,1)
 from mch_anc_monthly_summary_staging a 
 left outer join mch_anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 7
-	and month(e.encounter_datetime) = month(a.reporting_date);
+	and month(e.encounter_datetime) = month(a.reporting_date)
+    and year(e.encounter_datetime) = year(a.reporting_date);
 
 update a
 set anc_visit8 = iif(encounter_id is null, 0,1)
 from mch_anc_monthly_summary_staging a 
 left outer join mch_anc_encounter e on e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program = 8
-	and month(e.encounter_datetime) = month(a.reporting_date);
+	and month(e.encounter_datetime) = month(a.reporting_date)
+    and year(e.encounter_datetime) = year(a.reporting_date);
 
 update a
 set anc_visit9plus = 1
@@ -209,7 +219,9 @@ where exists
 	(select 1 from mch_anc_encounter e 
 	where e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.index_asc_patient_program > 8
-	and month(e.encounter_datetime) = month(a.reporting_date));
+	and month(e.encounter_datetime) = month(a.reporting_date)
+    and year(e.encounter_datetime) = year(a.reporting_date));
+
 update a 
 set anc_visit9plus = 0
 from mch_anc_monthly_summary_staging a where anc_visit9plus is null; 
@@ -222,6 +234,7 @@ inner join all_lab_results r on r.lab_obs_id =
 	where r2.patient_id = a.patient_id
 	and r2.test in ('Rapid test for HIV','HIV test result')
 	and month(r2.specimen_collection_date) = month(a.reporting_date)
+	and year(r2.specimen_collection_date) = year(a.reporting_date)
 	order by specimen_collection_date desc);	
 	
 update a
@@ -314,7 +327,8 @@ where exists
 	(select 1 from #iron_indexes i
 	where i.pregnancy_program_id = a.pregnancy_program_id
 	and i.index_asc = 3
-	and month(i.encounter_date) = month(a.reporting_date))
+	and month(i.encounter_date) = month(a.reporting_date)
+	and year(i.encounter_date) = year(a.reporting_date))
 update a set iron_dose3 = 0 from mch_anc_monthly_summary_staging a where iron_dose3 is null;
 
 -- iron_this_month
@@ -324,7 +338,8 @@ from mch_anc_monthly_summary_staging a
 where exists
 	(select 1 from #iron_indexes i
 	where i.pregnancy_program_id = a.pregnancy_program_id
-	and month(i.encounter_date) = month(a.reporting_date))
+	and month(i.encounter_date) = month(a.reporting_date)
+	and year(i.encounter_date) = year(a.reporting_date))
 
 update a
 set iron_this_month = 1
@@ -333,6 +348,7 @@ where exists
 	(select 1 from mch_anc_encounter e 
 	where e.pregnancy_program_id = a.pregnancy_program_id 
 	and month(e.encounter_datetime) = month(a.reporting_date)
+	and year(e.encounter_datetime) = year(a.reporting_date)
 	and e.ferrous_sulfate_folic_acid  = 1);
 update a set iron_this_month = 0 from mch_anc_monthly_summary_staging a where iron_this_month is null;
 
@@ -381,7 +397,8 @@ where exists
 	(select 1 from #ipt_indexes i
 	where i.pregnancy_program_id = a.pregnancy_program_id
 	and i.index_asc = 1
-	and month(i.encounter_date) = month(a.reporting_date))
+	and month(i.encounter_date) = month(a.reporting_date)
+	and year(i.encounter_date) = year(a.reporting_date))
 update a set ipt_dose1 = 0 from mch_anc_monthly_summary_staging a where ipt_dose1 is null;
 
 -- ipt_dose2
@@ -392,7 +409,8 @@ where exists
 	(select 1 from #ipt_indexes i
 	where i.pregnancy_program_id = a.pregnancy_program_id
 	and i.index_asc = 2
-	and month(i.encounter_date) = month(a.reporting_date))
+	and month(i.encounter_date) = month(a.reporting_date)
+	and year(i.encounter_date) = year(a.reporting_date))
 update a set ipt_dose2 = 0 from mch_anc_monthly_summary_staging a where ipt_dose2 is null;
 
 -- ipt_dose3
@@ -403,7 +421,8 @@ where exists
 	(select 1 from #ipt_indexes i
 	where i.pregnancy_program_id = a.pregnancy_program_id
 	and i.index_asc = 3
-	and month(i.encounter_date) = month(a.reporting_date))
+	and month(i.encounter_date) = month(a.reporting_date)
+	and year(i.encounter_date) = year(a.reporting_date))
 update a set ipt_dose3 = 0 from mch_anc_monthly_summary_staging a where ipt_dose3 is null;
 
 -- create an index of all albendazole dispensings
@@ -502,7 +521,8 @@ from mch_anc_monthly_summary_staging a
 where exists
 	(select 1 from #albendazole_indexes i
 	where i.pregnancy_program_id = a.pregnancy_program_id
-	and month(i.encounter_date) = month(a.reporting_date));
+	and month(i.encounter_date) = month(a.reporting_date)
+    and year(i.encounter_date) = year(a.reporting_date));
 
 update a
 set anc_albendazole_this_month = 1
@@ -511,6 +531,7 @@ where exists
 	(select 1 from mch_anc_encounter e 
 	where e.pregnancy_program_id = a.pregnancy_program_id 
 	and month(e.encounter_datetime) = month(a.reporting_date)
+	and year(e.encounter_datetime) = year(a.reporting_date)
 	and e.albendazole  = 1);
 update a set anc_albendazole_this_month = 0 from mch_anc_monthly_summary_staging a where anc_albendazole_this_month is null;
 
@@ -576,7 +597,8 @@ from mch_anc_monthly_summary_staging a
 inner join all_lab_results l on l.lab_obs_id = 
 	(select top 1 l2.lab_obs_id from all_lab_results l2
 	where l2.patient_id = a.patient_id
-	and month(l2.specimen_collection_date) = month(reporting_date)
+	and month(l2.specimen_collection_date) = month(reporting_date) 
+	and year(l2.specimen_collection_date) = year(reporting_date)
 	and l2.test = 'Malaria RDT'
 	order by l2.specimen_collection_date desc);
 
@@ -587,7 +609,9 @@ where exists
 	(select 1 from all_lab_results l
 	where l.patient_id = a.patient_id 
 	and l.test = 'Rapid syphilis test'
-	and month(l.specimen_collection_date) = month(reporting_date));
+	and month(l.specimen_collection_date) = month(reporting_date) 
+    and year(l.specimen_collection_date) = year(reporting_date));
+
 update a set syphilis_test = 0 from mch_anc_monthly_summary_staging a where syphilis_test is null;
 
 update a
@@ -597,7 +621,8 @@ where exists
 	(select 1 from mch_anc_encounter e
 	where e.pregnancy_program_id = a.pregnancy_program_id 
 	and e.counseled_danger_signs = 1
-	and month(e.encounter_datetime) = month(reporting_date));
+	and month(e.encounter_datetime) = month(reporting_date)
+    and year(e.encounter_datetime) = year(reporting_date));
 update a set counsel_for_danger_signs = 0 from mch_anc_monthly_summary_staging a where counsel_for_danger_signs is null;
 
 
@@ -612,6 +637,7 @@ where exists
 	(select 1 from all_medication_dispensing d
 	where d.patient_id = a.patient_id 
 	and month(d.encounter_datetime) = month(reporting_date)
+	and year(d.encounter_datetime) = year(reporting_date)
 	and drug_name in 
 		('Doxycycline, 100mg tablet',
 		'Artesunate, 60mg powder for reconstitution, with 5mL sodium chloride and 1mL sodium bicarbonate 5%',
@@ -626,6 +652,7 @@ where exists
 	(select 1 from all_medication_dispensing d
 	where d.patient_id = a.patient_id 
 	and month(d.encounter_datetime) = month(reporting_date)
+	and year(d.encounter_datetime) = year(reporting_date)
 	and drug_name in 
 		('Efavirenz (EFV), 200mg tablet',
 		'Efavirenz (EFV), 600mg tablet',
@@ -649,7 +676,8 @@ where exists
 	(select 1 from all_vitals v
 	where v.patient_id = a.patient_id 
 	and muac_mm is not null
-	and month(v.encounter_datetime) = month(reporting_date));
+	and month(v.encounter_datetime) = month(reporting_date)
+	and year(v.encounter_datetime) = year(reporting_date));
 update a set muac_measured = 0 from mch_anc_monthly_summary_staging a where muac_measured is null;
 
 update a
