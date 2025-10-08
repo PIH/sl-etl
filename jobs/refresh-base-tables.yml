@@ -22,6 +22,7 @@ configuration:
           - tableName: "petl_summary_db_restore"
           - tableName: "all_encounters"
           - tableName: "all_programs"
+          - tableName: "all_checkins"
           - tableName: "outpatient_encounters"
           - tableName: "all_patients"
           - tableName: "all_visits"
