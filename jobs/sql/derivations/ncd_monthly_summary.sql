@@ -11,6 +11,7 @@ create table ncd_monthly_summary_staging
     calculated_reporting_outcome                   varchar(255),
     latest_ncd_encounter_id                        varchar(50),
     latest_ncd_encounter_datetime                  datetime,
+    next_appointment_date                          date,
     ever_missed_school_this_month                  bit,
     latest_days_lost_schooling_this_quarter        float,
     total_days_lost_schooling_this_quarter         float,
@@ -125,12 +126,18 @@ inner join ncd_encounter e on e.encounter_id = (
     order by e2.encounter_datetime desc, e2.encounter_id desc
 );
 
+
+-- latest_next_visit_date
+
 update t
 set calculated_reporting_outcome = outcome
 from ncd_monthly_summary_staging t;
 
 update t
-set calculated_reporting_outcome = IIF(DATEDIFF(DAY, latest_ncd_encounter_datetime, reporting_date ) > 90, 'Lost to followup', null)
+set calculated_reporting_outcome = IIF(
+	DATEDIFF(DAY, coalesce(t.latest_ncd_encounter_datetime, t.date_enrolled), t.reporting_date ) > 180
+	or DATEDIFF(DAY, t.next_appointment_date, t.reporting_date ) > 90, 
+	'Lost to followup', null)
 from ncd_monthly_summary_staging t
 where outcome is null;
 
@@ -151,7 +158,8 @@ set t.diabetes = e.diabetes,
 	t.latest_nyha_classification = e.nyha_classification,
 	t.on_hydroxurea_latest_visit = e.treatment_with_hydroxyurea,
 	t.nighttime_waking_asthma = iif(e.nighttime_waking_asthma = 'Yes',1,null),
-	t.asthma_control_GINA = e.asthma_control_GINA
+	t.asthma_control_GINA = e.asthma_control_GINA,
+	t.next_appointment_date = e.next_appointment_date
 from ncd_monthly_summary_staging t
 inner join ncd_encounter e on e.encounter_id = t.latest_ncd_encounter_id
 ;
