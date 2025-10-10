@@ -8,6 +8,7 @@ create table ncd_monthly_summary_staging
     date_enrolled                                  date,
     date_completed                                 date,
     outcome                                        varchar(255),
+    calculated_reporting_outcome                   varchar(255),
     latest_ncd_encounter_id                        varchar(50),
     latest_ncd_encounter_datetime                  datetime,
     ever_missed_school_this_month                  bit,
@@ -123,6 +124,15 @@ inner join ncd_encounter e on e.encounter_id = (
 	and cast(e2.encounter_datetime as DATE) <= t.reporting_date
     order by e2.encounter_datetime desc, e2.encounter_id desc
 );
+
+update t
+set calculated_reporting_outcome = outcome
+from ncd_monthly_summary_staging t;
+
+update t
+set calculated_reporting_outcome = IIF(DATEDIFF(DAY, latest_ncd_encounter_datetime, reporting_date ) > 90, 'Lost to followup', null)
+from ncd_monthly_summary_staging t
+where outcome is null;
 
 -- update data that is needed from the latest ncd encounter
 update t 
