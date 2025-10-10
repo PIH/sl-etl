@@ -40,5 +40,8 @@ ever_missed_school              bit,
 cardiomyopathy                  bit,          
 most_recent_hba1c_value         int,          
 most_recent_hba1c_date          date,         
-most_recent_echocardiogram_date date          
+most_recent_echocardiogram_date date,
+outcome_date                    date,
+outcome                         varchar(255),
+calculated_reporting_outcome    varchar(255)  
 );
