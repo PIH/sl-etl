@@ -36,3 +36,4 @@ configuration:
           - tableName: "append_data_warnings"
           - tableName: "duplicate_patient_warnings"
           - tableName: "update_patient_url"
+          - tableName: "dispensed_medication_summary"
