@@ -126,21 +126,6 @@ inner join ncd_encounter e on e.encounter_id = (
     order by e2.encounter_datetime desc, e2.encounter_id desc
 );
 
-
--- latest_next_visit_date
-
-update t
-set calculated_reporting_outcome = outcome
-from ncd_monthly_summary_staging t;
-
-update t
-set calculated_reporting_outcome = IIF(
-	DATEDIFF(DAY, coalesce(t.latest_ncd_encounter_datetime, t.date_enrolled), t.reporting_date ) > 180
-	or DATEDIFF(DAY, t.next_appointment_date, t.reporting_date ) > 90, 
-	'Lost to followup', null)
-from ncd_monthly_summary_staging t
-where outcome is null;
-
 -- update data that is needed from the latest ncd encounter
 update t 
 set t.diabetes = e.diabetes,
@@ -178,6 +163,18 @@ set t.diabetes = e.diabetes,
 	t.cardiomyopathy = e.cardiomyopathy
 from ncd_monthly_summary_staging t
 inner join ncd_patient e on e.patient_id = t.patient_id;
+
+update t
+set calculated_reporting_outcome = outcome
+from ncd_monthly_summary_staging t;
+
+update t
+set calculated_reporting_outcome = IIF(
+	DATEDIFF(DAY, coalesce(t.latest_ncd_encounter_datetime, t.date_enrolled), t.reporting_date ) > 180
+	and DATEDIFF(DAY, t.next_appointment_date, t.reporting_date ) > 90, 
+	'Lost to followup', null)
+from ncd_monthly_summary_staging t
+where outcome is null;
 
 -- update diabetes type from the last time that question was answered before the reporting date
 update t 
