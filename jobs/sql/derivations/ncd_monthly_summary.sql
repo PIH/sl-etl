@@ -143,11 +143,20 @@ set t.diabetes = e.diabetes,
 	t.latest_nyha_classification = e.nyha_classification,
 	t.on_hydroxurea_latest_visit = e.treatment_with_hydroxyurea,
 	t.nighttime_waking_asthma = iif(e.nighttime_waking_asthma = 'Yes',1,null),
-	t.asthma_control_GINA = e.asthma_control_GINA,
-	t.next_appointment_date = e.next_appointment_date
+	t.asthma_control_GINA = e.asthma_control_GINA
 from ncd_monthly_summary_staging t
 inner join ncd_encounter e on e.encounter_id = t.latest_ncd_encounter_id
 ;
+
+update t
+set t.next_appointment_date = e.next_appointment_date
+from ncd_monthly_summary_staging t
+inner join ncd_encounter e on e.encounter_id = 
+(select top 1 encounter_id from ncd_encounter e2
+where e2.emr_id = t.emr_id
+and e2.encounter_datetime <= reporting_date
+and e2.next_appointment_date is not NULL
+order by e2.encounter_datetime desc);
 
 -- update data needed from ncd_patient
 update t 
