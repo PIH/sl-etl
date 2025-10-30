@@ -1,3 +1,5 @@
+-- Note!  this script, which is for an etl, has a cloned script for an EMR export in config-pihsl
+
 SELECT encounter_type_id  INTO @ncd_init FROM encounter_type et WHERE uuid='ae06d311-1866-455b-8a64-126a9bd74171';
 SELECT encounter_type_id  INTO @ncd_followup FROM encounter_type et WHERE uuid='5cbfd6a2-92d9-4ad0-b526-9d29bfe1d10c';
 SELECT encounter_type_id INTO @NCDFollowupPart1 FROM encounter_type where uuid = 'e02a8c32-4f14-4ff7-a4e9-2f087d9a1cf7'; 
