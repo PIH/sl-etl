@@ -1,5 +1,12 @@
+-- Note!  this script, which is for an etl, has a cloned script for an EMR export in config-pihsl
+
 select encounter_type_id INTO @NCDInitial FROM encounter_type where uuid = 'ae06d311-1866-455b-8a64-126a9bd74171'; 
 select encounter_type_id INTO @NCDFollowup FROM encounter_type where uuid = '5cbfd6a2-92d9-4ad0-b526-9d29bfe1d10c'; 
+select encounter_type_id INTO @NCDFollowupPart1 FROM encounter_type where uuid = 'e02a8c32-4f14-4ff7-a4e9-2f087d9a1cf7'; 
+select encounter_type_id INTO @NCDFollowupPart2 FROM encounter_type where uuid = '6a3afa6f-8f78-44a9-80c9-3f4f3b6ad8f2'; 
+select encounter_type_id INTO @NCDInitialPart1 FROM encounter_type where uuid = '48c413c4-e7f6-491a-8431-900451fe8a32'; 
+select encounter_type_id INTO @NCDInitialPart2 FROM encounter_type where uuid = '43423212-6f70-4df8-a9f7-2aef88df1ee2'; 
+
 set @ncdProgramId = program('NCD'); 
 
 set @locale = global_property_value('default_locale', 'en');
@@ -169,7 +176,7 @@ select
 	e.encounter_type 
 from encounter e
 where e.voided = 0
-and e.encounter_type in (@NCDInitial,@NCDFollowup)
+and e.encounter_type in (@NCDInitial,@NCDFollowup, @NCDInitialPart1, @NCDInitialPart2, @NCDFollowupPart1, @NCDFollowupPart2)
 and (DATE(encounter_datetime) >=  date(@startDate) or @startDate is null)
 and (DATE(encounter_datetime) <=  date(@endDate) or @endDate is null)
 ;	

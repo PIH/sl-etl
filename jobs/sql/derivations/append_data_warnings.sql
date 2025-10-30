@@ -66,12 +66,12 @@ encounter_datetime, datetime_entered, user_entered, site, partition_num)
 select 'Followup without Intake', encounter_type, patient_id, emr_id, visit_id, encounter_id, e.ncd_program_id, 
 encounter_datetime, datetime_entered, user_entered, site, partition_num  
 from #temp_ncd_encounter_latest e
-where e.encounter_type = 'NCD Followup Consult'
+where e.encounter_type in ('NCD Followup Consult', 'NCD Followup Part 1 only', 'NCD Followup Part 2 only')
 and not exists
 	(select 1 from #temp_ncd_encounter_latest e2
 	where e2.ncd_program_id = e.ncd_program_id 
 	and e2.encounter_datetime < e.encounter_datetime
-	and e2.encounter_type = 'NCD Initial Consult');
+	and e2.encounter_type in ('NCD Initial Consult','NCD Initial Part 1 only','NCD Initial Part 2 only'));
 
 -- mh_followup
 drop table if exists #temp_mh_encounter_latest;
@@ -127,7 +127,11 @@ where e.encounter_type in
 'Mental Health Initial Consult',
 'Mental Health Follow-up',
 'NCD Followup Consult',
+'NCD Followup Part 1 only',
+'NCD Followup Part 2 only',
 'NCD Initial Consult',
+'NCD Initial Part 1 only',
+'NCD Initial Part 2 only',
 'Newborn Discharge',
 'Newborn Initial',
 'NICU Triage',
