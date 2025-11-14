@@ -214,7 +214,7 @@ set actual_delivery_date =
 from pregnancy_summary_staging p; 
 
 update p
-set p.delivery_location = site
+set p.delivery_location = e.site
 from pregnancy_summary_staging p 
 inner join mch_delivery_summary_encounter e on e.encounter_id =
     (select top 1 e2.encounter_id from mch_delivery_summary_encounter e2
