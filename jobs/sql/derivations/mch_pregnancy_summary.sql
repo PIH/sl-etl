@@ -48,7 +48,8 @@ create  table pregnancy_summary_staging
     number_anc_visit_entered_datetime          datetime,
     total_anc_visits_since_entry               int,
     post_partum_state_date                     date,
-    anc_state_date                             date
+    anc_state_date                             date,
+    site                                       varchar(100)
 );
 
 insert into pregnancy_summary_staging
@@ -58,7 +59,8 @@ insert into pregnancy_summary_staging
 	date_enrolled,
 	date_completed,
 	outcome,
-    current_state)
+    current_state,
+	site)
 select 
 	pregnancy_program_id,
 	patient_id,
@@ -66,7 +68,8 @@ select
 	date_enrolled,
 	date_completed,
 	outcome,
-    current_state
+    current_state,
+    site
 from mch_pregnancy_program pp;
 
 
