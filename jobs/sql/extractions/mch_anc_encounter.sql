@@ -62,6 +62,7 @@ albendazole                boolean,
 malaria_rdt                varchar(255),
 counseled_danger_signs     boolean,
 llin                       boolean,
+maternal_waiting_home      varchar(255),
 latest_entered_number_anc_visit INT,
 actual_visit_number        INT,
 index_asc                  INT,          
@@ -149,6 +150,7 @@ SET @urine_glucose = concept_from_mapping('PIH','12292');
 SET @urine_protein = concept_from_mapping('PIH','12272');
 SET @uses_drugs = concept_from_mapping('PIH','2546');
 SET @weight = concept_from_mapping('PIH','5089');
+set @mwh = concept_from_mapping('PIH','20930');
 
   UPDATE temp_anc_encs t SET abortus = obs_value_numeric_from_temp_using_concept_id(encounter_id, @abortus);
 UPDATE temp_anc_encs t SET albendazole = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @albendazole);
@@ -188,9 +190,8 @@ UPDATE temp_anc_encs t SET urine_glucose = obs_value_coded_list_from_temp_using_
 UPDATE temp_anc_encs t SET urine_protein = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @urine_protein,'en');
 UPDATE temp_anc_encs t SET uses_drugs = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @uses_drugs,'en');
 UPDATE temp_anc_encs t SET weight = obs_value_numeric_from_temp_using_concept_id(encounter_id, @weight);
-UPDATE temp_anc_encs t
-SET other_risk_factors = obs_comments_from_temp(encounter_id, 'PIH','11673','PIH','5622');
-
+UPDATE temp_anc_encs t SET other_risk_factors = obs_comments_from_temp(encounter_id, 'PIH','11673','PIH','5622');
+UPDATE temp_anc_encs t SET maternal_waiting_home = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @mwh,'en');
 -- calculate actual visit count
 DROP temporary table if exists temp_visit_counts;
 CREATE temporary table temp_visit_counts
@@ -276,6 +277,7 @@ albendazole,
 malaria_rdt,
 counseled_danger_signs,
 llin,
+maternal_waiting_home,
 actual_visit_number,
 index_asc,
 index_desc,
