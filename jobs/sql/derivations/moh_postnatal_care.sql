@@ -35,13 +35,13 @@ into #days_after_counts
 FROM  #temp_min_days_after_delivery
 group by reporting_date, timeframe;
 
-drop table if exists #final_table;
-create table #final_table
+drop table if exists final_table_staging;
+create table final_table_staging
 (reporting_date date,
 timeframe varchar(20),
 count int);
 
-insert into #final_table (reporting_date, timeframe)
+insert into final_table_staging (reporting_date, timeframe)
 select distinct LastDayOfMonth, timeframe from  dim_date   
 cross join 
 (select v.timeframe from
@@ -50,13 +50,14 @@ where LastDayOfMonth >= '2023-01-01' and Date <= GETDATE();
 
 update f 
 set f.count = c.count
-from #final_table f
+from final_table_staging f
 inner join #days_after_counts c on c.reporting_date = f.reporting_date 
 	and c.timeframe = f.timeframe;
 
 update f 
 set f.count = 0
-from #final_table f
+from final_table_staging f
 where f.count is null;
 
-select * from #final_table;
+DROP TABLE IF EXISTS moh_postnatal_care;
+EXEC sp_rename 'final_table_staging', 'moh_postnatal_care';
