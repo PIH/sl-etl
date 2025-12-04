@@ -40,4 +40,5 @@ configuration:
           - tableName: "ncd_penplus_disease_condition"
           - tableName: "duplicate_patient_warnings"
           - tableName: "update_patient_url"
-          - tableName: "dispensed_medication_summary"          
+          - tableName: "dispensed_medication_summary"
+          - tableName: "moh_postnatal_care"
