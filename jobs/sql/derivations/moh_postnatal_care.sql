@@ -1,5 +1,5 @@
 drop  table if exists #temp_postnatal_encounters;
-select dd.LastDayOfMonth, e.patient_id , datediff(day, e2.encounter_datetime, e.encounter_datetime) "days_diff"
+select e.site, dd.LastDayOfMonth, e.patient_id , datediff(day, e2.encounter_datetime, e.encounter_datetime) "days_diff"
 into #temp_postnatal_encounters
 from all_encounters e
 inner join all_encounters e2 on e2.patient_id = e.patient_id  
@@ -11,15 +11,16 @@ where e.encounter_type in ('ANC Followup', 'ANC Intake');
 
 drop table if exists #temp_min_days_after_delivery;
 create table #temp_min_days_after_delivery
-(reporting_date date,
-patient_id varchar(20),
+(site          varchar(50),
+reporting_date date,
+patient_id     varchar(20),
 min_days_after int,
-timeframe varchar(20));
+timeframe      varchar(20));
 
-insert into #temp_min_days_after_delivery (reporting_date, patient_id, min_days_after)
-select LastDayOfMonth, patient_id, min(days_diff) "min_days_after" 
+insert into #temp_min_days_after_delivery (site, reporting_date, patient_id, min_days_after)
+select site, LastDayOfMonth, patient_id, min(days_diff) "min_days_after" 
 from #temp_postnatal_encounters
-group by LastDayOfMonth, patient_id;
+group by site, LastDayOfMonth, patient_id;
 	
 update #temp_min_days_after_delivery
 set timeframe = 
@@ -30,28 +31,33 @@ case
 end	;
 
 drop table if exists #days_after_counts;
-select reporting_date, timeframe, count(*) "count" 
+select site, reporting_date, timeframe, count(*) "count" 
 into #days_after_counts
 FROM  #temp_min_days_after_delivery
-group by reporting_date, timeframe;
+group by site, reporting_date, timeframe;
 
 drop table if exists final_table_staging;
 create table final_table_staging
-(reporting_date date,
-timeframe varchar(20),
-count int);
+(site          varchar(50),
+reporting_date date,
+timeframe      varchar(20),
+count          int);
 
-insert into final_table_staging (reporting_date, timeframe)
-select distinct LastDayOfMonth, timeframe from  dim_date   
+insert into final_table_staging (site, reporting_date, timeframe)
+select distinct site, LastDayOfMonth, timeframe from  dim_date   
 cross join 
 (select v.timeframe from
  (VALUES ('within 24 hours'),('2-7 days'),('8 days to 6 weeks')) as v(timeframe)) a
+cross join
+(select v.site from
+ (VALUES ('kgh'),('wellbody')) as v(site)) b
 where LastDayOfMonth >= '2023-01-01' and Date <= GETDATE();
 
 update f 
 set f.count = c.count
 from final_table_staging f
-inner join #days_after_counts c on c.reporting_date = f.reporting_date 
+inner join #days_after_counts c on c.site = f.site
+	and c.reporting_date = f.reporting_date 
 	and c.timeframe = f.timeframe;
 
 update f 
