@@ -1,4 +1,4 @@
--- note that this script APPENDS to the data_warnings table that is created in an export
+-- note that this script APPENDS to the data_warnings table that is created in an extract
 
 drop table if exists #temp_data_warnings;
 create table #temp_data_warnings
@@ -250,6 +250,42 @@ set t.visit_date_started = v.visit_date_started,
 from #temp_data_warnings t
 inner join all_visits v on v.visit_id = t.visit_id;
 
+-- --------------------------------------------------- return_visit_date not in future
+insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id, 
+encounter_datetime, datetime_entered, user_entered, site, partition_num) 
+select 'return_visit_date not in future', visit_type, patient_id, emr_id, visit_id, encounter_id,
+encounter_datetime, datetime_entered, user_entered, site, partition_num  
+from mch_anc_encounter 
+where return_visit_date <= encounter_datetime;
+
+insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id, 
+encounter_datetime, datetime_entered, user_entered, site, partition_num) 
+select 'return_visit_date not in future', encounter_type, patient_id, emr_id, visit_id, encounter_id,
+encounter_datetime, datetime_entered, user_entered, site, partition_num  
+from mh_encounter 
+where return_visit_date <= encounter_datetime;
+
+insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id, 
+encounter_datetime, datetime_entered, user_entered, site, partition_num) 
+select 'return_visit_date not in future', encounter_type, patient_id, emr_id, visit_id, encounter_id,
+encounter_datetime, datetime_entered, user_entered, site, partition_num  
+from ncd_encounter 
+where next_appointment_date <= encounter_datetime;
+
+insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id, 
+encounter_datetime, datetime_entered, user_entered, site, partition_num) 
+select 'return_visit_date not in future', 'Maternal Discharge', patient_id, emr_id, visit_id, encounter_id,
+encounter_datetime, datetime_entered, user_entered, site, partition_num  
+from mch_maternal_discharge_encounter  
+where next_appointment_date <= encounter_datetime;
+
+insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id, 
+encounter_datetime, datetime_entered, user_entered, site, partition_num) 
+select 'return_visit_date not in future', encounter_type, patient_id, emr_id, visit_id, encounter_id,
+encounter_datetime, datetime_entered, user_entered, site, partition_num  
+from outpatient_encounters 
+where next_visit_date <= encounter_datetime;
+
 -- -------------------------------------------------- event datetime
 update t
 set t.event_datetime = 
@@ -260,6 +296,7 @@ CASE
 END
 from  #temp_data_warnings t;
 
+-- --------------------------------------------------- Final insert
 insert into data_warnings
 	(data_warning_id,
 	warning_type,
