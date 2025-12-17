@@ -19,7 +19,13 @@ select encounter_type_id into @sierra_leone_maternal_triage from encounter_type 
 select encounter_type_id into @sierra_leone_mch_triage from encounter_type where uuid = '41911448-71a1-43d7-bba8-dc86339850da';
 select encounter_type_id into @postpartum_progress from encounter_type where uuid = '37f04ddf-9653-4a02-98b4-1c23734c2f15';
 select encounter_type_id into @sierra_leone_maternal_admission from encounter_type where uuid = '0ef67d23-0cf4-4a3e-8617-ac9d55bdd005';
-
+select encounter_type_id into @admission from encounter_type where uuid = '260566e1-c909-4d61-a96f-c1019291a09d';
+select encounter_type_id into @bed_assignment from encounter_type where uuid = 'caa222d6-d7d0-408f-a104-320e7556e9ff';
+select encounter_type_id into @drug_order from encounter_type where uuid = '0b242b71-5b60-11eb-8f5a-0242ac110002';
+select encounter_type_id into @discharge from encounter_type where uuid = 'b6631959-2105-49dd-b154-e1249e0fbcd7';
+select encounter_type_id into @rad_order from encounter_type where uuid = '1b3d1e13-f0b1-4b83-86ea-b1b1e2fb4efa';
+select encounter_type_id into @test_order from encounter_type where uuid = 'b3a0e3ad-b80c-4f3f-9626-ace1ced7e2dd';
+select encounter_type_id into @transfer from encounter_type where uuid = '436cfe33-6b81-40ef-a455-f134a9f7e580';
 drop temporary table if exists temp_warnings;
 create temporary table temp_warnings
 (
@@ -133,7 +139,21 @@ select 'visit with no encounters', 'patient_visit', patient_id, visit_id, creato
 where v.voided = 0 
 and not exists
 	(select 1 from encounter e
-	where e.visit_id = v.visit_id);
+	where e.visit_id = v.visit_id
+	and e.voided = 0);
+
+-- --------------------------------------------------------- encounters with no obs
+insert into temp_warnings (warning_type, event_type, encounter_id, encounter_datetime, datetime_entered, patient_id, visit_id, creator, visit_date_started, visit_date_stopped)
+select 'encounters with no observations', et.name, e.encounter_id, e.encounter_datetime, e.date_created, e.patient_id, e.visit_id, e.creator, v.date_started, v.date_stopped  
+from visit v
+inner join encounter e on e.visit_id = v.visit_id and e.voided = 0
+inner join encounter_type et on et.encounter_type_id = e.encounter_type 
+	and et.encounter_type_id not in (@admission, @bed_assignment, @drug_order, @discharge, @rad_order, @test_order, @transfer)
+where v.voided = 0 
+and not exists
+	(select 1 from obs o
+	where e.encounter_id = o.encounter_id 
+	and o.voided = 0);
 
 -- --------------------------------------------------------- visits > 10 days
 insert into temp_warnings (warning_type, event_type, patient_id, visit_id, creator, visit_date_started, visit_date_stopped)
