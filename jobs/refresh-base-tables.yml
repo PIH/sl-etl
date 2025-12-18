@@ -46,6 +46,7 @@ configuration:
           - tableName: "mch_labor_progress_encounter"
           - tableName: "mch_delivery_summary_encounter"
           - tableName: "mch_anc_encounter"
+          - tableName: "mch_pnc_encounter"
           - tableName: "mch_labor_summary_encounter"
           - tableName: "mch_newborn_assessment_encounter"
           - tableName: "admission_note_encounter"
