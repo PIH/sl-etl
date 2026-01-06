@@ -153,7 +153,11 @@ where v.voided = 0
 and not exists
 	(select 1 from obs o
 	where e.encounter_id = o.encounter_id 
-	and o.voided = 0);
+	and o.voided = 0)
+and not exists
+	(select 1 from orders od 
+	where e.encounter_id = od.encounter_id
+	and od.voided = 0);
 
 -- --------------------------------------------------------- visits > 10 days
 insert into temp_warnings (warning_type, event_type, patient_id, visit_id, creator, visit_date_started, visit_date_stopped)
