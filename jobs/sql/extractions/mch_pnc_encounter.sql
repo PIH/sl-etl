@@ -1,6 +1,5 @@
 set @partition = '${partitionNum}';
 
-
 SELECT encounter_type_id  INTO @pnc_followup
 FROM encounter_type et WHERE uuid='b7a7c300-f7e5-4d38-a388-fc178ab02e78';
 
@@ -35,6 +34,9 @@ CREATE TEMPORARY TABLE temp_anc_encs (
   urine_protein               VARCHAR(255),
   ferrous_sulfate_folic_acid  BOOLEAN,
   hiv_syphilis_rapid_test     VARCHAR(255),
+  hep_b                       VARCHAR(255),                
+  sickling                    VARCHAR(255),
+  urine_hcg                   VARCHAR(255),
   iptp_sp_malaria             BOOLEAN,
   nutrition_counseling        BOOLEAN,
   hiv_counsel_and_test        BOOLEAN,
@@ -45,6 +47,8 @@ CREATE TEMPORARY TABLE temp_anc_encs (
   family_planning_counselling VARCHAR(255),
   family_planning_accepted    VARCHAR(255),
   family_planning_method      VARCHAR(255),
+  disposition                 VARCHAR(255),
+  disposition_location        VARCHAR(255),
   index_asc                   INT,
   index_desc                  INT,
   index_asc_patient_program   INT,
@@ -92,7 +96,6 @@ where o.voided = 0;
 create index temp_obs_encs_ei on temp_obs(encounter_id);
 create index temp_obs_encs_eobs on temp_obs(encounter_id, obs_group_id);
 
-
 SET @albendazole = concept_from_mapping('PIH','10570');
 SET @bp_diastolic = concept_from_mapping('PIH','5086');
 SET @bp_systolic = concept_from_mapping('PIH','5085');
@@ -116,7 +119,12 @@ SET @delivery_datetime = concept_from_mapping('CIEL','5599');
 SET @temp =  concept_from_mapping('PIH', '5088');
 SET @hr =  concept_from_mapping('PIH', '5087');
 SET @rr =  concept_from_mapping('PIH', '5242');
-SET @o2 =  concept_from_mapping('PIH', '5092');;
+SET @o2 =  concept_from_mapping('PIH', '5092');
+SET @hep_b =  concept_from_mapping('PIH', '2439');
+SET @sickling =  concept_from_mapping('PIH', '11420');
+SET @urine_hcg =  concept_from_mapping('PIH', '45');
+SET @disposition = concept_from_mapping('PIH', '8620');
+SET @disposition_location = concept_from_mapping('PIH', '14424');
 
 UPDATE temp_anc_encs t SET heart_rate = obs_value_numeric_from_temp_using_concept_id(encounter_id, @hr);
 UPDATE temp_anc_encs t SET respiratory_rate = obs_value_numeric_from_temp_using_concept_id(encounter_id, @rr);
@@ -139,11 +147,15 @@ UPDATE temp_anc_encs t SET nutrition_counseling = obs_value_coded_as_boolean_fro
 UPDATE temp_anc_encs t SET return_visit_date = obs_value_datetime_from_temp_using_concept_id(encounter_id, @return_visit_date);
 UPDATE temp_anc_encs t SET urine_glucose = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @urine_glucose,'en');
 UPDATE temp_anc_encs t SET urine_protein = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @urine_protein,'en');
+UPDATE temp_anc_encs t SET urine_hcg = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @urine_hcg,'en');
+UPDATE temp_anc_encs t SET sickling = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @sickling,'en');
+UPDATE temp_anc_encs t SET hep_b = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @hep_b,'en');
 UPDATE temp_anc_encs t SET other_risk_factors = obs_comments_from_temp(encounter_id, 'PIH','11673','PIH','5622');
 UPDATE temp_anc_encs t SET family_planning_counselling = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @family_planning_counselling,'en');
 UPDATE temp_anc_encs t SET family_planning_accepted = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @family_planning_accepted,'en');
 UPDATE temp_anc_encs t SET family_planning_method = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @family_planning_method,'en');
-
+UPDATE temp_anc_encs t SET disposition = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @disposition,'en');
+UPDATE temp_anc_encs t SET disposition_location = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @disposition_location,'en');
 
 SELECT
 concat(@partition,"-",patient_id) as patient_id,
@@ -159,6 +171,8 @@ provider,
 age_at_encounter,
 visit_type,
 delivery_datetime,
+bp_systolic,
+bp_diastolic,
 temperature,
 heart_rate,
 respiratory_rate,
@@ -166,11 +180,11 @@ o2_saturation,
 danger_signs,
 high_risk_factors,
 other_risk_factors,
-return_visit_date,
-bp_systolic,
-bp_diastolic,
 urine_glucose,
 urine_protein,
+urine_hcg,
+hep_b,
+sickling,
 ferrous_sulfate_folic_acid,
 iptp_sp_malaria,
 hiv_syphilis_rapid_test,
@@ -183,6 +197,9 @@ llin,
 family_planning_counselling,
 family_planning_accepted,
 family_planning_method,
+disposition,
+disposition_location,
+return_visit_date,
 index_asc,
 index_desc,
 index_asc_patient_program,
