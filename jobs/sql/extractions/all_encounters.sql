@@ -94,9 +94,8 @@ SET ae.encounter_location = location_name(ae.location_id);
 
 UPDATE all_encounters ae 
 SET ae.mcoe_location = 1
-where ae.location_id in (@anc, @labour, @nicu, @pacu, @pnc, @quiet,
-  @mccu, @postop, @preop, @kgh_mch,
-  @mcoe_pharmacy, @mcoe_registration, @mcoe_triage);
+where ae.location_id in (@anc, @labour, @nicu, @pacu, @pnc, @quiet, @mccu, @postop, @preop, @kgh_mch,
+  @mcoe_pharmacy, @mcoe_registration, @mcoe_triage, @mothers_dorm, @staff, @kangaroo);
 
 select 
 concat(@partition,"-",encounter_id) as encounter_id,
