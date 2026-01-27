@@ -16,7 +16,9 @@ select location_id into @kgh_mch from location where uuid = '5981f962-6eec-453d-
 select location_id into @mcoe_pharmacy from location where uuid = '550e8400-e29b-41d4-a716-446655440000';
 select location_id into @mcoe_registration from location where uuid = '07aa9943-d1fa-11f0-9d46-169316be6a48';
 select location_id into @mcoe_triage from location where uuid = 'f85feffc-fe54-4648-aa14-01ed6d30b943';
-
+select location_id into @mothers_dorm from location where uuid = '989a9b23-d1f9-11f0-9d46-169316be6a48';
+select location_id into @staff from location where uuid = 'adde966c-d1f9-11f0-9d46-169316be6a48';
+select location_id into @kangaroo from location where uuid = '81080213-d1f9-11f0-9d46-169316be6a48';
 
 DROP temporary TABLE IF EXISTS all_encounters;
 create temporary table all_encounters(
