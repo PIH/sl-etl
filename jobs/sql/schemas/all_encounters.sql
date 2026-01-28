@@ -14,6 +14,7 @@ provider varchar(50),
 encounter_datetime datetime,
 datetime_entered datetime,
 user_entered varchar(30),
+age_at_encounter int,
 index_asc int, 
 index_desc int
 );
