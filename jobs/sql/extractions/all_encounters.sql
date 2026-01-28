@@ -37,7 +37,9 @@ encounter_location varchar(255),
 mcoe_location boolean,
 encounter_year int,
 encounter_month int,
+birthdate date,
 datetime_entered datetime,
+age_at_encounter int,
 created_by varchar(30),
 index_asc int, 
 index_desc int
@@ -70,7 +72,8 @@ CREATE TEMPORARY TABLE temp_patient
 patient_id      int(11),      
 wellbody_emr_id varchar(50),  
 kgh_emr_id      varchar(50),  
-emr_id          varchar(50)
+emr_id          varchar(50),
+birthdate       date       
 );
    
 insert into temp_patient(patient_id)
@@ -82,11 +85,16 @@ UPDATE temp_patient SET wellbody_emr_id= patient_identifier(patient_id,'1a2acce0
 UPDATE temp_patient SET kgh_emr_id= patient_identifier(patient_id,'c09a1d24-7162-11eb-8aa6-0242ac110002');
 UPDATE temp_patient SET emr_id = patient_identifier(patient_id, metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType'));
 
+UPDATE temp_patient t 
+inner join person p on p.person_id = t.patient_id
+set t.birthdate = p.birthdate;
+
 update all_encounters t
 inner join temp_patient p on p.patient_id = t.patient_id
 set t.wellbody_emr_id = p.wellbody_emr_id,
 	t.kgh_emr_id = p.kgh_emr_id,
-	t.emr_id = p.emr_id;
+	t.emr_id = p.emr_id,
+	t.birthdate = p.birthdate;
  	
 UPDATE all_encounters ae 
 SET ae.provider=provider(ae.encounter_id);
@@ -98,6 +106,9 @@ UPDATE all_encounters ae
 SET ae.mcoe_location = 1
 where ae.location_id in (@anc, @labour, @nicu, @pacu, @pnc, @quiet, @mccu, @postop, @preop, @kgh_mch,
   @mcoe_pharmacy, @mcoe_registration, @mcoe_triage, @mothers_dorm, @staff, @kangaroo);
+
+UPDATE all_encounters ae 
+SET age_at_encounter = TIMESTAMPDIFF(YEAR, birthdate, encounter_datetime);
 
 select 
 concat(@partition,"-",encounter_id) as encounter_id,
@@ -114,6 +125,7 @@ provider,
 encounter_datetime,
 datetime_entered,
 created_by AS user_entered,
+age_at_encounter,
 index_asc,
 index_desc
 from all_encounters;
