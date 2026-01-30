@@ -473,3 +473,17 @@ set t.index_asc = i.index_asc,
     t.index_desc = i.index_desc
 from all_checkins t inner join #derived_indexes i on i.encounter_id = t.encounter_id
 ;
+
+-- update index asc/desc on all_visits table
+drop table if exists #derived_indexes;
+select  visit_id,
+        ROW_NUMBER() over (PARTITION by patient_id order by visit_date_started, visit_id) as index_asc,
+        ROW_NUMBER() over (PARTITION by patient_id order by visit_date_started DESC, visit_id DESC) as index_desc
+into    #derived_indexes
+from    all_visits;
+
+update t
+set t.index_asc = i.index_asc,
+    t.index_desc = i.index_desc
+from all_visits t inner join #derived_indexes i on i.visit_id = t.visit_id
+;
