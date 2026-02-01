@@ -487,3 +487,18 @@ set t.index_asc = i.index_asc,
     t.index_desc = i.index_desc
 from all_visits t inner join #derived_indexes i on i.visit_id = t.visit_id
 ;
+
+-- update index asc/desc on adt_encounters
+drop table if exists #adt_encounters_indexes;
+select  emr_id, encounter_datetime, 
+ROW_NUMBER() over (PARTITION by emr_id order by encounter_datetime asc, encounter_id asc) "index_asc",
+ROW_NUMBER() over (PARTITION by emr_id order by encounter_datetime desc, encounter_id desc) "index_desc"
+into #derived_indexes
+from adt_encounters av;
+
+update  av
+set av.index_asc = avi.index_asc,
+	av.index_desc = avi.index_desc 
+from adt_encounters av
+inner join #derived_indexes avi on avi.emr_id = av.emr_id
+and avi.encounter_datetime = av.encounter_datetime; 
