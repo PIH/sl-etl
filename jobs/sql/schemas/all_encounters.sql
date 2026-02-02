@@ -15,6 +15,8 @@ encounter_datetime datetime,
 datetime_entered datetime,
 user_entered varchar(30),
 age_at_encounter int,
+disposition varchar(255),
+next_appt_date date,  
 index_asc int, 
 index_desc int
 );
