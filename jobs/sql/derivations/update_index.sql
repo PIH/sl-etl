@@ -489,7 +489,7 @@ from all_visits t inner join #derived_indexes i on i.visit_id = t.visit_id
 ;
 
 -- update index asc/desc on adt_encounters
-drop table if exists #adt_encounters_indexes;
+drop table if exists #derived_indexes;
 select  emr_id, encounter_datetime, 
 ROW_NUMBER() over (PARTITION by emr_id order by encounter_datetime asc, encounter_id asc) "index_asc",
 ROW_NUMBER() over (PARTITION by emr_id order by encounter_datetime desc, encounter_id desc) "index_desc"
