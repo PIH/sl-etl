@@ -20,6 +20,9 @@ select location_id into @mothers_dorm from location where uuid = '989a9b23-d1f9-
 select location_id into @staff from location where uuid = 'adde966c-d1f9-11f0-9d46-169316be6a48';
 select location_id into @kangaroo from location where uuid = '81080213-d1f9-11f0-9d46-169316be6a48';
 
+set @next_appt_date_concept_id = CONCEPT_FROM_MAPPING('PIH', 5096);
+set @disposition_concept_id = concept_from_mapping('PIH','8620');
+
 DROP temporary TABLE IF EXISTS all_encounters;
 create temporary table all_encounters(
 encounter_id int,
@@ -41,6 +44,8 @@ birthdate date,
 datetime_entered datetime,
 age_at_encounter int,
 created_by varchar(30),
+next_appt_date       date,
+disposition          varchar(255),
 index_asc int, 
 index_desc int
 );
@@ -110,6 +115,31 @@ where ae.location_id in (@anc, @labour, @nicu, @pacu, @pnc, @quiet, @mccu, @post
 UPDATE all_encounters ae 
 SET age_at_encounter = TIMESTAMPDIFF(YEAR, birthdate, encounter_datetime);
 
+-- get next appointment, disposition
+set @disposition_concept_id = concept_from_mapping('PIH','8620');
+DROP TEMPORARY TABLE IF EXISTS temp_obs;
+CREATE TEMPORARY TABLE temp_obs
+select encounter_id, concept_id, value_coded, value_datetime
+from obs
+where concept_id in (@next_appt_date_concept_id, @disposition_concept_id)
+  and voided = 0
+group by encounter_id;
+
+DROP TEMPORARY TABLE IF EXISTS temp_obs_collated;
+CREATE TEMPORARY TABLE temp_obs_collated
+select encounter_id,
+max(case when concept_id = @next_appt_date_concept_id then value_datetime end) "next_appt_date",
+max(case when concept_id = @disposition_concept_id then concept_name(value_coded, @locale) end) "disposition"
+from temp_obs
+group by encounter_id;
+
+create index temp_obs_collated_ei on temp_obs_collated(encounter_id);
+
+UPDATE all_encounters t
+inner join temp_obs_collated o on o.encounter_id = t.encounter_id
+set t.next_appt_date = o.next_appt_date,
+    t.disposition = o.disposition;
+
 select 
 concat(@partition,"-",encounter_id) as encounter_id,
 concat(@partition,"-",patient_id)  as patient_id,
@@ -126,6 +156,8 @@ encounter_datetime,
 datetime_entered,
 created_by AS user_entered,
 age_at_encounter,
+disposition,
+next_appt_date,
 index_asc,
 index_desc
 from all_encounters;
