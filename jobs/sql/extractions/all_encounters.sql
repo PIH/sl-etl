@@ -46,6 +46,8 @@ age_at_encounter int,
 created_by varchar(30),
 next_appt_date       date,
 disposition          varchar(255),
+retrospective boolean,
+entry_lag_hours int,
 index_asc int, 
 index_desc int
 );
@@ -140,6 +142,14 @@ inner join temp_obs_collated o on o.encounter_id = t.encounter_id
 set t.next_appt_date = o.next_appt_date,
     t.disposition = o.disposition;
 
+UPDATE all_encounters t 
+set retrospective = 
+  IF(TIME_TO_SEC(datetime_entered) - TIME_TO_SEC(encounter_datetime) > 1800,1,0);
+
+UPDATE all_encounters t 
+set entry_lag_hours = TIMESTAMPDIFF(HOUR, encounter_datetime, datetime_entered)
+where retrospective = 1;
+
 select 
 concat(@partition,"-",encounter_id) as encounter_id,
 concat(@partition,"-",patient_id)  as patient_id,
@@ -158,6 +168,8 @@ created_by AS user_entered,
 age_at_encounter,
 disposition,
 next_appt_date,
+retrospective,
+entry_lag_hours,
 index_asc,
 index_desc
 from all_encounters;
