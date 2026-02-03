@@ -17,6 +17,8 @@ user_entered varchar(30),
 age_at_encounter int,
 disposition varchar(255),
 next_appt_date date,  
+retrospective bit,
+entry_lag_hours int,
 index_asc int, 
 index_desc int
 );
