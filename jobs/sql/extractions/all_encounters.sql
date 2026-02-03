@@ -20,39 +20,42 @@ select location_id into @mothers_dorm from location where uuid = '989a9b23-d1f9-
 select location_id into @staff from location where uuid = 'adde966c-d1f9-11f0-9d46-169316be6a48';
 select location_id into @kangaroo from location where uuid = '81080213-d1f9-11f0-9d46-169316be6a48';
 
+select location_tag_id into @admission_location from location_tag where uuid = 'f5b9737b-14d5-402b-8475-dd558808e172';
+
 set @next_appt_date_concept_id = CONCEPT_FROM_MAPPING('PIH', 5096);
 set @disposition_concept_id = concept_from_mapping('PIH','8620');
 
-DROP temporary TABLE IF EXISTS all_encounters;
-create temporary table all_encounters(
-encounter_id int,
-patient_id int, 
-visit_id int,
-emr_id varchar(50),
-wellbody_emr_id varchar(50),
-kgh_emr_id varchar(50),
-encounter_type varchar(50),
-encounter_type_id int,
-provider varchar(50),
-encounter_datetime datetime,
-location_id int(11),
-encounter_location varchar(255),
-mcoe_location boolean,
-encounter_year int,
-encounter_month int,
-birthdate date,
-datetime_entered datetime,
-age_at_encounter int,
-created_by varchar(30),
-next_appt_date       date,
-disposition          varchar(255),
-retrospective boolean,
-entry_lag_hours int,
-index_asc int, 
-index_desc int
+DROP temporary TABLE IF EXISTS temp_all_encounters;
+create temporary table temp_all_encounters(
+encounter_id       int,          
+patient_id         int,           
+visit_id           int,          
+emr_id             varchar(50),  
+wellbody_emr_id    varchar(50),  
+kgh_emr_id         varchar(50),  
+encounter_type     varchar(50),  
+encounter_type_id  int,          
+provider           varchar(50),  
+encounter_datetime datetime,     
+location_id        int(11),      
+encounter_location varchar(255), 
+mcoe_location      boolean,      
+inpatient_location boolean,      
+encounter_year     int,          
+encounter_month    int,          
+birthdate          date,         
+datetime_entered   datetime,     
+age_at_encounter   int,          
+created_by         varchar(30),  
+next_appt_date     date,         
+disposition        varchar(255), 
+retrospective      boolean,      
+entry_lag_hours    int,          
+index_asc          int,           
+index_desc         int           
 );
 
-insert into all_encounters(encounter_id,patient_id, visit_id, encounter_type,encounter_type_id, encounter_datetime, location_id,
+insert into temp_all_encounters(encounter_id,patient_id, visit_id, encounter_type,encounter_type_id, encounter_datetime, location_id,
 		encounter_year, encounter_month, datetime_entered, created_by)
 select e.encounter_id,
 	e.patient_id,
@@ -70,8 +73,8 @@ left outer join encounter_type et on e.encounter_type =et.encounter_type_id
 left outer join users u on e.creator =u.user_id
 WHERE e.voided =0;
 
-create index all_encounters_pi on all_encounters(patient_id);
-create index all_encounters_ei on all_encounters(encounter_id);
+create index temp_all_encounters_pi on temp_all_encounters(patient_id);
+create index temp_all_encounters_ei on temp_all_encounters(encounter_id);
 
 DROP TEMPORARY TABLE IF EXISTS temp_patient;
 CREATE TEMPORARY TABLE temp_patient
@@ -84,7 +87,7 @@ birthdate       date
 );
    
 insert into temp_patient(patient_id)
-select distinct patient_id from all_encounters;
+select distinct patient_id from temp_all_encounters;
 
 create index temp_patient_pi on temp_patient(patient_id);
 
@@ -96,25 +99,25 @@ UPDATE temp_patient t
 inner join person p on p.person_id = t.patient_id
 set t.birthdate = p.birthdate;
 
-update all_encounters t
+update temp_all_encounters t
 inner join temp_patient p on p.patient_id = t.patient_id
 set t.wellbody_emr_id = p.wellbody_emr_id,
 	t.kgh_emr_id = p.kgh_emr_id,
 	t.emr_id = p.emr_id,
 	t.birthdate = p.birthdate;
  	
-UPDATE all_encounters ae 
+UPDATE temp_all_encounters ae 
 SET ae.provider=provider(ae.encounter_id);
 
-UPDATE all_encounters ae 
+UPDATE temp_all_encounters ae 
 SET ae.encounter_location = location_name(ae.location_id);
 
-UPDATE all_encounters ae 
+UPDATE temp_all_encounters ae 
 SET ae.mcoe_location = 1
 where ae.location_id in (@anc, @labour, @nicu, @pacu, @pnc, @quiet, @mccu, @postop, @preop, @kgh_mch,
   @mcoe_pharmacy, @mcoe_registration, @mcoe_triage, @mothers_dorm, @staff, @kangaroo);
 
-UPDATE all_encounters ae 
+UPDATE temp_all_encounters ae 
 SET age_at_encounter = TIMESTAMPDIFF(YEAR, birthdate, encounter_datetime);
 
 -- get next appointment, disposition
@@ -137,18 +140,26 @@ group by encounter_id;
 
 create index temp_obs_collated_ei on temp_obs_collated(encounter_id);
 
-UPDATE all_encounters t
+UPDATE temp_all_encounters t
 inner join temp_obs_collated o on o.encounter_id = t.encounter_id
 set t.next_appt_date = o.next_appt_date,
     t.disposition = o.disposition;
 
-UPDATE all_encounters t 
+UPDATE temp_all_encounters t 
 set retrospective = 
   IF(TIME_TO_SEC(datetime_entered) - TIME_TO_SEC(encounter_datetime) > 1800,1,0);
 
-UPDATE all_encounters t 
+UPDATE temp_all_encounters t 
 set entry_lag_hours = TIMESTAMPDIFF(HOUR, encounter_datetime, datetime_entered)
 where retrospective = 1;
+
+drop temporary table if exists temp_inpatient_locations;
+create temporary table temp_inpatient_locations 
+(select distinct location_id from location_tag_map ltm where ltm.location_tag_id  = @admission_location);
+
+update temp_all_encounters ae
+inner join temp_inpatient_locations l on l.location_id = ae.location_id
+set ae.inpatient_location = 1; 
 
 select 
 concat(@partition,"-",encounter_id) as encounter_id,
@@ -161,6 +172,7 @@ encounter_type,
 encounter_type_id,
 encounter_location,
 mcoe_location,
+inpatient_location,
 provider,
 encounter_datetime,
 datetime_entered,
@@ -172,4 +184,5 @@ retrospective,
 entry_lag_hours,
 index_asc,
 index_desc
-from all_encounters;
+from temp_all_encounters;
+
