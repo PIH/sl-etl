@@ -7,7 +7,7 @@ inner join all_encounters e2 on e2.patient_id = e.patient_id
 	and e2.encounter_datetime < e.encounter_datetime 
 	and datediff(day, e2.encounter_datetime, e.encounter_datetime) < 42
 inner join dim_date dd on dd.Date = cast(e.encounter_datetime as date)	
-where e.encounter_type in ('ANC Followup', 'ANC Intake'); 
+where e.encounter_type in ('ANC Followup', 'ANC Intake','Postnatal Followup'); 
 
 drop table if exists #temp_min_days_after_delivery;
 create table #temp_min_days_after_delivery
