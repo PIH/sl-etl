@@ -34,8 +34,11 @@ emr_id             varchar(50),
 wellbody_emr_id    varchar(50),  
 kgh_emr_id         varchar(50),  
 encounter_type     varchar(50),  
-encounter_type_id  int,          
-provider           varchar(50),  
+encounter_type_id  int,       
+provider_id        int(11),
+provider           text,  
+provider_role_id   int(11),
+provider_role      varchar(255),
 encounter_datetime datetime,     
 location_id        int(11),      
 encounter_location varchar(255), 
@@ -106,8 +109,20 @@ set t.wellbody_emr_id = p.wellbody_emr_id,
 	t.emr_id = p.emr_id,
 	t.birthdate = p.birthdate;
  	
+update temp_all_encounters ae
+inner join encounter_provider ep on ep.encounter_id = ae.encounter_id
+set ae.provider_id = ep.provider_id;
+
 UPDATE temp_all_encounters ae 
-SET ae.provider=provider(ae.encounter_id);
+SET ae.provider=provider_name_from_provider_id(ae.provider_id);
+
+UPDATE temp_all_encounters ae
+inner join provider p on p.provider_id = ae.provider_id
+set ae.provider_role_id = p.provider_role_id;
+
+UPDATE temp_all_encounters ae
+set provider_role = provider_role_name(provider_role_id);
+
 
 UPDATE temp_all_encounters ae 
 SET ae.encounter_location = location_name(ae.location_id);
@@ -174,6 +189,7 @@ encounter_location,
 mcoe_location,
 inpatient_location,
 provider,
+provider_role,
 encounter_datetime,
 datetime_entered,
 created_by AS user_entered,
@@ -185,4 +201,3 @@ entry_lag_hours,
 index_asc,
 index_desc
 from temp_all_encounters;
-
