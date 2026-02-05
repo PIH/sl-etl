@@ -142,8 +142,7 @@ CREATE TEMPORARY TABLE temp_obs
 select encounter_id, concept_id, value_coded, value_datetime
 from obs
 where concept_id in (@next_appt_date_concept_id, @disposition_concept_id)
-  and voided = 0
-group by encounter_id;
+  and voided = 0;
 
 DROP TEMPORARY TABLE IF EXISTS temp_obs_collated;
 CREATE TEMPORARY TABLE temp_obs_collated
