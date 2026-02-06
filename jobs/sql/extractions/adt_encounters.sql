@@ -81,6 +81,7 @@ where ae.location_id in (@anc, @labour, @nicu, @pacu, @pnc, @quiet, @mccu, @post
   @mcoe_pharmacy, @mcoe_registration, @mcoe_triage, @mothers_dorm, @staff, @kangaroo);
 
 SELECT 
+CONCAT(@partition,'-', patient_id) "patient_id",
 emr_id,
 CONCAT(@partition,'-',encounter_id) "encounter_id",
 CONCAT(@partition,'-',visit_id) "visit_id",
