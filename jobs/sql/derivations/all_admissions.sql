@@ -8,8 +8,10 @@ CREATE TABLE all_admissions_staging
   encounter_type                    varchar(50), 
   start_datetime                    datetime,    
   end_datetime                      datetime,   
+  ward_length_days                  int,
   hospital_start_datetime           datetime,
   hospital_end_datetime             datetime,
+  hospital_length_days               int,
   user_entered                      varchar(255),
   date_entered                      date,        
   encounter_location                varchar(255),
@@ -100,6 +102,14 @@ set hospital_start_datetime = min_start_datetime,
 	hospital_end_datetime = max_start_datetime
 FROM all_admissions_staging a
 INNER JOIN #temp_hospital_datetimes t ON t.visit_id = a.visit_id and t.patient_id = a.patient_id;
-  
+
+update a
+set ward_length_days =  DATEDIFF(day, start_datetime, end_datetime)
+from all_admissions_staging a; 
+
+update a
+set hospital_length_days =  DATEDIFF(day, hospital_start_datetime, hospital_end_datetime)
+from all_admissions_staging a; 
+
 DROP TABLE IF EXISTS all_admissions;
 EXEC sp_rename 'dbo.all_admissions_staging', 'all_admissions';
