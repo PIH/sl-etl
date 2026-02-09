@@ -53,7 +53,8 @@ created_by         varchar(30),
 next_appt_date     date,         
 disposition        varchar(255), 
 retrospective      boolean,      
-entry_lag_hours    int,          
+entry_lag_hours    int,
+new_patient        boolean,
 index_asc          int,           
 index_desc         int           
 );
@@ -175,6 +176,30 @@ update temp_all_encounters ae
 inner join temp_inpatient_locations l on l.location_id = ae.location_id
 set ae.inpatient_location = 1; 
 
+-- new patient
+drop temporary table if exists temp_all_encounters_dup;
+create temporary table temp_all_encounters_dup
+select encounter_id, patient_id, visit_id, encounter_datetime from temp_all_encounters;
+
+create index temp_all_encounters_dup_c1 on temp_all_encounters_dup(patient_id);
+
+update temp_all_encounters t 
+set new_patient = 1 
+where t.visit_id is not null 
+and not exists 
+	(select 1 from temp_all_encounters_dup d 
+	where d.patient_id = t.patient_id 
+	and (d.visit_id <> t.visit_id or d.visit_id is null) 
+	and d.encounter_datetime < t.encounter_datetime);
+
+update temp_all_encounters t 
+set new_patient = 1 
+where t.visit_id is  null 
+and not exists 
+	(select 1 from temp_all_encounters_dup d 
+	where d.patient_id = t.patient_id 
+	and d.encounter_datetime < t.encounter_datetime);
+
 select 
 concat(@partition,"-",encounter_id) as encounter_id,
 concat(@partition,"-",patient_id)  as patient_id,
@@ -197,6 +222,7 @@ disposition,
 next_appt_date,
 retrospective,
 entry_lag_hours,
+new_patient,
 index_asc,
 index_desc
 from temp_all_encounters;
