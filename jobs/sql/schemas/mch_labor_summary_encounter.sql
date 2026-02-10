@@ -10,6 +10,7 @@ create table mch_labor_summary_encounter
     datetime_entered                        datetime,
     user_entered                            varchar(255),
     provider                                varchar(255),
+    age_at_encounter                        int,
     labor_start                             datetime,
     induced_labor                           bit,
     induction_time                          datetime,

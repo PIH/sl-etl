@@ -17,6 +17,7 @@ create temporary table temp_labor_encs
     datetime_entered                        datetime,
     user_entered                            varchar(255),
     provider                                varchar(255),
+    age_at_encounter                        int,
     labor_start                             datetime,
     induced_labor                           boolean,
     induction_time                          datetime,
@@ -92,6 +93,7 @@ UPDATE temp_labor_encs t SET t_third_minute = obs_value_numeric_from_temp(encoun
 UPDATE temp_labor_encs t SET duration_third_stage = t_third_hour+(t_third_minute/60);
 UPDATE temp_labor_encs t SET total_duration_labor = obs_value_numeric_from_temp(encounter_id, 'CIEL','159616');
 UPDATE temp_labor_encs t SET partogram_uploaded = (select count(o.obs_id) > 0 from temp_obs o where o.encounter_id = t.encounter_id and o.concept_id = concept_from_mapping('PIH', '13756'));
+UPDATE temp_labor_encs t SET age_at_encounter = AGE_AT_ENC(patient_id, encounter_id);
 
 SELECT
     concat(@partition, '-', encounter_id) as encounter_id,
@@ -104,6 +106,7 @@ SELECT
     datetime_entered,
     user_entered,
     provider,
+    age_at_encounter,
     labor_start,
     induced_labor,
     induction_time,
