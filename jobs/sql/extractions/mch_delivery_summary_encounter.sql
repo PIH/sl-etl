@@ -20,6 +20,7 @@ create temporary table temp_labor_encs
     user_entered             varchar(255),
     pregnancy_program_id     int(11),
     provider                 varchar(255),
+    mother_age_at_encounter  int,
     birthdate                date,
     outcome                  varchar(255),
     sex                      varchar(10),
@@ -134,6 +135,9 @@ set baby_patient_id = p.person_id;
 set @primary_emr_uuid = metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType');
 UPDATE temp_labor_encs SET baby_emr_id=patient_identifier(baby_patient_id,@primary_emr_uuid );
 
+UPDATE temp_labor_encs
+SET mother_age_at_encounter = AGE_AT_ENC(patient_id, encounter_id);
+
 SELECT
 concat(@partition,"-",obs_group_id)  as baby_obs_id,
 concat(@partition,"-",baby_patient_id)  as patient_id,
@@ -147,6 +151,7 @@ encounter_location,
 datetime_entered,
 user_entered,
 provider,
+mother_age_at_encounter,
 concat(@partition,"-",pregnancy_program_id) as pregnancy_program_id,
 birthdate,
 outcome,
