@@ -25,11 +25,12 @@ latest_maternity_encounter_date datetime,
 most_recent_hiv_status varchar(255),
 dead bit,
 death_date datetime,
-cause_of_death varchar(255)
+cause_of_death varchar(255),
+site varchar(100)
 );
 
-insert into mch_maternity_patient_staging(emr_id, patient_id)
-select DISTINCT emr_id, patient_id
+insert into mch_maternity_patient_staging(emr_id, patient_id, site)
+select DISTINCT emr_id, patient_id, site
 from all_encounters ae 
 where encounter_type in
 ('Sierra Leone Maternal Check-in',
@@ -43,7 +44,7 @@ where encounter_type in
 'Labour Progress',
 'Postpartum progress')
 union
-select DISTINCT emr_id, patient_id 
+select DISTINCT emr_id, patient_id, site 
 from mch_pregnancy_program ; 
 
 -- all_patient fields
