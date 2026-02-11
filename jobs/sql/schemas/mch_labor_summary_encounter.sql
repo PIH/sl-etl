@@ -22,6 +22,7 @@ create table mch_labor_summary_encounter
     amtsl                                   bit,
     visual_inspection_placenta_completeness varchar(255),
     birth_attendant                         varchar(255),
+    breastfeeding_initiation_datetime       datetime,
     perineal_tear                           varchar(255),
     perineal_tear_procedure                 varchar(255),
     duration_third_stage                    decimal(8, 3),

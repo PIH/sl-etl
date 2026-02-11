@@ -33,6 +33,7 @@ create temporary table temp_labor_encs
     amtsl                                   boolean,
     visual_inspection_placenta_completeness varchar(255),
     birth_attendant                         varchar(255),
+    breastfeeding_initiation_datetime       datetime,
     perineal_tear                           varchar(255),
     perineal_tear_procedure                 varchar(255),
     t_third_hour                            decimal(8, 3),
@@ -92,6 +93,7 @@ UPDATE temp_labor_encs t SET t_third_hour = obs_value_numeric_from_temp(encounte
 UPDATE temp_labor_encs t SET t_third_minute = obs_value_numeric_from_temp(encounter_id, 'PIH','20125');
 UPDATE temp_labor_encs t SET duration_third_stage = t_third_hour+(t_third_minute/60);
 UPDATE temp_labor_encs t SET total_duration_labor = obs_value_numeric_from_temp(encounter_id, 'CIEL','159616');
+UPDATE temp_labor_encs t SET breastfeeding_initiation_datetime = obs_value_datetime_from_temp(encounter_id, 'PIH',21116);
 UPDATE temp_labor_encs t SET partogram_uploaded = (select count(o.obs_id) > 0 from temp_obs o where o.encounter_id = t.encounter_id and o.concept_id = concept_from_mapping('PIH', '13756'));
 UPDATE temp_labor_encs t SET age_at_encounter = AGE_AT_ENC(patient_id, encounter_id);
 
@@ -118,6 +120,7 @@ SELECT
     amtsl,
     visual_inspection_placenta_completeness,
     birth_attendant,
+    breastfeeding_initiation_datetime,
     perineal_tear,
     perineal_tear_procedure,
     duration_third_stage,
