@@ -21,7 +21,7 @@ create temporary table temp_labor_encs
     pregnancy_program_id     int(11),
     provider                 varchar(255),
     mother_age_at_encounter  int,
-    birthdate                date,
+    birthdate                datetime,
     outcome                  varchar(255),
     sex                      varchar(10),
     birth_weight             decimal(3, 2),
