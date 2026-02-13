@@ -1,3 +1,6 @@
+-- this job aggregates the data in the moh_maternity_and_delivery_data table
+-- to finalize the moh_maternity_and_delivery table to be used for the MOH report on PowerBI
+
 drop table if exists final_maternal_table_staging;
 create table final_maternal_table_staging
 (site          varchar(50),

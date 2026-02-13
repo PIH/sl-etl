@@ -19,6 +19,14 @@ configuration:
           - scriptName: "create_functions"
           
     - type: "iterating-job"
+      description: "Create derived staging tables"
+      configuration:
+        jobTemplate:
+          path: "create-derived-table-in-warehouse.yml"
+        iterations:
+          - tableName: "moh_maternity_and_delivery_data"
+          
+    - type: "iterating-job"
       description: "Create final derived tables"
       configuration:
         jobTemplate:
