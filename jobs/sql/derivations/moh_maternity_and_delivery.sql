@@ -31,73 +31,6 @@ cross join
  (VALUES ('kgh'),('wellbody')) as v(site)) b
 where LastDayOfMonth >= '2023-01-01' and Date <= GETDATE();
 
--- indicators at the delivered baby level (mch_delivery_summary_encounter)
-drop TABLE if exists #delivered_babies;
-create table #delivered_babies
-(site          varchar(50),
-baby_obs_id    varchar(50),
-pregnancy_program_id varchar(50),
-reporting_date date,
-age_category varchar(50),
-outcome varchar(255),
-birth_weight float,
-delivery_method varchar(255),
-gestational_age int,
-method_of_induction varchar(255),
-partogram_uploaded bit,
-birthdate datetime,
-breastfeeding_initiation_datetime datetime
-);
-
--- disaggregate deliveries into reporting_date, age categories
-insert into #delivered_babies (site, baby_obs_id, pregnancy_program_id, reporting_date, age_category, outcome, birth_weight, delivery_method, birthdate)
-select 
-site, 
-baby_obs_id,
-pregnancy_program_id,
-dd.LastDayOfMonth, 
-CASE
-	when mother_age_at_encounter < 0 then '<10'
-	when mother_age_at_encounter < 15 then '10-14'
-	when mother_age_at_encounter < 20 then '15-19'
-	when mother_age_at_encounter < 26 then '20-25'
-	else'26+'
-END "age_category",
-outcome, 
-birth_weight, 
-delivery_method,
-birthdate
-from mch_delivery_summary_encounter d
-inner join dim_date dd on dd.Date = cast(d.encounter_datetime as date);
-
-update d 
-set d.breastfeeding_initiation_datetime = l.breastfeeding_initiation_datetime
-from #delivered_babies d 
-inner join mch_labor_summary_encounter l on l.encounter_id = 
-(select top 1 l2.encounter_id  
-from mch_labor_summary_encounter l2
-where l2.pregnancy_program_id = d.pregnancy_program_id
-order by l2.encounter_datetime desc)
-where d.gestational_age is null;
-
-update d 
-set d.gestational_age = l.gestational_age,
-	d.method_of_induction = l.method_of_induction,
-	d.partogram_uploaded = l.partogram_uploaded
-from #delivered_babies d 
-inner join mch_labor_progress_encounter l on l.encounter_id = 
-(select top 1 l2.encounter_id  
-from mch_labor_progress_encounter l2
-where l2.pregnancy_program_id = d.pregnancy_program_id
-order by l2.encounter_datetime desc)
-where d.gestational_age is null;
-
-update d 
-set d.gestational_age = p.estimated_gestational_age
-from #delivered_babies d 
-inner join mch_pregnancy_summary p on p.pregnancy_program_id = d.pregnancy_program_id 
-where d.gestational_age is null;
-
 -- total deliveries
 update f 
 set f."<10" = i."<10",
@@ -113,7 +46,7 @@ inner join
 	SUM(case when age_category = '15-19' then 1 else 0 end) "15-19",
 	SUM(case when age_category = '20-25' then 1 else 0 end) "20-25",
 	SUM(case when age_category = '26+' then 1 else 0 end) "26+"
-	from #delivered_babies
+	from moh_maternity_and_delivery_data
 	group by site, reporting_date) i 
 	on i.site = f.site and i.reporting_date = f.reporting_date
 where f.indicator_name = 'number_of_deliveries'	
@@ -134,7 +67,7 @@ SUM(case when outcome = 'Livebirth' and age_category = '<10' then 1 else 0 end) 
 	SUM(case when outcome = 'Livebirth' and age_category = '15-19' then 1 else 0 end) "15-19",
 	SUM(case when outcome = 'Livebirth' and age_category = '20-25' then 1 else 0 end) "20-25",
 	SUM(case when outcome = 'Livebirth' and age_category = '26+' then 1 else 0 end) "26+"
-	from #delivered_babies
+	from moh_maternity_and_delivery_data
 	group by site, reporting_date) i 
 	on i.site = f.site and i.reporting_date = f.reporting_date
 where f.indicator_name = 'live_birth_facility'	
@@ -155,7 +88,7 @@ SUM(case when outcome = 'Fresh stillbirth' and age_category = '<10' then 1 else 
 	SUM(case when outcome = 'Fresh stillbirth' and age_category = '15-19' then 1 else 0 end) "15-19",
 	SUM(case when outcome = 'Fresh stillbirth' and age_category = '20-25' then 1 else 0 end) "20-25",
 	SUM(case when outcome = 'Fresh stillbirth' and age_category = '26+' then 1 else 0 end) "26+"
-	from #delivered_babies
+	from moh_maternity_and_delivery_data
 	group by site, reporting_date) i 
 	on i.site = f.site and i.reporting_date = f.reporting_date
 where f.indicator_name = 'fsb_facility'	
@@ -176,7 +109,7 @@ SUM(case when outcome = 'Macerated stillbirth' and age_category = '<10' then 1 e
 	SUM(case when outcome = 'Macerated stillbirth' and age_category = '15-19' then 1 else 0 end) "15-19",
 	SUM(case when outcome = 'Macerated stillbirth' and age_category = '20-25' then 1 else 0 end) "20-25",
 	SUM(case when outcome = 'Macerated stillbirth' and age_category = '26+' then 1 else 0 end) "26+"
-	from #delivered_babies
+	from moh_maternity_and_delivery_data
 	group by site, reporting_date) i 
 	on i.site = f.site and i.reporting_date = f.reporting_date
 where f.indicator_name = 'msb_facility'	
@@ -197,7 +130,7 @@ inner join
 	SUM(case when birth_weight is not null and age_category = '15-19' then 1 else 0 end) "15-19",
 	SUM(case when birth_weight is not null and age_category = '20-25' then 1 else 0 end) "20-25",
 	SUM(case when birth_weight is not null and age_category = '26+' then 1 else 0 end) "26+"
-	from #delivered_babies
+	from moh_maternity_and_delivery_data
 	group by site, reporting_date) i 
 	on i.site = f.site and i.reporting_date = f.reporting_date
 where f.indicator_name = 'birth_weighed_24_hours'	
@@ -218,7 +151,7 @@ inner join
 	SUM(case when birth_weight < 2.5 and age_category = '15-19' then 1 else 0 end) "15-19",
 	SUM(case when birth_weight < 2.5 and age_category = '20-25' then 1 else 0 end) "20-25",
 	SUM(case when birth_weight < 2.5 and age_category = '26+' then 1 else 0 end) "26+"
-	from #delivered_babies
+	from moh_maternity_and_delivery_data
 	group by site, reporting_date) i 
 	on i.site = f.site and i.reporting_date = f.reporting_date
 where f.indicator_name = 'birth_weight_<2.5kg'	
@@ -239,7 +172,7 @@ inner join
 	SUM(case when delivery_method = 'Spontaneous vaginal delivery' and age_category = '15-19' then 1 else 0 end) "15-19",
 	SUM(case when delivery_method = 'Spontaneous vaginal delivery' and age_category = '20-25' then 1 else 0 end) "20-25",
 	SUM(case when delivery_method = 'Spontaneous vaginal delivery' and age_category = '26+' then 1 else 0 end) "26+"
-	from #delivered_babies
+	from moh_maternity_and_delivery_data
 	group by site, reporting_date) i 
 	on i.site = f.site and i.reporting_date = f.reporting_date
 where f.indicator_name = 'normal_delivery'	
@@ -260,7 +193,7 @@ inner join
 	SUM(case when delivery_method = 'Delivery by cesarean section' and age_category = '15-19' then 1 else 0 end) "15-19",
 	SUM(case when delivery_method = 'Delivery by cesarean section' and age_category = '20-25' then 1 else 0 end) "20-25",
 	SUM(case when delivery_method = 'Delivery by cesarean section' and age_category = '26+' then 1 else 0 end) "26+"
-	from #delivered_babies
+	from moh_maternity_and_delivery_data
 	group by site, reporting_date) i 
 	on i.site = f.site and i.reporting_date = f.reporting_date
 where f.indicator_name = 'cesarean_section'	
@@ -281,7 +214,7 @@ inner join
 	SUM(case when delivery_method = 'Delivery by vacuum extraction' and age_category = '15-19' then 1 else 0 end) "15-19",
 	SUM(case when delivery_method = 'Delivery by vacuum extraction' and age_category = '20-25' then 1 else 0 end) "20-25",
 	SUM(case when delivery_method = 'Delivery by vacuum extraction' and age_category = '26+' then 1 else 0 end) "26+"
-	from #delivered_babies
+	from moh_maternity_and_delivery_data
 	group by site, reporting_date) i 
 	on i.site = f.site and i.reporting_date = f.reporting_date
 where f.indicator_name = 'assisted_vaginal_delivery';
@@ -301,7 +234,7 @@ inner join
 	SUM(case when method_of_induction in ('Administration of oxytocin','Administration of misoprostol') and age_category = '15-19' then 1 else 0 end) "15-19",
 	SUM(case when method_of_induction in ('Administration of oxytocin','Administration of misoprostol') and age_category = '20-25' then 1 else 0 end) "20-25",
 	SUM(case when method_of_induction in ('Administration of oxytocin','Administration of misoprostol') and age_category = '26+' then 1 else 0 end) "26+"
-	from #delivered_babies
+	from moh_maternity_and_delivery_data
 	group by site, reporting_date) i 
 	on i.site = f.site and i.reporting_date = f.reporting_date
 where f.indicator_name = 'uterotonic_prophylactic_after_delivery'	;
@@ -321,7 +254,7 @@ inner join
 	SUM(case when outcome = 'Livebirth' and gestational_age <= 36 and age_category = '15-19' then 1 else 0 end) "15-19",
 	SUM(case when outcome = 'Livebirth' and gestational_age <= 36 and age_category = '20-25' then 1 else 0 end) "20-25",
 	SUM(case when outcome = 'Livebirth' and gestational_age <= 36 and age_category = '26+' then 1 else 0 end) "26+"
-	from #delivered_babies
+	from moh_maternity_and_delivery_data
 	group by site, reporting_date) i 
 	on i.site = f.site and i.reporting_date = f.reporting_date
 where f.indicator_name = 'live_birth_=36wks';
@@ -341,7 +274,7 @@ inner join
 	SUM(case when partogram_uploaded = 1 and age_category = '15-19' then 1 else 0 end) "15-19",
 	SUM(case when partogram_uploaded = 1 and age_category = '20-25' then 1 else 0 end) "20-25",
 	SUM(case when partogram_uploaded = 1 and age_category = '26+' then 1 else 0 end) "26+"
-	from #delivered_babies
+	from moh_maternity_and_delivery_data
 	group by site, reporting_date) i 
 	on i.site = f.site and i.reporting_date = f.reporting_date
 where f.indicator_name = 'delivery_monitored_partograph';
@@ -361,7 +294,7 @@ inner join
 	SUM(case when DATEDIFF(MINUTE, breastfeeding_initiation_datetime, birthdate) <= 60 and age_category = '15-19' then 1 else 0 end) "15-19",
 	SUM(case when DATEDIFF(MINUTE, breastfeeding_initiation_datetime, birthdate) <= 60 and age_category = '20-25' then 1 else 0 end) "20-25",
 	SUM(case when DATEDIFF(MINUTE, breastfeeding_initiation_datetime, birthdate) <= 60 and age_category = '26+' then 1 else 0 end) "26+"
-	from #delivered_babies
+	from moh_maternity_and_delivery_data
 	group by site, reporting_date) i 
 	on i.site = f.site and i.reporting_date = f.reporting_date
 where f.indicator_name = 'birth_breastfed_within_1hr';
