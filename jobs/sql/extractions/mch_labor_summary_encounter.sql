@@ -88,7 +88,6 @@ UPDATE temp_labor_encs t SET amtsl = obs_value_coded_as_boolean_from_temp(encoun
 UPDATE temp_labor_encs t SET visual_inspection_placenta_completeness = obs_value_coded_list_from_temp(encounter_id, 'PIH','13537','en');
 UPDATE temp_labor_encs t SET birth_attendant = obs_value_coded_list_from_temp(encounter_id, 'PIH','20118','en');
 UPDATE temp_labor_encs t SET perineal_tear = obs_value_coded_list_from_temp(encounter_id, 'PIH','12369','en');
-UPDATE temp_labor_encs t SET perineal_tear_procedure = obs_value_coded_list_from_temp(encounter_id, 'PIH','10484','en');
 UPDATE temp_labor_encs t SET t_third_hour = obs_value_numeric_from_temp(encounter_id, 'PIH','20124');
 UPDATE temp_labor_encs t SET t_third_minute = obs_value_numeric_from_temp(encounter_id, 'PIH','20125');
 UPDATE temp_labor_encs t SET duration_third_stage = t_third_hour+(t_third_minute/60);
@@ -96,6 +95,18 @@ UPDATE temp_labor_encs t SET total_duration_labor = obs_value_numeric_from_temp(
 UPDATE temp_labor_encs t SET breastfeeding_initiation_datetime = obs_value_datetime_from_temp(encounter_id, 'PIH',21116);
 UPDATE temp_labor_encs t SET partogram_uploaded = (select count(o.obs_id) > 0 from temp_obs o where o.encounter_id = t.encounter_id and o.concept_id = concept_from_mapping('PIH', '13756'));
 UPDATE temp_labor_encs t SET age_at_encounter = AGE_AT_ENC(patient_id, encounter_id);
+
+set @perineal_tear_procedure = concept_from_mapping('PIH','10484');
+set @episiotomy = concept_from_mapping('CIEL','5577');
+set @suture = concept_from_mapping('CIEL','164157');
+UPDATE temp_labor_encs t
+inner join 
+	(select  o.encounter_id, group_concat(distinct concept_name(o.value_coded, @locale) separator ' | ') "perineal_tear_procedure"
+	from temp_obs o 
+	where o.concept_id = @perineal_tear_procedure 
+	and o.value_coded in (@episiotomy, @suture)
+	group by o.encounter_id) eo on eo.encounter_id = t.encounter_id
+set t.perineal_tear_procedure = eo.perineal_tear_procedure;	
 
 SELECT
     concat(@partition, '-', encounter_id) as encounter_id,
