@@ -25,6 +25,8 @@ create temporary table temp_enc
     lochia_odor                   varchar(255),
     lochia_quantity               varchar(255),
     postpartum_hemorrhage         bit,
+    oxytocin_for_hemorrhage       bit,
+    misoprostol_for_hemorrhage    bit,
     pads_used_group_id            int,
     number_pads_used              int,
     pads_used_unit                varchar(255),
@@ -86,6 +88,8 @@ UPDATE temp_enc t SET lochia_color = obs_value_coded_list_from_temp(encounter_id
 UPDATE temp_enc t SET lochia_odor = obs_value_coded_list_from_temp(encounter_id, 'PIH','14062','en');
 UPDATE temp_enc t SET lochia_quantity = obs_value_coded_list_from_temp(encounter_id, 'CIEL','167042','en');
 UPDATE temp_enc t SET postpartum_hemorrhage = answer_exists_in_encounter(encounter_id, 'CIEL','163208','CIEL','230');
+UPDATE temp_enc t SET oxytocin_for_hemorrhage = answer_exists_in_encounter(encounter_id, 'PIH','20865','PIH','9195');
+UPDATE temp_enc t SET misoprostol_for_hemorrhage = answer_exists_in_encounter(encounter_id, 'PIH','20865','PIH','9227');
 UPDATE temp_enc t SET pads_used_group_id = obs_group_id_from_temp(encounter_id, 'CIEL','166895', 0);
 UPDATE temp_enc t SET number_pads_used = obs_from_group_id_value_numeric_from_temp(pads_used_group_id, 'CIEL','166895');
 UPDATE temp_enc t SET pads_used_unit = obs_from_group_id_value_coded_list_from_temp(pads_used_group_id, 'PIH','TIME UNITS','en');
@@ -129,6 +133,8 @@ SELECT
     lochia_odor,
     lochia_quantity,
     postpartum_hemorrhage,
+    oxytocin_for_hemorrhage,
+    misoprostol_for_hemorrhage,
     number_pads_used,
     pads_used_unit,
     involution_of_uterus,

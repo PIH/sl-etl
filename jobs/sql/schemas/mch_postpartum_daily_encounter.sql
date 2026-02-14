@@ -20,6 +20,8 @@ create table mch_postpartum_daily_encounter
     lochia_odor                   varchar(255),
     lochia_quantity               varchar(255),
     postpartum_hemorrhage         bit,
+    oxytocin_for_hemorrhage       bit,
+    misoprostol_for_hemorrhage    bit,
     number_pads_used              int,
     pads_used_unit                varchar(255),
     involution_of_uterus          varchar(255),
