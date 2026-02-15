@@ -1,6 +1,7 @@
 set @partition = '${partitionNum}';
 
 SELECT encounter_type_id INTO @postpartum_daily_enc FROM encounter_type et WHERE uuid = '37f04ddf-9653-4a02-98b4-1c23734c2f15';
+set @pregnancyProgramId = program('Pregnancy');
 
 drop temporary table if exists temp_enc;
 create temporary table temp_enc
@@ -9,6 +10,7 @@ create temporary table temp_enc
     visit_id                      int,
     patient_id                    int,
     emr_id                        varchar(255),
+    pregnancy_program_id          int,
     encounter_datetime            datetime,
     encounter_location            varchar(255),
     datetime_entered              datetime,
@@ -112,10 +114,13 @@ UPDATE temp_enc t SET family_planning_method = obs_value_coded_list_from_temp(en
 UPDATE temp_enc t SET placement_date = obs_value_datetime_from_temp(encounter_id, 'PIH','3203');
 UPDATE temp_enc t SET disposition = obs_value_coded_list_from_temp(encounter_id, 'CIEL','160116','en');
 
+UPDATE temp_enc SET pregnancy_program_id = patient_program_id_from_encounter(patient_id, @pregnancyProgramId ,encounter_id);
+
 SELECT
     concat(@partition, '-', encounter_id) as encounter_id,
     concat(@partition, '-', visit_id) as visit_id,
     concat(@partition, '-', patient_id) as patient_id,
+    concat(@partition, '-', pregnancy_program_id) as pregnancy_program_id,    
     emr_id,
     encounter_datetime,
     encounter_location,
