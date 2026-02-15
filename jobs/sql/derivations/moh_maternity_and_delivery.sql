@@ -220,24 +220,31 @@ inner join
 where f.indicator_name = 'assisted_vaginal_delivery';
 
 -- uterotonic_prophylactic_after_delivery
-update f 
-set f."<10" = i."<10",
-	f."10-14" = i."10-14",
-	f."15-19" = i."15-19",
-	f."20-25" = i."20-25",
-	f."26+" = i."26+"	
+update f
+set f."<10"   = i."<10",
+    f."10-14" = i."10-14",
+    f."15-19" = i."15-19",
+    f."20-25" = i."20-25",
+    f."26+"   = i."26+"
 from final_maternal_table_staging f
 inner join
-	(select site, reporting_date, 
-	SUM(case when method_of_induction in ('Administration of oxytocin','Administration of misoprostol') and age_category = '<10' then 1 else 0 end) "<10",
-	SUM(case when method_of_induction in ('Administration of oxytocin','Administration of misoprostol') and age_category = '10-14' then 1 else 0 end) "10-14",
-	SUM(case when method_of_induction in ('Administration of oxytocin','Administration of misoprostol') and age_category = '15-19' then 1 else 0 end) "15-19",
-	SUM(case when method_of_induction in ('Administration of oxytocin','Administration of misoprostol') and age_category = '20-25' then 1 else 0 end) "20-25",
-	SUM(case when method_of_induction in ('Administration of oxytocin','Administration of misoprostol') and age_category = '26+' then 1 else 0 end) "26+"
-	from moh_maternity_and_delivery_data
-	group by site, reporting_date) i 
-	on i.site = f.site and i.reporting_date = f.reporting_date
-where f.indicator_name = 'uterotonic_prophylactic_after_delivery'	;
+(
+  select site, reporting_date,
+    COUNT(DISTINCT CASE WHEN (oxytocin_for_hemorrhage =1 OR misoprostol_for_hemorrhage = 1)
+                        AND age_category = '<10' THEN pregnancy_program_id END)   as "<10",
+    COUNT(DISTINCT CASE WHEN (oxytocin_for_hemorrhage =1 OR misoprostol_for_hemorrhage = 1)
+                        AND age_category = '10-14' THEN pregnancy_program_id END) as "10-14",
+    COUNT(DISTINCT CASE WHEN (oxytocin_for_hemorrhage =1 OR misoprostol_for_hemorrhage = 1)
+                        AND age_category = '15-19' THEN pregnancy_program_id END) as "15-19",
+    COUNT(DISTINCT CASE WHEN (oxytocin_for_hemorrhage =1 OR misoprostol_for_hemorrhage = 1)
+                        AND age_category = '20-25' THEN pregnancy_program_id END) as "20-25",
+    COUNT(DISTINCT CASE WHEN (oxytocin_for_hemorrhage =1 OR misoprostol_for_hemorrhage = 1)
+                        AND age_category = '26+' THEN pregnancy_program_id END) as "26+"
+  from moh_maternity_and_delivery_data
+  group by site, reporting_date
+) i
+  on i.site = f.site and i.reporting_date = f.reporting_date
+where f.indicator_name = 'uterotonic_prophylactic_after_delivery';
 
 -- live_birth_=36wks
 update f 
