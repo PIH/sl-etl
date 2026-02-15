@@ -3,6 +3,7 @@ create table mch_postpartum_daily_encounter
     encounter_id                  varchar(100),
     visit_id                      varchar(100),
     patient_id                    varchar(100),
+    pregnancy_program_id          varchar(100),
     emr_id                        varchar(255),
     encounter_datetime            datetime,
     encounter_location            varchar(255),
