@@ -1,0 +1,18 @@
+create table all_immunizations 
+(obs_id              varchar(50),  
+patient_id           varchar(50),  
+encounter_id         varchar(50),  
+visit_id             varchar(50),  
+emr_id               varchar(50),  
+pregnancy_program_id varchar(50),  
+encounter_datetime   datetime,     
+encounter_location   varchar(255), 
+datetime_entered     datetime,     
+user_entered         text,         
+provider             text,         
+encounter_type       varchar(255), 
+age_at_encounter     int,          
+immunization         varchar(255), 
+immunization_date    date,         
+index_asc            int,          
+index_desc           int); 
