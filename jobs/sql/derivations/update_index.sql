@@ -502,3 +502,17 @@ set av.index_asc = avi.index_asc,
 from adt_encounters av
 inner join #derived_indexes avi on avi.emr_id = av.emr_id
 and avi.encounter_datetime = av.encounter_datetime; 
+
+-- update index asc/desc on all_immunizations
+drop table if exists #derived_indexes;
+select  obs_id, encounter_datetime, 
+ROW_NUMBER() over (PARTITION by patient_id  order by encounter_datetime asc, obs_id asc) "index_asc",
+ROW_NUMBER() over (PARTITION by patient_id order by encounter_datetime desc, obs_id desc) "index_desc"
+into #derived_indexes
+from all_immunizations ai;
+
+update ai
+set ai.index_asc = avi.index_asc,
+	ai.index_desc = avi.index_desc 
+from all_immunizations ai
+inner join #derived_indexes avi on avi.obs_id = ai.obs_id;
