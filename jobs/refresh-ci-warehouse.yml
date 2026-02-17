@@ -25,6 +25,7 @@ configuration:
           path: "create-derived-table-in-warehouse.yml"
         iterations:
           - tableName: "moh_maternity_and_delivery_data"
+          - tableName: "moh_epi_tetanus_data"
           
     - type: "iterating-job"
       description: "Create final derived tables"
@@ -47,4 +48,5 @@ configuration:
           - tableName: "dispensed_medication_summary"
           - tableName: "moh_postnatal_care"  
           - tableName: "moh_maternity_and_delivery"
+          - tableName: "moh_epi_tetanus"          
           - tableName: "all_admissions"
