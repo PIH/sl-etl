@@ -7,7 +7,7 @@ inner join all_encounters e2 on e2.patient_id = e.patient_id
 	and e2.encounter_datetime < e.encounter_datetime 
 	and datediff(day, e2.encounter_datetime, e.encounter_datetime) < 42
 inner join dim_date dd on dd.Date = cast(e.encounter_datetime as date)	
-where e.encounter_type in ('ANC Followup', 'ANC Intake','Postnatal Followup'); 
+where e.encounter_type in ('ANC Followup', 'ANC Intake'); 
 
 drop table if exists #temp_min_days_after_delivery;
 create table #temp_min_days_after_delivery
@@ -38,10 +38,13 @@ group by site, reporting_date, timeframe;
 
 drop table if exists final_table_staging;
 create table final_table_staging
-(site          varchar(50),
-reporting_date date,
-timeframe      varchar(20),
-count          int);
+(site                     varchar(50),
+reporting_date            date,
+timeframe                 varchar(20),
+mother_in_facility_count  int,
+mother_outreach_count     int,
+neonate_in_facility_count int,
+neonate_outreach_count    int);
 
 insert into final_table_staging (site, reporting_date, timeframe)
 select distinct site, LastDayOfMonth, timeframe from  dim_date   
@@ -54,16 +57,16 @@ cross join
 where LastDayOfMonth >= '2023-01-01' and Date <= GETDATE();
 
 update f 
-set f.count = c.count
+set f.mother_in_facility_count = c.count
 from final_table_staging f
 inner join #days_after_counts c on c.site = f.site
 	and c.reporting_date = f.reporting_date 
 	and c.timeframe = f.timeframe;
 
 update f 
-set f.count = 0
+set f.mother_in_facility_count = 0
 from final_table_staging f
-where f.count is null;
+where f.mother_in_facility_count is null;
 
 DROP TABLE IF EXISTS moh_postnatal_care;
 EXEC sp_rename 'final_table_staging', 'moh_postnatal_care';
