@@ -21,25 +21,26 @@ select location_id into @kangaroo from location where uuid = '81080213-d1f9-11f0
 
 drop temporary table if exists temp_immunizations;
 create temporary table temp_immunizations
-(patient_id                 int,          
-emr_id                     varchar(255), 
-encounter_id               int,       
-obs_group_id               int,
-visit_id                   int,
-pregnancy_program_id       int, 
-encounter_datetime         datetime, 
-encounter_location         varchar(255), 
-mcoe_location              bit,
-datetime_entered           datetime,     
-user_entered               varchar(255), 
-provider                   varchar(255),
-encounter_type             varchar(255), 
-age_at_encounter           int,
-value_coded                int,
-immunization               varchar(255),
-immunization_date          date,
-index_asc                  int,
-index_desc                 int);
+(patient_id                  int,          
+emr_id                       varchar(255), 
+encounter_id                 int,       
+obs_group_id                 int,
+visit_id                     int,
+pregnancy_program_id         int, 
+encounter_datetime           datetime, 
+encounter_location           varchar(255), 
+mcoe_location                bit,
+datetime_entered             datetime,     
+user_entered                 varchar(255), 
+provider                     varchar(255),
+encounter_type               varchar(255), 
+age_at_encounter             int,
+value_coded                  int,
+immunization                 varchar(255),
+immunization_date            date,
+immunization_sequence_number int,
+index_asc                    int,
+index_desc                   int);
 
 insert into temp_immunizations(patient_id, encounter_id, obs_group_id, value_coded)
 select person_id, encounter_id, obs_group_id, value_coded 
@@ -130,6 +131,7 @@ set i.emr_id = e.emr_id,
 
 update temp_immunizations t set immunization = concept_name(value_coded, @locale);
 update temp_immunizations t set immunization_date = obs_from_group_id_value_datetime(obs_group_id, 'PIH','10170');
+update temp_immunizations t set immunization_sequence_number = obs_from_group_id_value_numeric(obs_group_id, 'PIH','10157');
 
 select 
 concat(@partition, '-', obs_group_id) as obs_id,
@@ -148,6 +150,7 @@ encounter_type,
 age_at_encounter,
 immunization,
 immunization_date,
+immunization_sequence_number,
 index_asc,
 index_desc
 from temp_immunizations;
