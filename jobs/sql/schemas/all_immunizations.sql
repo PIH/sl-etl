@@ -14,6 +14,7 @@ provider             text,
 encounter_type       varchar(255), 
 age_at_encounter     int,          
 immunization         varchar(255), 
-immunization_date    date,         
+immunization_date    date,   
+immunization_sequence_number int,
 index_asc            int,          
 index_desc           int); 
