@@ -110,6 +110,9 @@ SET mcoe_location = 1
 where t.location_id in (@anc, @labour, @nicu, @pacu, @pnc, @quiet, @mccu, @postop, @preop, @kgh_mch,
   @mcoe_pharmacy, @mcoe_registration, @mcoe_triage, @mothers_dorm, @staff, @kangaroo);
 
+UPDATE temp_immunizations_encounter t 
+SET mcoe_location = 0 where mcoe_location is NULL;
+
 update temp_immunizations i 
 inner join temp_immunizations_encounter e on e.encounter_id = i.encounter_id 
 set i.emr_id = e.emr_id,
