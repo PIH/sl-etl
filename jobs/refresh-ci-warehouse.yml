@@ -50,3 +50,11 @@ configuration:
           - tableName: "moh_maternity_and_delivery"
           - tableName: "moh_epi_tetanus"          
           - tableName: "all_admissions"
+
+    - type: "iterating-job"
+      description: "Create mcoe tables"
+      configuration:
+        jobTemplate:
+          path: "create-derived-table-in-warehouse.yml"
+        iterations:
+          - tableName: "create_mcoe_tables.sql"
