@@ -57,4 +57,4 @@ configuration:
         jobTemplate:
           path: "create-derived-table-in-warehouse.yml"
         iterations:
-          - tableName: "create_mcoe_tables.sql"
+          - tableName: "create_mcoe_tables"
