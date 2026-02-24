@@ -23,6 +23,8 @@ CREATE TABLE all_admissions_staging
   ending_disposition_encounter_id   varchar(50), 
   ending_disposition_datetime       datetime,    
   ending_disposition                varchar(255),
+  age_at_admission                  int,
+  newborn                           bit,
   site                              varchar(255),
   partition_num                     int  
 );
@@ -110,6 +112,19 @@ from all_admissions_staging a;
 update a
 set hospital_length_days =  DATEDIFF(day, hospital_start_datetime, hospital_end_datetime)
 from all_admissions_staging a; 
+
+update a
+set age_at_admission = DATEDIFF(year, p.birthdate, start_datetime) 
+from all_admissions_staging a 
+inner join all_patients p on p.patient_id = a.patient_id;
+
+update a
+set newborn = 
+	case age_at_admission
+		when 0 then 1
+		else 0
+	end
+from all_admissions_staging a ;	
 
 DROP TABLE IF EXISTS all_admissions;
 EXEC sp_rename 'dbo.all_admissions_staging', 'all_admissions';
