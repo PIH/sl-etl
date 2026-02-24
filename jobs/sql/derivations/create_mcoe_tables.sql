@@ -23,3 +23,11 @@ select v.*
 into mcoe_vitals 
 from all_vitals v 
 inner join mcoe_encounters m on m.encounter_id = v.encounter_id;
+
+drop table if exists mcoe_patients;
+select p.* 
+into mcoe_patients 
+from all_patients p
+where exists
+(select 1 from mcoe_encounters e 
+where e.patient_id = p.patient_id);
