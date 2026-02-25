@@ -54,6 +54,7 @@ configuration:
           - tableName: "moh_maternity_and_delivery"
           - tableName: "moh_epi_tetanus"                
           - tableName: "all_admissions"
+          - tableName: "mcoe_patient_workflow"
 
     - type: "iterating-job"
       description: "Create mcoe tables"
