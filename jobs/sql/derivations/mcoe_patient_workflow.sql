@@ -18,7 +18,7 @@ insert into mcoe_patient_workflow_staging(visit_id, patient_id, first_mcoe_datet
 select visit_id, patient_id, min(encounter_datetime)
 from all_encounters 
 where mcoe_location = 1
--- and inpatient_location = 1 -- include all wards and can filter out in reporting
+ and inpatient_location = 1 -- include only inpatient for now... will need to update when outpatient moves to MCOE
 group by visit_id, patient_id 
 having min(encounter_datetime) >= '2026-02-14';
 
@@ -48,6 +48,7 @@ inner join all_encounters e on e.encounter_id =
  	from all_encounters e2
  	where  e2.encounter_datetime = m.first_mcoe_datetime
  	and e2.mcoe_location = 1
+ 	and e2.inpatient_location = 1
  	order by e2.encounter_datetime );
 
 update m
