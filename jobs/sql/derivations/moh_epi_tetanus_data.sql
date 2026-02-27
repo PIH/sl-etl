@@ -1,6 +1,8 @@
 drop table if exists moh_epi_tetanus_data_staging;
 create table moh_epi_tetanus_data_staging
 (site                        varchar(255),  
+patient_id                   varchar(50),
+emr_id                       varchar(50),
 obs_id                       varchar(50),  
 mcoe_location                bit,          
 pregnancy_program_id         varchar(50),  
@@ -10,8 +12,8 @@ immunization                 varchar(255),
 immunization_date            date,         
 immunization_sequence_number int);         
 
-insert into moh_epi_tetanus_data_staging (site, obs_id, mcoe_location, pregnancy_program_id, immunization, immunization_date, immunization_sequence_number)
-select site, obs_id, mcoe_location, pregnancy_program_id, immunization, immunization_date, immunization_sequence_number from all_immunizations;
+insert into moh_epi_tetanus_data_staging (site, patient_id, emr_id, obs_id, mcoe_location, pregnancy_program_id, immunization, immunization_date, immunization_sequence_number)
+select site, patient_id, emr_id, obs_id, mcoe_location, pregnancy_program_id, immunization, immunization_date, immunization_sequence_number from all_immunizations;
 	
 UPDATE e
 SET e.pregnancy_state = s.state
