@@ -11,7 +11,9 @@ first_mcoe_location varchar(255),
 first_mcoe_encounter_type varchar(255),
 first_mcoe_encounter_provider text,
 location_before_mcoe varchar(255),
-encounter_type_before_mcoe varchar(255)
+encounter_type_before_mcoe varchar(255),
+admitted_to_mcoe bit,
+admitted_mcoe_locations text
 )
 
 insert into mcoe_patient_workflow_staging(visit_id, patient_id, first_mcoe_datetime) 
@@ -29,14 +31,18 @@ from mcoe_patient_workflow_staging m
 inner join all_patients p on p.patient_id = m.patient_id;
 
 update m 
-set newborn = 1 
-from mcoe_patient_workflow_staging m
-where datediff(year, birthdate, first_mcoe_datetime) = 0;
+set newborn = 
+case
+	when datediff(year, birthdate, first_mcoe_datetime) = 0 then 1
+	else 0
+end
+from mcoe_patient_workflow_staging m;
 
 update m
-set inborn = 1 
+set inborn = 1
 from mcoe_patient_workflow_staging m
-inner join mch_delivery_summary_encounter d on d.patient_id = m.patient_id
+inner join mch_delivery_summary_encounter d on d.visit_id = m.visit_id;
+update m set inborn = 0 from mcoe_patient_workflow_staging m where inborn is null;
 
 update m
 set m.first_mcoe_location = e.encounter_location,
@@ -61,6 +67,32 @@ inner join all_encounters e on e.encounter_id =
  	where  e2.encounter_datetime < m.first_mcoe_datetime
  	and e2.visit_id = m.visit_id
  	order by e2.encounter_datetime desc);
+
+UPDATE m
+SET m.admitted_mcoe_locations = i.admitted_mcoe_locations
+FROM mcoe_patient_workflow_staging m
+INNER JOIN (
+    SELECT t.visit_id,
+           STUFF((
+             SELECT ', ' + a2.encounter_location
+             FROM all_admissions a2
+             WHERE a2.visit_id = t.visit_id
+               AND a2.mcoe_location = 1
+             ORDER BY a2.start_datetime
+             FOR XML PATH(''), TYPE
+           ).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS admitted_mcoe_locations
+    FROM (
+      SELECT DISTINCT visit_id
+      FROM all_admissions
+      WHERE mcoe_location = 1
+    ) t
+) i
+  ON i.visit_id = m.visit_id;
+
+update m 
+set admitted_to_mcoe = 1 
+from mcoe_patient_workflow_staging m 
+where admitted_mcoe_locations is not null;
 
 DROP TABLE IF EXISTS mcoe_patient_workflow;
 EXEC sp_rename 'mcoe_patient_workflow_staging', 'mcoe_patient_workflow';
