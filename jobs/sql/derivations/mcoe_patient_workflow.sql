@@ -24,6 +24,7 @@ where mcoe_location = 1
 group by visit_id, patient_id 
 having min(encounter_datetime) >= '2026-02-14';
 
+-- delete extranneous rows without a visit
 delete m
 from mcoe_patient_workflow_staging m
 where m.visit_id is null 
@@ -49,10 +50,11 @@ from mcoe_patient_workflow_staging m;
 update m
 set inborn = 1
 from mcoe_patient_workflow_staging m
+inner join all_visits v on v.visit_id = m.visit_id 
 inner join mch_delivery_summary_encounter d on d.patient_id = m.patient_id
-inner join all_visits v on v.visit_id = d.visit_id -- is it the same visit as the delivery?
-	and (first_mcoe_datetime <= visit_date_stopped or visit_date_stopped is null) ;
-
+	and ((cast(d.encounter_datetime as date) >= cast(visit_date_started as date))
+		and (cast(d.encounter_datetime as date) <= cast(visit_date_stopped as date) or visit_date_stopped is null ));
+		
 update m set inborn = 0 from mcoe_patient_workflow_staging m where inborn is null;
 
 update m
