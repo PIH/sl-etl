@@ -28,6 +28,8 @@ create table mch_labor_summary_encounter
     duration_third_stage                    decimal(8, 3),
     total_duration_labor                    int,
     partogram_uploaded                      bit,
+    uterotonic_after_birth                  bit,
+    uterotonic_datetime                     datetime,
     index_asc                               INT,
     index_desc                              INT
 );

@@ -41,6 +41,8 @@ create temporary table temp_labor_encs
     duration_third_stage                    decimal(8, 3),
     total_duration_labor                    int,
     partogram_uploaded                      bit,
+    uterotonic_after_birth                  bit,
+    uterotonic_datetime                     datetime,
     index_asc                               INT,
     index_desc                              INT
 );
@@ -95,6 +97,10 @@ UPDATE temp_labor_encs t SET total_duration_labor = obs_value_numeric_from_temp(
 UPDATE temp_labor_encs t SET breastfeeding_initiation_datetime = obs_value_datetime_from_temp(encounter_id, 'PIH',21116);
 UPDATE temp_labor_encs t SET partogram_uploaded = (select count(o.obs_id) > 0 from temp_obs o where o.encounter_id = t.encounter_id and o.concept_id = concept_from_mapping('PIH', '13756'));
 UPDATE temp_labor_encs t SET age_at_encounter = AGE_AT_ENC(patient_id, encounter_id);
+UPDATE temp_labor_encs t SET uterotonic_after_birth = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','14373');
+UPDATE temp_labor_encs t SET uterotonic_datetime = obs_value_datetime_from_temp(encounter_id, 'PIH','21403');
+
+
 
 set @perineal_tear_procedure = concept_from_mapping('PIH','10484');
 set @episiotomy = concept_from_mapping('CIEL','5577');
@@ -137,6 +143,8 @@ SELECT
     duration_third_stage,
     total_duration_labor,
     partogram_uploaded,
+    uterotonic_after_birth,
+    uterotonic_datetime,
     index_asc,
     index_desc
 FROM temp_labor_encs;
