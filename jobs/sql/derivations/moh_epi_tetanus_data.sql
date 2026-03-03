@@ -23,7 +23,7 @@ CROSS APPLY (
     FROM mch_pregnancy_state s
     WHERE s.pregnancy_program_id = e.pregnancy_program_id
       AND s.state_start_date <= e.immunization_date
-      AND s.state_end_date >= e.immunization_date
+      AND (s.state_end_date >= e.immunization_date or s.state_end_date is null)
     ORDER BY s.state_start_date DESC   -- most recent
 ) s;
 
