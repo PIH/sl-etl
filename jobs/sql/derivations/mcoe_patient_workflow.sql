@@ -63,7 +63,8 @@ from mcoe_patient_workflow_staging m
 inner join all_encounters e on e.encounter_id = 
  	(select top 1 e2.encounter_id
  	from all_encounters e2
- 	where  e2.encounter_datetime = m.first_mcoe_datetime
+ 	where e2.patient_id = m.patient_id  
+ 	and e2.encounter_datetime = m.first_mcoe_datetime
  	and e2.mcoe_location = 1
  	and e2.inpatient_location = 1
  	order by e2.encounter_datetime );
