@@ -51,7 +51,7 @@ set inborn = 1
 from mcoe_patient_workflow_staging m
 inner join mch_delivery_summary_encounter d on d.patient_id = m.patient_id
 inner join all_visits v on v.visit_id = d.visit_id -- is it the same visit as the delivery?
-	and (first_mcoe_datetime <= visit_date_stopped) ;
+	and (first_mcoe_datetime <= visit_date_stopped or visit_date_stopped is null) ;
 
 update m set inborn = 0 from mcoe_patient_workflow_staging m where inborn is null;
 
