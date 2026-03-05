@@ -26,6 +26,7 @@ configuration:
         iterations:
           - tableName: "moh_maternity_and_delivery_data"
           - tableName: "moh_epi_tetanus_data"
+          - tableName: "moh_postnatal_care_data"
           
     - type: "iterating-job"
       description: "Create final derived tables"
