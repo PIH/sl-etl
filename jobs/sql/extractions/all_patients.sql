@@ -16,7 +16,9 @@ registration_encounter_id         int(11),
 district                          VARCHAR(255),  
 chiefdom                          VARCHAR(255),  
 section                           VARCHAR(255),  
-village                           VARCHAR(255),  
+village                           VARCHAR(255),
+street_address                    VARCHAR(255),
+full_address                      text,
 telephone_number                  VARCHAR(255),  
 civil_status                      VARCHAR(255),  
 occupation                        VARCHAR(255),  
@@ -88,7 +90,18 @@ set t.country = a.country,
 	t.village = a.city_village,
 	t.district = a.county_district ,
 	t.section = a.address1,
+	t.street_address = a.address2,
 	t.last_modified_address_datetime = COALESCE(date_changed,date_created);
+
+update temp_patients t
+set full_address = 
+	CONCAT_WS(', ',
+    NULLIF(TRIM(street_address), ''), 
+    NULLIF(TRIM(village), ''),
+    NULLIF(TRIM(section), ''),
+    NULLIF(TRIM(chiefdom), ''),
+    NULLIF(TRIM(district), ''),
+    NULLIF(TRIM(country), ''));
 
 -- identifiers
 update temp_patients t set wellbody_emr_id = patient_identifier(patient_id,'1a2acce0-7426-11e5-a837-0800200c9a66');
@@ -195,6 +208,8 @@ district,
 chiefdom,
 section,
 village,
+street_address,
+full_address,
 telephone_number,
 civil_status,
 occupation,
