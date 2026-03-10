@@ -5,50 +5,54 @@ select encounter_type_id  into @regEncounterType from encounter_type et where uu
 
 DROP TABLE IF EXISTS temp_patients;
 CREATE TEMPORARY TABLE  temp_patients
-(wellbody_emr_id                   varchar(50),   
-kgh_emr_id                        varchar(50),  
-emr_id                            varchar(50),  
-sl_national_id                    varchar(50),  
-patient_id                        int,           
-mothers_first_name                VARCHAR(255),  
-country                           VARCHAR(255),  
-registration_encounter_id         int(11),       
-district                          VARCHAR(255),  
-chiefdom                          VARCHAR(255),  
-section                           VARCHAR(255),  
-village                           VARCHAR(255),
-street_address                    VARCHAR(255),
-full_address                      text,
-telephone_number                  VARCHAR(255),  
-civil_status                      VARCHAR(255),  
-occupation                        VARCHAR(255),  
-reg_location                      varchar(50),   
-reg_location_id                   int(11),       
-registration_date                 date,          
-registration_entry_date           datetime,      
-creator                           int(11),       
-user_entered                      varchar(50),   
-first_encounter_date              date,          
-last_encounter_date               date,          
-name                              varchar(50),   
-family_name                       varchar(50),   
-birthdate                               date,          
-birthdate_estimated                     bit,           
-gender                            varchar(2),    
-dead                              bit,           
-death_date                        date,          
-cause_of_death_concept_id         int(11),       
-cause_of_death                    varchar(100), 
-last_modified_patient             datetime,     
-last_modified_datetime            datetime,     
-last_modified_person_datetime     datetime,     
-last_modified_name_datetime       datetime,     
-last_modified_address_datetime    datetime,     
-last_modified_attributes_datetime datetime,     
-last_modified_obs_datetime        datetime,
-last_modified_registration_datetime datetime,
-patient_uuid                       varchar(38),
-patient_url                       text
+(wellbody_emr_id                    varchar(50),   
+kgh_emr_id                          varchar(50),   
+emr_id                              varchar(50),   
+sl_national_id                      varchar(50),   
+patient_id                          int,           
+mothers_first_name                  VARCHAR(255),  
+country                             VARCHAR(255),  
+registration_encounter_id           int(11),       
+district                            VARCHAR(255),  
+chiefdom                            VARCHAR(255),  
+section                             VARCHAR(255),  
+village                             VARCHAR(255), 
+street_address                      VARCHAR(255), 
+full_address                        text,         
+telephone_number                    VARCHAR(255),  
+civil_status                        VARCHAR(255),  
+occupation                          VARCHAR(255),  
+reg_location                        varchar(50),   
+reg_location_id                     int(11),       
+registration_date                   date,          
+registration_entry_date             datetime,      
+creator                             int(11),       
+user_entered                        varchar(50),   
+first_encounter_date                date,          
+last_encounter_date                 date,          
+name                                varchar(50),   
+family_name                         varchar(50),   
+birthdate                           date,          
+birthdate_estimated                 bit,           
+gender                              varchar(2),    
+primary_contact_name                text,
+primary_contact_number              text,
+local_contact_name                  text,
+local_contact_number                text,
+dead                                bit,           
+death_date                          date,          
+cause_of_death_concept_id           int(11),       
+cause_of_death                      varchar(100),  
+last_modified_patient               datetime,      
+last_modified_datetime              datetime,      
+last_modified_person_datetime       datetime,      
+last_modified_name_datetime         datetime,      
+last_modified_address_datetime      datetime,      
+last_modified_attributes_datetime   datetime,      
+last_modified_obs_datetime          datetime,     
+last_modified_registration_datetime datetime,     
+patient_uuid                        varchar(38),  
+patient_url                         text          
 );
 
 -- load all patients
@@ -154,17 +158,34 @@ update temp_patients t
 inner join user_names u on t.creator = u.user_id
 set t.user_entered = u.user_name;
 
+-- create temp table for obs
+DROP TEMPORARY TABLE IF EXISTS temp_obs;
+create temporary table temp_obs
+select o.obs_id, o.obs_group_id, o.voided, o.encounter_id, o.person_id, o.concept_id, o.value_coded, 
+       o.value_text, o.date_created
+from obs o
+inner join temp_patients t on t.registration_encounter_id = o.encounter_id
+where o.voided = 0;
+
+create index temp_obs_ei on temp_obs(encounter_id);
+create index temp_obs_c1 on temp_obs(encounter_id, concept_id);
+
 -- registration obs
 set @civilStatus = concept_from_mapping('PIH','1054');
 set @occupation = concept_from_mapping('PIH','1304');
+set @primary_contact = concept_from_mapping('PIH','1325');
+set @local_contact = concept_from_mapping('PIH','14704');
+
 
 DROP TABLE IF EXISTS temp_obs_collated;
 CREATE TEMPORARY TABLE temp_obs_collated AS
 select encounter_id,
 max(case when concept_id = @civilStatus then concept_name(value_coded,@locale) end) "civil_status",
 max(case when concept_id = @occupation then concept_name(value_coded,@locale) end) "occupation",
+max(case when concept_id = @primary_contact then obs_id end) "primary_contact_obs_group_id",
+max(case when concept_id = @local_contact then obs_id end) "local_contact_obs_group_id",
 max(o.date_created) "last_modified_obs_datetime"
-from obs o 
+from temp_obs o 
 inner join temp_patients t on t.registration_encounter_id = o.encounter_id
 where o.voided = 0 
 group by encounter_id;
@@ -176,6 +197,48 @@ inner join temp_obs_collated o on o.encounter_id = t.registration_encounter_id
 set t.civil_status = o.civil_status,
 	t.occupation = o.occupation,
 	t.last_modified_obs_datetime = o.last_modified_obs_datetime;
+
+-- registration obs group fields
+set @contact_name = concept_from_mapping('PIH','1327');
+set @contact_number = concept_from_mapping('PIH','6194');
+
+-- primary contact
+DROP TABLE IF EXISTS temp_obs_collated_primary_contact;
+CREATE TEMPORARY TABLE temp_obs_collated_primary_contact AS
+select 
+o.encounter_id,
+max(case when concept_id = @contact_name then value_text end) "primary_contact_name",
+max(case when concept_id = @contact_number then value_text end) "primary_contact_number"
+from temp_obs o
+inner join temp_obs_collated oc on oc.encounter_id = o.encounter_id 
+	and oc.primary_contact_obs_group_id = o.obs_group_id
+group by encounter_id ;	
+
+create index temp_obs_collated_primary_contact_ei on temp_obs_collated_primary_contact(encounter_id);
+
+update temp_patients t 
+inner join temp_obs_collated_primary_contact o on o.encounter_id = t.registration_encounter_id
+set t.primary_contact_name = o.primary_contact_name,
+	t.primary_contact_number = o.primary_contact_number;
+
+-- local contact
+DROP TABLE IF EXISTS temp_obs_collated_local_contact;
+CREATE TEMPORARY TABLE temp_obs_collated_local_contact AS
+select 
+o.encounter_id,
+max(case when concept_id = @contact_name then value_text end) "local_contact_name",
+max(case when concept_id = @contact_number then value_text end) "local_contact_number"
+from temp_obs o
+inner join temp_obs_collated oc on oc.encounter_id = o.encounter_id 
+	and oc.local_contact_obs_group_id = o.obs_group_id
+group by encounter_id ;	
+
+create index temp_obs_collated_local_contact_ei on temp_obs_collated_local_contact(encounter_id);
+
+update temp_patients t 
+inner join temp_obs_collated_local_contact o on o.encounter_id = t.registration_encounter_id
+set t.local_contact_name = o.local_contact_name,
+	t.local_contact_number = o.local_contact_number;
 
 -- first/latest encounter
 update temp_patients t set first_encounter_date = (select min(encounter_datetime) from encounter e where e.patient_id = t.patient_id);
@@ -224,6 +287,10 @@ family_name,
 birthdate,
 birthdate_estimated,
 gender,
+primary_contact_name,
+primary_contact_number,
+local_contact_name,
+local_contact_number,
 dead,
 death_date,
 cause_of_death,
