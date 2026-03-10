@@ -28,6 +28,7 @@ referred_from                   text,
 sickle_cell_confirmatory_test   varchar(255), 
 comorbidities                   varchar(255), 
 diabetes                        boolean,      
+all_conditions                  text,
 hypertension                    boolean,      
 heart_failure                   boolean,      
 chronic_lung_disease            boolean,      
@@ -102,11 +103,14 @@ GROUP BY patient_id;
 create index temp_encounter_ci1 on temp_encounter(encounter_id);
 create index temp_encounter_eoi on temp_encounter(echocardiogram_obs_group_id);
 
+set @missed_school = concept_from_mapping('PIH','5629');
+set @dx = concept_from_mapping('PIH','3064');
+set @cardiomyopathy = concept_from_mapping('PIH','5016');
 DROP TEMPORARY TABLE if exists temp_obs;
 CREATE TEMPORARY TABLE temp_obs
-select o.obs_id, o.voided, o.obs_group_id, o.encounter_id, o.person_id, o.concept_id, o.value_coded, o.value_numeric, o.value_text, o.value_datetime, o.value_drug, o.comments, o.date_created, o.obs_datetime
-,CASE WHEN concept_id=concept_from_mapping('PIH','5629') THEN TRUE ELSE NULL END AS ever_missed_school,
-CASE WHEN concept_id=concept_from_mapping('PIH','3064') AND value_coded=concept_from_mapping('PIH','5016') THEN TRUE ELSE NULL END AS cardiomyopathy
+select o.obs_id, o.voided, o.obs_group_id, o.encounter_id, o.person_id, o.concept_id, o.value_coded, o.value_numeric, o.value_text, o.value_datetime, o.value_drug, o.comments, o.date_created, o.obs_datetime,
+CASE WHEN concept_id=@missed_school THEN TRUE ELSE NULL END AS ever_missed_school,
+CASE WHEN concept_id=@dx AND value_coded=@cardiomyopathy THEN TRUE ELSE NULL END AS cardiomyopathy
 from obs o inner join temp_encounter t on o.encounter_id = t.encounter_id
 where o.voided = 0;
 
@@ -175,49 +179,118 @@ INNER JOIN person p ON tgt.patient_id = p.person_id
 AND p.voided=0
 SET tgt.birthdate_estimated= p.birthdate_estimated;
 
+-- Diabetes
+set @diabetes_question = concept_from_mapping('PIH', '10529');
+set @diabetes_answer = concept_from_mapping('PIH', '3720');
 UPDATE ncd_patient
-SET diabetes = answerEverExists_from_temp(patient_id, 'PIH', '10529','PIH', '3720', NULL);
+SET diabetes = answerEverExists_from_temp_using_concept_id(patient_id, @diabetes_question, @diabetes_answer, NULL);
+
+-- Hypertension
+SET @hypertension_question = concept_from_mapping('PIH', '10529');
+SET @hypertension_answer   = concept_from_mapping('PIH', '903');
 
 UPDATE ncd_patient
-SET hypertension = answerEverExists_from_temp(patient_id, 'PIH', '10529','PIH', '903', NULL);
+SET hypertension = answerEverExists_from_temp_using_concept_id(patient_id, @hypertension_question, @hypertension_answer, NULL);
+
+
+-- Heart failure
+SET @hf_question = concept_from_mapping('PIH', '10529');
+SET @hf_answer   = concept_from_mapping('PIH', '3468');
 
 UPDATE ncd_patient
-SET heart_failure = answerEverExists_from_temp(patient_id, 'PIH', '10529','PIH', '3468', NULL);
+SET heart_failure = answerEverExists_from_temp_using_concept_id(patient_id, @hf_question, @hf_answer, NULL);
+
+
+-- Chronic lung disease
+SET @cld_question = concept_from_mapping('PIH', '10529');
+SET @cld_answer   = concept_from_mapping('PIH', '6768');
 
 UPDATE ncd_patient
-SET chronic_lung_disease = answerEverExists_from_temp(patient_id, 'PIH', '10529','PIH', '6768', NULL);
+SET chronic_lung_disease = answerEverExists_from_temp_using_concept_id(patient_id, @cld_question, @cld_answer, NULL);
+
+
+-- Chronic kidney disease
+SET @ckd_question = concept_from_mapping('PIH', '10529');
+SET @ckd_answer   = concept_from_mapping('PIH', '3699');
 
 UPDATE ncd_patient
-SET chronic_kidney_disease = answerEverExists_from_temp(patient_id, 'PIH', '10529','PIH', '3699', NULL);
+SET chronic_kidney_disease = answerEverExists_from_temp_using_concept_id(patient_id, @ckd_question, @ckd_answer, NULL);
+
+
+-- Liver cirrhosis / Hep B
+SET @liver_question = concept_from_mapping('PIH', '10529');
+SET @liver_answer   = concept_from_mapping('PIH', '3714');
 
 UPDATE ncd_patient
-SET liver_cirrhosis_hepb = answerEverExists_from_temp(patient_id, 'PIH', '10529','PIH', '3714', NULL);
+SET liver_cirrhosis_hepb = answerEverExists_from_temp_using_concept_id(patient_id, @liver_question, @liver_answer, NULL);
+
+
+-- Palliative care
+SET @pall_question = concept_from_mapping('PIH', '10529');
+SET @pall_answer   = concept_from_mapping('PIH', '10359');
 
 UPDATE ncd_patient
-SET palliative_care = answerEverExists_from_temp(patient_id, 'PIH', '10529','PIH', '10359', NULL);
+SET palliative_care = answerEverExists_from_temp_using_concept_id(patient_id, @pall_question, @pall_answer, NULL);
+
+
+-- Sickle cell
+SET @sickle_question = concept_from_mapping('PIH', '10529');
+SET @sickle_answer   = concept_from_mapping('PIH', '7908');
 
 UPDATE ncd_patient
-SET sickle_cell = answerEverExists_from_temp(patient_id, 'PIH', '10529','PIH', '7908', NULL);
+SET sickle_cell = answerEverExists_from_temp_using_concept_id(patient_id, @sickle_question, @sickle_answer, NULL);
+
+
+-- Other NCD
+SET @other_question = concept_from_mapping('PIH', '10529');
+SET @other_answer   = concept_from_mapping('PIH', '5622');
 
 UPDATE ncd_patient
-SET other_ncd = answerEverExists_from_temp(patient_id, 'PIH', '10529','PIH', '5622', NULL);
+SET other_ncd = answerEverExists_from_temp_using_concept_id(patient_id, @other_question, @other_answer, NULL);
+
+UPDATE ncd_patient
+SET all_conditions = 
+    CONCAT_WS(', ',
+    NULLIF(IF(diabetes=1, 'Diabetes',''),''), 
+    NULLIF(IF(hypertension=1, 'Hypertension',''),''), 
+    NULLIF(IF(heart_failure=1, 'Heart Failure',''),''),
+    NULLIF(IF(chronic_lung_disease=1, 'Chronic Lung Disease',''),''),
+    NULLIF(IF(chronic_kidney_disease=1, 'Chronic Kidney Disease',''),''),
+    NULLIF(IF(liver_cirrhosis_hepb=1, 'Liver Cirrhosis',''),''),
+    NULLIF(IF(palliative_care=1, 'Palliative Care',''),''),        
+    NULLIF(IF(sickle_cell=1, 'Sickle Cell',''),''),    
+    NULLIF(IF(other_ncd=1, 'Other NCD',''),''));
 
 UPDATE ncd_patient
 SET hypertension_type = last_value_coded_list_from_temp(patient_id, 'PIH', '11940','en');
 
+
+SET @diabetes_question      = concept_from_mapping('PIH', '3064');
+SET @diabetes_ans_type2     = concept_from_mapping('PIH', '6692');
+SET @diabetes_ans_type1     = concept_from_mapping('PIH', '6691');
+SET @diabetes_ans_gestational= concept_from_mapping('PIH', '6693');
+SET @diabetes_ans_unspecified = concept_from_mapping('PIH', '3720');
 UPDATE ncd_patient
-SET diabetes_type = CASE WHEN answerEverExists_from_temp(patient_id,'PIH','3064', 'PIH', '6692', null) THEN 'Type 2 DM'
-WHEN answerEverExists_from_temp(patient_id,'PIH','3064', 'PIH', '6691', null) THEN 'Type 1 DM'
-WHEN answerEverExists_from_temp(patient_id,'PIH','3064', 'PIH', '6693', null) THEN 'Gestational DM'
-WHEN answerEverExists_from_temp(patient_id,'PIH','3064', 'PIH', '3720', null) THEN 'DM not yet specified' 
-ELSE NULL
+SET diabetes_type = CASE
+  WHEN answerEverExists_from_temp_using_concept_id(patient_id, @diabetes_question, @diabetes_ans_type2, NULL) THEN 'Type 2 DM'
+  WHEN answerEverExists_from_temp_using_concept_id(patient_id, @diabetes_question, @diabetes_ans_type1, NULL) THEN 'Type 1 DM'
+  WHEN answerEverExists_from_temp_using_concept_id(patient_id, @diabetes_question, @diabetes_ans_gestational, NULL) THEN 'Gestational DM'
+  WHEN answerEverExists_from_temp_using_concept_id(patient_id, @diabetes_question, @diabetes_ans_unspecified, NULL) THEN 'DM not yet specified'
+  ELSE NULL
 END;
 
+-- Rheumatic heart disease
+SET @rhd_question = concept_from_mapping('PIH', '3064');
+SET @rhd_answer   = concept_from_mapping('PIH', '221');
 UPDATE ncd_patient
-SET rheumatic_heart_disease = answerEverExists_from_temp(patient_id, 'PIH', '3064','PIH', '221', NULL);
+SET rheumatic_heart_disease = answerEverExists_from_temp_using_concept_id(patient_id, @rhd_question, @rhd_answer, NULL);
 
+-- Congenital heart disease
+SET @chd_question = concept_from_mapping('PIH', '3064');
+SET @chd_answer   = concept_from_mapping('PIH', '3131');
 UPDATE ncd_patient
-SET congenital_heart_disease = answerEverExists_from_temp(patient_id, 'PIH', '3064','PIH', '3131', NULL );
+SET congenital_heart_disease = answerEverExists_from_temp_using_concept_id(patient_id, @chd_question, @chd_answer, NULL);
+
 
 UPDATE ncd_patient
 SET nyha_classification = last_value_coded_list_from_temp(patient_id, 'PIH', '3139','en');
@@ -228,15 +301,22 @@ SET lung_disease_type = last_value_coded_list_from_temp(patient_id, 'PIH', '1459
 UPDATE ncd_patient
 SET ckd_stage = last_value_coded_list_from_temp(patient_id, 'PIH', '12501','en');
 
+SET @sickle_question          = concept_from_mapping('PIH', '3064');
+SET @sickle_ans_ss           = concept_from_mapping('PIH', '7908');
+SET @sickle_ans_as           = concept_from_mapping('PIH', '7915');
+SET @sickle_ans_sb           = concept_from_mapping('PIH', '14923');
+SET @sickle_ans_sc           = concept_from_mapping('PIH', '12715');
+SET @sickle_ans_other        = concept_from_mapping('PIH', '10134');
 UPDATE ncd_patient
-SET sickle_cell_type = 
-CASE WHEN answerEverExists_from_temp(patient_id,'PIH','3064', 'PIH', '7908', null) THEN 'Sickle-cell anemia (SS)'
-     WHEN answerEverExists_from_temp(patient_id,'PIH','3064', 'PIH', '7915', null) THEN 'Sickle-cell trait (AS)'
-     WHEN answerEverExists_from_temp(patient_id,'PIH','3064', 'PIH', '14923', null) THEN 'Sickle-cell beta thalassemia (SB)' 
-     WHEN answerEverExists_from_temp(patient_id,'PIH','3064', 'PIH', '12715', null) THEN 'Sickle-cell hemoglobin C disease (SC)' 
-     WHEN answerEverExists_from_temp(patient_id,'PIH','3064', 'PIH', '10134', null) THEN 'Other hemoglobinopathy' 
-     ELSE NULL
-     END;
+SET sickle_cell_type =
+  CASE
+    WHEN answerEverExists_from_temp_using_concept_id(patient_id, @sickle_question, @sickle_ans_ss,    NULL) THEN 'Sickle-cell anemia (SS)'
+    WHEN answerEverExists_from_temp_using_concept_id(patient_id, @sickle_question, @sickle_ans_as,    NULL) THEN 'Sickle-cell trait (AS)'
+    WHEN answerEverExists_from_temp_using_concept_id(patient_id, @sickle_question, @sickle_ans_sb,    NULL) THEN 'Sickle-cell beta thalassemia (SB)'
+    WHEN answerEverExists_from_temp_using_concept_id(patient_id, @sickle_question, @sickle_ans_sc,    NULL) THEN 'Sickle-cell hemoglobin C disease (SC)'
+    WHEN answerEverExists_from_temp_using_concept_id(patient_id, @sickle_question, @sickle_ans_other, NULL) THEN 'Other hemoglobinopathy'
+    ELSE NULL
+  END;
 
 UPDATE ncd_patient
 SET next_appointment_date = CAST(last_value_datetime_from_temp(patient_id, 'PIH','5096') AS date); 
@@ -314,6 +394,7 @@ education_level,
 read_and_write,
 referred_from,
 comorbidities,
+all_conditions,
 diabetes,
 hypertension,
 heart_failure,
