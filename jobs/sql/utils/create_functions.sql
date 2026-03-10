@@ -4698,3 +4698,33 @@ limit 1
 RETURN ret;
 
 END
+#
+/*
+This function accepts a patient id, concept_id of a question concept and concept_id of an answer concept
+It will return a boolean set to 1 if that question and answer has EVER been recorded for a patient since the datetime passed in.
+Null can be passed in as the datetime if it is to be disregarded.
+it looks at the temp_obs table created within a script for this
+*/
+#
+DROP FUNCTION IF EXISTS answerEverExists_from_temp_using_concept_id;
+#
+CREATE FUNCTION answerEverExists_from_temp_using_concept_id(_patient_id int(11), _question_concept_id int(11), _answer_concept_id int(11), _begin_datetime datetime)
+    RETURNS boolean
+    DETERMINISTIC
+
+BEGIN
+
+  DECLARE ret boolean;
+
+
+select if(obs_id is null,0,1) into ret
+from temp_obs o where o.voided =0 
+	and o.person_id = _patient_id
+	and o.concept_id = _question_concept_id
+	and o.value_coded  = _answer_concept_id
+	and (o.obs_datetime >= _begin_datetime or _begin_datetime is null)
+	limit 1;
+
+    RETURN ret;
+
+END
