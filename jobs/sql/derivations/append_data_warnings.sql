@@ -217,7 +217,6 @@ and encounter_type in
 'Labour and Delivery Summary',
 'Postpartum Daily Progress',
 'Maternal Discharge',
-'Newborn Assessment',
 'Newborn Initial',
 'Newborn Daily Progress',
 'Newborn Discharge')
