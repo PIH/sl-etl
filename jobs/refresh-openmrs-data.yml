@@ -56,6 +56,7 @@ configuration:
           - tableName: "moh_epi_tetanus"                
           - tableName: "all_admissions"
           - tableName: "mcoe_patient_workflow"
+          - tableName: "ncd_patient_tracking"
 
     - type: "iterating-job"
       description: "Create mcoe tables"
