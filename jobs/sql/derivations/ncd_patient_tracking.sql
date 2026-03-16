@@ -1,5 +1,6 @@
 drop table if exists ncd_patient_tracking_staging;
 select
+p.patient_id,
 p.emr_id,
 concat(name, ' ', family_name) "name", 
 datediff(year, p.birthdate, GETDATE()) "current_age", 
@@ -26,6 +27,7 @@ sickle_cell,
 other_ncd,
 diabetes_type,
 date_enrolled,
+DATEDIFF(day, COALESCE(first_ncd_visit_date, date_enrolled), GETDATE()) "days_since_first_visit",
 DATEDIFF(day, COALESCE(most_recent_visit_date, date_enrolled), GETDATE()) "days_since_last_visit",
 DATEDIFF(day, COALESCE(next_appointment_date, date_enrolled), GETDATE()) "days_late_for_appointment"
 into ncd_patient_tracking_staging
