@@ -206,9 +206,10 @@ from mch_delivery e
 inner join #temp_dup_encounters t on t.max_encounter_id = e.encounter_id;
 
 -- -------------------------------------------------- inpatient encounters without admission
-drop table if exists #temp_all_encounters_latest
+-- find the earliest encounter for each patient within each visit of the specified type
+drop table if exists #temp_all_encounters_earliest
 select patient_id, emr_id, visit_id, encounter_type, encounter_id, encounter_datetime, datetime_entered, user_entered, site, partition_num 
-into #temp_all_encounters_latest
+into #temp_all_encounters_earliest
 from all_encounters e where encounter_id =
 (select top 1 encounter_id from all_encounters e2
 where e2.visit_id = e.visit_id
@@ -217,23 +218,36 @@ and encounter_type in
 'Labour and Delivery Summary',
 'Postpartum Daily Progress',
 'Maternal Discharge',
-'Newborn Assessment',
 'Newborn Initial',
 'Newborn Daily Progress',
 'Newborn Discharge')
-order by encounter_datetime desc, encounter_id desc);
+order by encounter_datetime asc, encounter_id asc);
 
-
+--  flag if there is no admission encounter before the encounter we found previously
 insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id, 
 encounter_datetime, datetime_entered, user_entered, site, partition_num) 
-select 'Inpatient encounters without admission', encounter_type, patient_id, emr_id, visit_id, encounter_id,
+select 'Inpatient encounters before admission', encounter_type, patient_id, emr_id, visit_id, encounter_id,
 encounter_datetime, datetime_entered, user_entered, site, partition_num  
-from #temp_all_encounters_latest e
+from #temp_all_encounters_earliest e
 where not exists
 	(select 1 from all_encounters e2
 	where e2.visit_id = e.visit_id 
 	and e2.encounter_datetime < e.encounter_datetime
 	and e2.encounter_type = 'Admission');
+
+-- flag any newborn encounters without admission encounter in the same visit
+insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id,
+                                 encounter_datetime, datetime_entered, user_entered, site, partition_num)
+select 'Newborn Assessment without admission' , 'Newborn Assessment', patient_id, emr_id, visit_id, encounter_id,
+encounter_datetime, datetime_entered, user_entered, site, partition_num
+from all_encounters e
+where encounter_type = 'Newborn Assessment'
+and not exists
+	(select 1 from all_encounters e2
+	where e2.visit_id = e.visit_id
+	and e2.encounter_type = 'Admission'
+	);
+
 
 -- -------------------------------------------------- duplicate emr_id
 insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, encounter_datetime, datetime_entered,
