@@ -41,8 +41,8 @@ add days_since_ltfu int;
 update n 
 set days_since_ltfu = 
 case
-	when (days_since_last_visit - 90) < (days_late_for_appointment - 180) then (days_since_last_visit - 90)
-	else (days_late_for_appointment - 180)
+	when (days_since_last_visit - 180) < (days_late_for_appointment - 90) then (days_since_last_visit - 180)
+	else (days_late_for_appointment - 90)
 end
 from ncd_patient_tracking_staging n;
 
