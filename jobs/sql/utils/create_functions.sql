@@ -4728,3 +4728,31 @@ from temp_obs o where o.voided =0
     RETURN ret;
 
 END
+#
+-- This function accepts patient_id, and source concept and returns the last value_numeric for that concept from temp_obs
+#
+DROP FUNCTION IF EXISTS last_value_coded_list_from_temp_using_concept_id;
+#
+CREATE FUNCTION last_value_coded_list_from_temp_using_concept_id(_patient_id int(11), _concept_id int(11), _locale varchar(50))
+    RETURNS text
+    DETERMINISTIC
+
+BEGIN
+
+    DECLARE ret text;
+
+    select group_concat(distinct concept_name(o.value_coded, 'en') separator ' | ') into ret
+    from obs o
+    where o.voided = 0
+    and o.concept_id = _concept_id
+    and o.encounter_id =
+    	(select encounter_id from
+		 temp_obs o 
+		 where o.voided = 0
+ 		and o.person_id =  _patient_id 
+ 		and o.concept_id =  _concept_id
+ 		order by obs_datetime desc limit 1);
+
+    RETURN ret;
+ END
+#

@@ -152,14 +152,17 @@ FROM temp_encounter;
 create index ncd_patient_i1 on ncd_patient(patient_id); 
 
 -- Patient details columns
+set @educationlevel = concept_from_mapping('PIH', '1688');
 UPDATE ncd_patient
-SET education_level = last_value_coded_list_from_temp(patient_id, 'PIH', '1688','en');
+SET education_level = last_value_coded_list_from_temp_using_concept_id(patient_id, @educationlevel ,'en');
 
+set @readandwrite = concept_from_mapping('PIH','13736');
 UPDATE ncd_patient
-SET read_and_write = value_coded_as_boolean(latest_obs_from_temp(patient_id, 'PIH','13736'));
+SET read_and_write = value_coded_as_boolean(latest_obs_from_temp_from_concept_id(patient_id, @readandwrite));
 
+set @referredfrom = concept_from_mapping('PIH', '7454');
 UPDATE ncd_patient
-SET referred_from = last_value_coded_list_from_temp(patient_id, 'PIH', '7454','en');
+SET referred_from = last_value_coded_list_from_temp_using_concept_id(patient_id, @referredfrom,'en');
 
 -- update referred from to match form
 UPDATE ncd_patient
@@ -167,8 +170,9 @@ set referred_from = replace(referred_from,'Hospitalized','Inpatient Ward');
 UPDATE ncd_patient
 set referred_from =  replace(referred_from,'Primary care clinic','OPD');
 
+set @sicklecell = concept_from_mapping('PIH','15143');
 UPDATE ncd_patient
-SET sickle_cell_confirmatory_test = last_value_coded_list_from_temp(patient_id, 'PIH', '15143','en');
+SET sickle_cell_confirmatory_test = last_value_coded_list_from_temp_using_concept_id(patient_id, @sicklecell, 'en');
 
 UPDATE ncd_patient tgt 
 INNER JOIN last_echocardiogram lc ON tgt.patient_id = lc.patient_id
@@ -191,7 +195,6 @@ SET @hypertension_answer   = concept_from_mapping('PIH', '903');
 
 UPDATE ncd_patient
 SET hypertension = answerEverExists_from_temp_using_concept_id(patient_id, @hypertension_question, @hypertension_answer, NULL);
-
 
 -- Heart failure
 SET @hf_question = concept_from_mapping('PIH', '10529');
@@ -261,8 +264,9 @@ SET all_conditions =
     NULLIF(IF(sickle_cell=1, 'Sickle Cell',''),''),    
     NULLIF(IF(other_ncd=1, 'Other NCD',''),''));
 
+set @hypertensiontype = concept_from_mapping('PIH','11940');
 UPDATE ncd_patient
-SET hypertension_type = last_value_coded_list_from_temp(patient_id, 'PIH', '11940','en');
+SET hypertension_type = last_value_coded_list_from_temp_using_concept_id(patient_id, @hypertensiontype, 'en');
 
 
 SET @diabetes_question      = concept_from_mapping('PIH', '3064');
@@ -291,15 +295,17 @@ SET @chd_answer   = concept_from_mapping('PIH', '3131');
 UPDATE ncd_patient
 SET congenital_heart_disease = answerEverExists_from_temp_using_concept_id(patient_id, @chd_question, @chd_answer, NULL);
 
-
+set @nyha_classification = concept_from_mapping('PIH', '3139');
 UPDATE ncd_patient
-SET nyha_classification = last_value_coded_list_from_temp(patient_id, 'PIH', '3139','en');
+SET nyha_classification = last_value_coded_list_from_temp_using_concept_id(patient_id, @nyha_classification ,'en');
 
+set @lung_disease_type = concept_from_mapping('PIH', '14599');
 UPDATE ncd_patient
-SET lung_disease_type = last_value_coded_list_from_temp(patient_id, 'PIH', '14599','en');
+SET lung_disease_type = last_value_coded_list_from_temp_using_concept_id(patient_id, @lung_disease_type,'en');
 
+set @ckd_stage = concept_from_mapping('PIH', '12501');
 UPDATE ncd_patient
-SET ckd_stage = last_value_coded_list_from_temp(patient_id, 'PIH', '12501','en');
+SET ckd_stage = last_value_coded_list_from_temp_using_concept_id(patient_id, @ckd_stage, 'en');
 
 SET @sickle_question          = concept_from_mapping('PIH', '3064');
 SET @sickle_ans_ss           = concept_from_mapping('PIH', '7908');
@@ -324,14 +330,17 @@ SET next_appointment_date = CAST(last_value_datetime_from_temp(patient_id, 'PIH'
 UPDATE ncd_patient
 SET recent_program_id = mostRecentPatientProgramId(patient_id, @ncd_program);
 
+set @disposition = concept_from_mapping('PIH','8620');
 UPDATE ncd_patient tgt 
-SET disposition= last_value_coded_list_from_temp(patient_id, 'PIH', '8620',@locale);
+SET disposition= last_value_coded_list_from_temp_using_concept_id(patient_id, @disposition ,@locale);
 
+SET @hiv_concept = concept_from_mapping('PIH','1169');
 UPDATE ncd_patient
-SET hiv = last_value_coded_list_from_temp(patient_id, 'PIH', '1169','en');
+SET hiv = last_value_coded_list_from_temp_using_concept_id(patient_id, @hiv_concept, 'en');
 
+SET @comorbidities_concept = concept_from_mapping('PIH','12976');
 UPDATE ncd_patient
-SET comorbidities = last_value_coded_list_from_temp(patient_id, 'PIH', '12976','en');
+SET comorbidities = last_value_coded_list_from_temp_using_concept_id(patient_id, @comorbidities_concept, 'en');
 
 UPDATE ncd_patient
 SET other_ncd_type = last_value_text_from_temp(patient_id, 'PIH', '7416');
