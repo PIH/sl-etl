@@ -10,6 +10,7 @@ create table mch_postpartum_daily_encounter
     datetime_entered              datetime,
     user_entered                  varchar(255),
     provider                      varchar(255),
+    age_at_encounter              int,
     temperature                   decimal(8, 3),
     heart_rate                    int,
     bp_systolic                   int,
