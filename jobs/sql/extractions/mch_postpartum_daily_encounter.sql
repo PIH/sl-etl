@@ -15,6 +15,7 @@ create temporary table temp_enc
     encounter_location            varchar(255),
     datetime_entered              datetime,
     user_entered                  varchar(255),
+    age_at_encounter              int,
     provider                      varchar(255),
     temperature                   decimal(8, 3),
     heart_rate                    int,
@@ -115,7 +116,7 @@ UPDATE temp_enc t SET placement_date = obs_value_datetime_from_temp(encounter_id
 UPDATE temp_enc t SET disposition = obs_value_coded_list_from_temp(encounter_id, 'CIEL','160116','en');
 
 UPDATE temp_enc SET pregnancy_program_id = patient_program_id_from_encounter(patient_id, @pregnancyProgramId ,encounter_id);
-
+UPDATE temp_enc SET age_at_encounter = AGE_AT_ENC(patient_id, encounter_id);
 SELECT
     concat(@partition, '-', encounter_id) as encounter_id,
     concat(@partition, '-', visit_id) as visit_id,
@@ -127,6 +128,7 @@ SELECT
     datetime_entered,
     user_entered,
     provider,
+    age_at_encounter,
     temperature,
     heart_rate,
     bp_systolic,
