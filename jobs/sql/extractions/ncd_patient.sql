@@ -392,9 +392,8 @@ set calculated_reporting_outcome = outcome;
 UPDATE ncd_patient n 
 set calculated_reporting_outcome = 'Lost to followup'  
 where (DATEDIFF(now(), COALESCE(most_recent_visit_date, date_enrolled)) > 180
-	and DATEDIFF(now(),COALESCE(next_appointment_date, most_recent_visit_date, date_enrolled )) > 90)
+	OR DATEDIFF(now(),COALESCE(next_appointment_date, most_recent_visit_date, date_enrolled )) > 90)
 and outcome_date is null;
-
 
 select next_appointment_date, most_recent_visit_date, date_enrolled , n.* from ncd_patient n;
 SELECT
