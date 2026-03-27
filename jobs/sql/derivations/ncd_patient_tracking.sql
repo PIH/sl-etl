@@ -27,7 +27,6 @@ sickle_cell,
 other_ncd,
 diabetes_type,
 date_enrolled,
-DATEDIFF(day, COALESCE(first_ncd_visit_date, date_enrolled), GETDATE()) "days_since_first_visit",
 DATEDIFF(day, COALESCE(most_recent_visit_date, date_enrolled), GETDATE()) "days_since_last_visit",
 DATEDIFF(day, COALESCE(next_appointment_date, date_enrolled), GETDATE()) "days_late_for_appointment"
 into ncd_patient_tracking_staging
@@ -36,7 +35,11 @@ inner join ncd_patient n on n.patient_id = p.patient_id
 	and n.calculated_reporting_outcome = 'Lost to followup';
 
 alter table ncd_patient_tracking_staging
-add days_since_ltfu int;
+add days_since_ltfu int,
+	chd_diagnosis   bit,
+	rhd_diagnosis   bit,
+	dhd_diagnosis   bit,
+	hhd_diagnosis   bit;
 
 update n 
 set days_since_ltfu = 
@@ -45,6 +48,30 @@ case
 	else (days_late_for_appointment - 90)
 end
 from ncd_patient_tracking_staging n;
+
+update n 
+set n.chd_diagnosis = 1
+from ncd_patient_tracking_staging n
+inner join all_diagnosis d on d.patient_id = n.patient_id
+	and d.diagnosis_coded_en = 'Congenital heart disease';
+
+update n 
+set n.rhd_diagnosis = 1
+from ncd_patient_tracking_staging n
+inner join all_diagnosis d on d.patient_id = n.patient_id
+	and d.diagnosis_coded_en = 'Rheumatic heart disease';
+
+update n 
+set n.hhd_diagnosis = 1
+from ncd_patient_tracking_staging n
+inner join all_diagnosis d on d.patient_id = n.patient_id
+	and d.diagnosis_coded_en = 'Hypertensive heart disease';
+
+update n 
+set n.dhd_diagnosis = 1
+from ncd_patient_tracking_staging n
+inner join all_diagnosis d on d.patient_id = n.patient_id
+	and d.diagnosis_coded_en = 'Degenerative heart disease';
 
 DROP TABLE IF EXISTS ncd_patient_tracking;
 EXEC sp_rename 'ncd_patient_tracking_staging', 'ncd_patient_tracking';
