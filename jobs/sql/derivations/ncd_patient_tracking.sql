@@ -29,7 +29,7 @@ diabetes_type,
 date_enrolled,
 DATEDIFF(day, COALESCE(first_ncd_visit_date, date_enrolled), GETDATE()) "days_since_first_visit",
 DATEDIFF(day, COALESCE(most_recent_visit_date, date_enrolled), GETDATE()) "days_since_last_visit",
-DATEDIFF(day, COALESCE(next_appointment_date, date_enrolled), GETDATE()) "days_late_for_appointment"
+DATEDIFF(day, COALESCE(next_appointment_date, date_enrolled, n.first_ncd_visit_date), GETDATE()) "days_late_for_appointment"
 into ncd_patient_tracking_staging
 from all_patients p 
 inner join ncd_patient n on n.patient_id = p.patient_id 
@@ -45,7 +45,7 @@ add days_since_ltfu int,
 update n 
 set days_since_ltfu = 
 case
-	when (days_since_last_visit - 180) < (days_late_for_appointment - 90) then (days_since_last_visit - 180)
+	when (days_since_last_visit - 180) > (days_late_for_appointment - 90) then (days_since_last_visit - 180)
 	else (days_late_for_appointment - 90)
 end
 from ncd_patient_tracking_staging n;
