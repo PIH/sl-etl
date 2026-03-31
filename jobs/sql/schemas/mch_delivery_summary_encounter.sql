@@ -16,6 +16,7 @@ create table mch_delivery_summary_encounter
     pregnancy_program_id     varchar(100),
     birthdate                datetime,
     outcome                  varchar(255),
+    pre_delivery_fhr         bit,
     sex                      varchar(10),
     birth_weight             decimal(3, 2),
     birth_length             int,

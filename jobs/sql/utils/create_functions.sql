@@ -3909,6 +3909,30 @@ BEGIN
 END
 #
 
+-- This function accepts obs_group_id, mapping source, mapping code
+-- It will find the value_coded entry that matches this from the temp_obs
+#
+DROP FUNCTION IF EXISTS obs_from_group_id_value_coded_from_temp;
+#
+CREATE FUNCTION obs_from_group_id_value_coded_from_temp(_obsGroupId int(11), _source varchar(50), _term varchar(255))
+    RETURNS int
+    DETERMINISTIC
+
+BEGIN
+
+    DECLARE ret double;
+
+    select      value_coded into ret
+    from        temp_obs o
+    where       o.voided = 0
+      and       o.obs_group_id= _obsGroupId
+      and       o.concept_id = concept_from_mapping(_source, _term);
+
+    RETURN ret;
+
+END
+#
+
 -- This function accepts person_id and return boolean to represent if patient is dead or not
 #
 DROP FUNCTION IF EXISTS dead;

@@ -3,6 +3,9 @@ set @partition = '${partitionNum}';
 SELECT encounter_type_id INTO @labor_enc FROM encounter_type et WHERE uuid='fec2cc56-e35f-42e1-8ae3-017142c1ca59';
 set @pregnancyProgramId = program('Pregnancy');
 
+set @true = concept_from_mapping('CIEL','1065');
+set @false = concept_from_mapping('CIEL','1066');
+
 drop temporary table if exists temp_labor_encs;
 create temporary table temp_labor_encs
 (
@@ -23,6 +26,8 @@ create temporary table temp_labor_encs
     mother_age_at_encounter  int,
     birthdate                datetime,
     outcome                  varchar(255),
+    pre_delivery_fhr_id      int,
+    pre_delivery_fhr         boolean,
     sex                      varchar(10),
     birth_weight             decimal(3, 2),
     birth_length             int,
@@ -99,6 +104,11 @@ UPDATE temp_labor_encs
 SET outcome=obs_from_group_id_value_coded_list_from_temp(obs_group_id, 'PIH', '13561','en');
 
 UPDATE temp_labor_encs
+SET pre_delivery_fhr_id=obs_from_group_id_value_coded_from_temp(obs_group_id, 'CIEL', '165377');
+
+UPDATE temp_labor_encs set pre_delivery_fhr = if(pre_delivery_fhr_id = @true, 1, if(pre_delivery_fhr_id = @false, 0, null));
+
+UPDATE temp_labor_encs
 SET sex=obs_from_group_id_value_coded_list_from_temp(obs_group_id, 'PIH', '13055','en');
 
 UPDATE temp_labor_encs
@@ -155,6 +165,7 @@ mother_age_at_encounter,
 concat(@partition,"-",pregnancy_program_id) as pregnancy_program_id,
 birthdate,
 outcome,
+pre_delivery_fhr,
 sex,
 birth_weight,
 birth_length,
