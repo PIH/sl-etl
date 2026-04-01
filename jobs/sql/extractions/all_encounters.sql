@@ -50,7 +50,7 @@ birthdate          date,
 datetime_entered   datetime,     
 age_at_encounter   int,      
 creator            int(11),
-user_entered       varchar(30),  
+user_entered       varchar(50),  
 next_appt_date     date,         
 disposition        varchar(255), 
 retrospective      boolean,      
@@ -207,7 +207,7 @@ and not exists
 
 drop temporary table if exists temp_other_modifiers;
 create temporary table temp_other_modifiers
-select o.encounter_id, GROUP_CONCAT(distinct username(o.creator) separator', ') "other_modifiers", GROUP_CONCAT(distinct date(date_created) separator', ') "dates_modified" 
+select o.encounter_id, GROUP_CONCAT(distinct username(o.creator) separator ', ') "other_modifiers", GROUP_CONCAT(distinct date(date_created) separator ', ') "dates_modified" 
 from obs o 
 inner join temp_all_encounters t where t.encounter_id = o.encounter_id  and o.creator <> t.creator
 group by encounter_id;
