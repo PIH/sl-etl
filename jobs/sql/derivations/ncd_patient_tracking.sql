@@ -33,14 +33,22 @@ DATEDIFF(day, COALESCE(next_appointment_date, date_enrolled, n.first_ncd_visit_d
 into ncd_patient_tracking_staging
 from all_patients p 
 inner join ncd_patient n on n.patient_id = p.patient_id 
-	and n.calculated_reporting_outcome = 'Lost to followup';
+	and n.calculated_reporting_outcome = 'Lost to followup'
+where p.dead = 0	
+;
 
 alter table ncd_patient_tracking_staging
 add days_since_ltfu int,
 	chd_diagnosis   bit,
 	rhd_diagnosis   bit,
 	dhd_diagnosis   bit,
-	hhd_diagnosis   bit;
+	hhd_diagnosis   bit,
+	days_between_appointments int;
+
+UPDATE n
+set days_between_appointments = DATEDIFF(day, COALESCE(most_recent_visit_date, date_enrolled), next_appointment_date)
+from ncd_patient_tracking_staging n 
+where n.next_appointment_date is not null;
 
 update n 
 set days_since_ltfu = 
