@@ -27,6 +27,7 @@ sickle_cell,
 other_ncd,
 diabetes_type,
 date_enrolled,
+outcome_date,
 DATEDIFF(day, COALESCE(first_ncd_visit_date, date_enrolled), GETDATE()) "days_since_first_visit",
 DATEDIFF(day, COALESCE(most_recent_visit_date, date_enrolled), GETDATE()) "days_since_last_visit",
 DATEDIFF(day, COALESCE(next_appointment_date, date_enrolled, n.first_ncd_visit_date), GETDATE()) "days_late_for_appointment"
