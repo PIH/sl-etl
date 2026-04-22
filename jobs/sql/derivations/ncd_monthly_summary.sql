@@ -179,7 +179,7 @@ from ncd_monthly_summary_staging t;
 
 update t
 set calculated_reporting_outcome = IIF(
-	DATEDIFF(DAY, coalesce(t.latest_ncd_encounter_datetime, t.date_enrolled), t.reporting_date ) > 180
+	DATEDIFF(DAY, coalesce(cast(t.latest_ncd_encounter_datetime as DATE), t.date_enrolled), t.reporting_date ) > 180
 	and DATEDIFF(DAY, t.next_appointment_date, t.reporting_date ) > 90, 
 	'Lost to followup', null)
 from ncd_monthly_summary_staging t
