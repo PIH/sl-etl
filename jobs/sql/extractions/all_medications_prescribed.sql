@@ -138,6 +138,7 @@ set t.visit_id = e.visit_id,
 
 update temp_presc_encounters t set provider = provider(encounter_id);
 
+
 update all_medication_prescribed t
 inner join temp_presc_encounters e on e.encounter_id = t.encounter_id
 set t.visit_id = e.visit_id,
@@ -166,7 +167,7 @@ SELECT
 'New Orders',
 o.patient_id,
 o.encounter_id,
-o.encounter_id,
+e.visit_id,
 o.order_id,
 o.creator,
 o.orderer,
@@ -177,6 +178,7 @@ concept_name(o.concept_id, 'en') as order_drug,
 concept_name(o.order_reason,'en') AS order_reason,
 o.comment_to_fulfiller AS order_comments
 FROM orders o
+inner join encounter e on e.encounter_id = o.encounter_id 
 where o.order_type_id = @order_type_id
 and o.voided = 0;
 
@@ -203,7 +205,7 @@ set t.user_entered = u.user_entered;
 
 -- prescriber
 update all_medication_prescribed t
-set prescriber = person_name_of_user(t.orderer)
+set prescriber = provider_name_from_provider_id(t.orderer)
 where t.order_type = 'New Orders';
 
 update all_medication_prescribed t
