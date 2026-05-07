@@ -28,6 +28,8 @@ configuration:
         jobTemplate:
           path: "create-derived-table-in-warehouse.yml"
         iterations:
+          - tableName: "dim_date"
+          - tableName: "mch_pregnancy_summary"
           - tableName: "moh_maternity_and_delivery_data"          
           - tableName: "moh_epi_tetanus_data"          
           - tableName: "moh_postnatal_care_data"
@@ -39,14 +41,12 @@ configuration:
         jobTemplate:
           path: "create-derived-table-in-warehouse.yml"
         iterations:
-          - tableName: "dim_date"        
           - tableName: "update_index"
           - tableName: "drop_old_tables"
           - tableName: "drug_categories"
           - tableName: "ncd_monthly_summary"
           - tableName: "mch_maternity_patient"
           - tableName: "mch_anc_monthly_summary"
-          - tableName: "mch_pregnancy_summary"
           - tableName: "append_data_warnings"
           - tableName: "ncd_penplus_disease_condition"
           - tableName: "duplicate_patient_warnings"
