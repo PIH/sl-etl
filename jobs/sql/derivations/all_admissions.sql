@@ -105,6 +105,14 @@ set hospital_start_datetime = min_start_datetime,
 FROM all_admissions_staging a
 INNER JOIN #temp_hospital_datetimes t ON t.visit_id = a.visit_id and t.patient_id = a.patient_id;
 
+update a 
+set hospital_end_datetime = null
+FROM all_admissions_staging a
+where exists 
+	(select 1 from all_admissions_staging a2
+	where a2.visit_id = a.visit_id 
+	and a2.end_datetime is null);
+
 update a
 set ward_length_days =  DATEDIFF(day, start_datetime, end_datetime)
 from all_admissions_staging a; 
