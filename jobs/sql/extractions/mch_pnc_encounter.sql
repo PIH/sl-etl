@@ -6,53 +6,62 @@ FROM encounter_type et WHERE uuid='b7a7c300-f7e5-4d38-a388-fc178ab02e78';
 set @pregnancyProgramId = program('Pregnancy');
 
 DROP TEMPORARY TABLE IF EXISTS temp_anc_encs;
-CREATE TEMPORARY TABLE temp_anc_encs (
-  patient_id                  INT,
-  emr_id                      VARCHAR(255),
-  encounter_id                INT,
-  visit_id                    INT,
-  pregnancy_program_id        INT,
-  encounter_datetime          DATETIME,
-  encounter_location          VARCHAR(255),
-  datetime_entered            DATETIME,
-  user_entered                VARCHAR(255),
-  provider                    VARCHAR(255),
-  visit_type                  VARCHAR(255),
-  age_at_encounter            INT,
-  delivery_datetime           DATETIME,
-  danger_signs                TEXT,
-  high_risk_factors           TEXT,
-  other_risk_factors          TEXT,
-  return_visit_date           DATE,
-  bp_systolic                 INT,
-  bp_diastolic                INT,
-  heart_rate                  DOUBLE,
-  respiratory_rate            DOUBLE,
-  o2_saturation               DOUBLE,
-  temperature                 DOUBLE,
-  urine_glucose               VARCHAR(255),
-  urine_protein               VARCHAR(255),
-  ferrous_sulfate_folic_acid  BOOLEAN,
-  hiv_syphilis_rapid_test     VARCHAR(255),
-  hep_b                       VARCHAR(255),                
-  sickling                    VARCHAR(255),
-  urine_hcg                   VARCHAR(255),
-  iptp_sp_malaria             BOOLEAN,
-  nutrition_counseling        BOOLEAN,
-  hiv_counsel_and_test        BOOLEAN,
-  albendazole                 BOOLEAN,
-  malaria_rdt                 VARCHAR(255),
-  counseled_danger_signs      BOOLEAN,
-  llin                        BOOLEAN,
-  family_planning_counselling VARCHAR(255),
-  family_planning_accepted    VARCHAR(255),
-  family_planning_method      VARCHAR(255),
-  disposition                 VARCHAR(255),
-  disposition_location        VARCHAR(255),
-  index_asc                   INT,
-  index_desc                  INT,
-  index_asc_patient_program   INT,
-  index_desc_patient_program  INT
+CREATE TEMPORARY TABLE temp_anc_encs
+(
+    patient_id                               INT,
+    emr_id                                   VARCHAR(255),
+    encounter_id                             INT,
+    visit_id                                 INT,
+    pregnancy_program_id                     INT,
+    encounter_datetime                       DATETIME,
+    encounter_location                       VARCHAR(255),
+    datetime_entered                         DATETIME,
+    user_entered                             VARCHAR(255),
+    provider                                 VARCHAR(255),
+    visit_type                               VARCHAR(255),
+    age_at_encounter                         INT,
+    delivery_datetime                        DATETIME,
+    danger_signs                             TEXT,
+    high_risk_factors                        TEXT,
+    other_risk_factors                       TEXT,
+    return_visit_date                        DATE,
+    bp_systolic                              INT,
+    bp_diastolic                             INT,
+    heart_rate                               DOUBLE,
+    respiratory_rate                         DOUBLE,
+    o2_saturation                            DOUBLE,
+    temperature                              DOUBLE,
+    urine_glucose                            VARCHAR(255),
+    urine_protein                            VARCHAR(255),
+    ferrous_sulfate_folic_acid               BOOLEAN,
+    hiv_rapid_test_obs_id                    int,
+    hiv_rapid_test_obs_group_id              int,
+    hiv_rapid_test_result                    varchar(255),
+    hiv_rapid_test_reason_not_performed      varchar(255),
+    syphilis_rapid_test_obs_id               int,
+    syphilis_rapid_test_obs_group_id         int,
+    syphilis_rapid_test_result               varchar(255),
+    syphilis_rapid_test_reason_not_performed varchar(255),
+    hep_b_test_result                        varchar(255),
+    hep_b                                    VARCHAR(255),
+    sickling                                 VARCHAR(255),
+    urine_hcg                                VARCHAR(255),
+    iptp_sp_malaria                          BOOLEAN,
+    nutrition_counseling                     BOOLEAN,
+    hiv_counsel_and_test                     BOOLEAN,
+    albendazole                              BOOLEAN,
+    malaria_rdt                              VARCHAR(255),
+    counseled_danger_signs                   BOOLEAN,
+    llin                                     BOOLEAN,
+    family_planning_counselling              VARCHAR(255),
+    family_planning_accepted                 VARCHAR(255),
+    family_planning_method                   VARCHAR(255),
+    disposition                              VARCHAR(255),
+    disposition_location                     VARCHAR(255),
+    index_asc                                INT,
+    index_desc                               INT,
+    index_asc_patient_program                INT,
+    index_desc_patient_program               INT
 );
 
 insert into temp_anc_encs(patient_id, encounter_id, visit_id, encounter_datetime,
@@ -104,7 +113,11 @@ SET @danger_signs = concept_from_mapping('PIH','3064');
 SET @ferrous_sulfate_folic_acid = concept_from_mapping('PIH','20073');
 SET @high_risk_factors = concept_from_mapping('PIH','11673');
 SET @hiv_counsel_and_test = concept_from_mapping('PIH','11381');
-SET @hiv_syphilis_rapid_test = concept_from_mapping('PIH','20762');
+SET @hiv_rapid_test_result = concept_from_mapping('CIEL','163722');
+SET @hiv_rapid_test_reason_not_performed = concept_from_mapping('CIEL','165182');
+SET @syphilis_rapid_test_result = concept_from_mapping('CIEL','165303');
+SET @syphilis_rapid_test_reason_not_performed = concept_from_mapping('CIEL','165182');
+SET @hep_b_test_result = concept_from_mapping('CIEL','159430');
 SET @iptp_sp_malaria = concept_from_mapping('PIH','20074');
 SET @llin = concept_from_mapping('PIH','13053');
 SET @malaria_rdt = concept_from_mapping('PIH','11464');
@@ -139,7 +152,15 @@ UPDATE temp_anc_encs t SET danger_signs = obs_value_coded_list_from_temp_using_c
 UPDATE temp_anc_encs t SET ferrous_sulfate_folic_acid = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @ferrous_sulfate_folic_acid);
 UPDATE temp_anc_encs t SET high_risk_factors = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @high_risk_factors,'en');
 UPDATE temp_anc_encs t SET hiv_counsel_and_test = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @hiv_counsel_and_test);
-UPDATE temp_anc_encs t SET hiv_syphilis_rapid_test = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @hiv_syphilis_rapid_test,'en');
+UPDATE temp_anc_encs t SET hiv_rapid_test_obs_id = obs_id_from_temp_using_concept_id(encounter_id, @hiv_rapid_test_result, 0);
+UPDATE temp_anc_encs t SET hiv_rapid_test_obs_group_id = obs_group_id_from_obs(hiv_rapid_test_obs_id);
+UPDATE temp_anc_encs t SET hiv_rapid_test_result = value_coded_name(hiv_rapid_test_obs_id, 'en');
+UPDATE temp_anc_encs t SET hiv_rapid_test_reason_not_performed = obs_from_group_id_value_coded_list_using_concept_id(hiv_rapid_test_obs_group_id, @hiv_rapid_test_reason_not_performed, 'en');
+UPDATE temp_anc_encs t SET syphilis_rapid_test_obs_id = obs_id_from_temp_using_concept_id(encounter_id, @syphilis_rapid_test_result, 0);
+UPDATE temp_anc_encs t SET syphilis_rapid_test_obs_group_id = obs_group_id_from_obs(syphilis_rapid_test_obs_id);
+UPDATE temp_anc_encs t SET syphilis_rapid_test_result = value_coded_name(syphilis_rapid_test_obs_id, 'en');
+UPDATE temp_anc_encs t SET syphilis_rapid_test_reason_not_performed = obs_from_group_id_value_coded_list_using_concept_id(syphilis_rapid_test_obs_group_id, @syphilis_rapid_test_reason_not_performed, 'en');
+UPDATE temp_anc_encs t SET hep_b_test_result = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @hep_b_test_result,'en');
 UPDATE temp_anc_encs t SET iptp_sp_malaria = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @iptp_sp_malaria);
 UPDATE temp_anc_encs t SET llin = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @llin);
 UPDATE temp_anc_encs t SET malaria_rdt = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @malaria_rdt,'en');
@@ -187,7 +208,11 @@ hep_b,
 sickling,
 ferrous_sulfate_folic_acid,
 iptp_sp_malaria,
-hiv_syphilis_rapid_test,
+hiv_rapid_test_result,
+hiv_rapid_test_reason_not_performed,
+syphilis_rapid_test_result,
+syphilis_rapid_test_reason_not_performed,
+hep_b_test_result,
 nutrition_counseling,
 hiv_counsel_and_test,
 albendazole,

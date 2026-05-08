@@ -11,64 +11,72 @@ set @pregnancyProgramId = program('Pregnancy');
 drop temporary table if exists temp_anc_encs;
 create temporary table temp_anc_encs
 (
-patient_id                 int,          
-emr_id                     varchar(255), 
-encounter_id               int,          
-visit_id                   int,
-pregnancy_program_id       int, 
-encounter_datetime         datetime,     
-encounter_location         varchar(255), 
-datetime_entered           datetime,     
-user_entered               varchar(255), 
-provider                   varchar(255), 
-visit_type                 varchar(255), 
-age_at_encounter           int,
-trimester_enrolled         varchar(255), 
-number_anc_visit           int,          
-birth_weight_other_babies  varchar(255), 
-danger_signs               text, 
-high_risk_factors          text, 
-other_risk_factors         text,
-prior_neonatal_deaths      int,          
-prior_stillbirths          int,          
-gravida                    int,          
-parity                     int,          
-abortus                    int,          
-living                     int,          
-last_menstruation_date     date,     
-estimated_delivery_date    date,     
-estimated_gestational_age  int,    
-return_visit_date          date,     
-height                     decimal(8,2), 
-weight                     decimal(8,2), 
-bp_systolic                int,          
-bp_diastolic               int,          
-fundal_height              numeric(8,2), 
-fetal_heart_rate           int,          
-blood_type                 varchar(255), 
-urine_glucose              varchar(255), 
-urine_protein              varchar(255), 
-ferrous_sulfate_folic_acid boolean, 
-hiv_syphilis_rapid_test    varchar(255),
-iptp_sp_malaria            boolean,      
-nutrition_counseling       boolean,      
-hiv_counsel_and_test       boolean,      
-smokes_tobacco             varchar(255), 
-drinks_alcohol             varchar(255), 
-drinks_per_day             int,          
-uses_drugs                 varchar(255), 
-drug_name                  varchar(255), 
-albendazole                boolean,
-malaria_rdt                varchar(255),
-counseled_danger_signs     boolean,
-llin                       boolean,
-maternal_waiting_home      varchar(255),
-latest_entered_number_anc_visit INT,
-actual_visit_number        INT,
-index_asc                  INT,          
-index_desc                 INT,
-index_asc_patient_program  INT,
-index_desc_patient_program INT
+    patient_id                               int,
+    emr_id                                   varchar(255),
+    encounter_id                             int,
+    visit_id                                 int,
+    pregnancy_program_id                     int,
+    encounter_datetime                       datetime,
+    encounter_location                       varchar(255),
+    datetime_entered                         datetime,
+    user_entered                             varchar(255),
+    provider                                 varchar(255),
+    visit_type                               varchar(255),
+    age_at_encounter                         int,
+    trimester_enrolled                       varchar(255),
+    number_anc_visit                         int,
+    birth_weight_other_babies                varchar(255),
+    danger_signs                             text,
+    high_risk_factors                        text,
+    other_risk_factors                       text,
+    prior_neonatal_deaths                    int,
+    prior_stillbirths                        int,
+    gravida                                  int,
+    parity                                   int,
+    abortus                                  int,
+    living                                   int,
+    last_menstruation_date                   date,
+    estimated_delivery_date                  date,
+    estimated_gestational_age                int,
+    return_visit_date                        date,
+    height                                   decimal(8, 2),
+    weight                                   decimal(8, 2),
+    bp_systolic                              int,
+    bp_diastolic                             int,
+    fundal_height                            numeric(8, 2),
+    fetal_heart_rate                         int,
+    blood_type                               varchar(255),
+    urine_glucose                            varchar(255),
+    urine_protein                            varchar(255),
+    ferrous_sulfate_folic_acid               boolean,
+    hiv_rapid_test_obs_id                    int,
+    hiv_rapid_test_obs_group_id              int,
+    hiv_rapid_test_result                    varchar(255),
+    hiv_rapid_test_reason_not_performed      varchar(255),
+    syphilis_rapid_test_obs_id               int,
+    syphilis_rapid_test_obs_group_id         int,
+    syphilis_rapid_test_result               varchar(255),
+    syphilis_rapid_test_reason_not_performed varchar(255),
+    hep_b_test_result                        varchar(255),
+    iptp_sp_malaria                          boolean,
+    nutrition_counseling                     boolean,
+    hiv_counsel_and_test                     boolean,
+    smokes_tobacco                           varchar(255),
+    drinks_alcohol                           varchar(255),
+    drinks_per_day                           int,
+    uses_drugs                               varchar(255),
+    drug_name                                varchar(255),
+    albendazole                              boolean,
+    malaria_rdt                              varchar(255),
+    counseled_danger_signs                   boolean,
+    llin                                     boolean,
+    maternal_waiting_home                    varchar(255),
+    latest_entered_number_anc_visit          INT,
+    actual_visit_number                      INT,
+    index_asc                                INT,
+    index_desc                               INT,
+    index_asc_patient_program                INT,
+    index_desc_patient_program               INT
 );
 
 insert into temp_anc_encs(patient_id, encounter_id, visit_id, encounter_datetime,
@@ -132,7 +140,11 @@ SET @gravida = concept_from_mapping('PIH','5624');
 SET @height = concept_from_mapping('PIH','5090');
 SET @high_risk_factors = concept_from_mapping('PIH','11673');
 SET @hiv_counsel_and_test = concept_from_mapping('PIH','11381');
-SET @hiv_syphilis_rapid_test = concept_from_mapping('PIH','20762');
+SET @hiv_rapid_test_result = concept_from_mapping('CIEL','163722');
+SET @hiv_rapid_test_reason_not_performed = concept_from_mapping('CIEL','165182');
+SET @syphilis_rapid_test_result = concept_from_mapping('CIEL','165303');
+SET @syphilis_rapid_test_reason_not_performed = concept_from_mapping('CIEL','165182');
+SET @hep_b_test_result = concept_from_mapping('CIEL','159430');
 SET @iptp_sp_malaria = concept_from_mapping('PIH','20074');
 SET @last_menstruation_date = concept_from_mapping('PIH','968');
 SET @living = concept_from_mapping('PIH','11117');
@@ -152,7 +164,7 @@ SET @uses_drugs = concept_from_mapping('PIH','2546');
 SET @weight = concept_from_mapping('PIH','5089');
 set @mwh = concept_from_mapping('PIH','20930');
 
-  UPDATE temp_anc_encs t SET abortus = obs_value_numeric_from_temp_using_concept_id(encounter_id, @abortus);
+UPDATE temp_anc_encs t SET abortus = obs_value_numeric_from_temp_using_concept_id(encounter_id, @abortus);
 UPDATE temp_anc_encs t SET albendazole = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @albendazole);
 UPDATE temp_anc_encs t SET birth_weight_other_babies = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @birth_weight_other_babies,'en');
 UPDATE temp_anc_encs t SET blood_type = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @blood_type,'en');
@@ -172,7 +184,15 @@ UPDATE temp_anc_encs t SET gravida = obs_value_numeric_from_temp_using_concept_i
 UPDATE temp_anc_encs t SET height = obs_value_numeric_from_temp_using_concept_id(encounter_id, @height);
 UPDATE temp_anc_encs t SET high_risk_factors = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @high_risk_factors,'en');
 UPDATE temp_anc_encs t SET hiv_counsel_and_test = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @hiv_counsel_and_test);
-UPDATE temp_anc_encs t SET hiv_syphilis_rapid_test = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @hiv_syphilis_rapid_test,'en');
+UPDATE temp_anc_encs t SET hiv_rapid_test_obs_id = obs_id_from_temp_using_concept_id(encounter_id, @hiv_rapid_test_result, 0);
+UPDATE temp_anc_encs t SET hiv_rapid_test_obs_group_id = obs_group_id_from_obs(hiv_rapid_test_obs_id);
+UPDATE temp_anc_encs t SET hiv_rapid_test_result = value_coded_name(hiv_rapid_test_obs_id, 'en');
+UPDATE temp_anc_encs t SET hiv_rapid_test_reason_not_performed = obs_from_group_id_value_coded_list_using_concept_id(hiv_rapid_test_obs_group_id, @hiv_rapid_test_reason_not_performed, 'en');
+UPDATE temp_anc_encs t SET syphilis_rapid_test_obs_id = obs_id_from_temp_using_concept_id(encounter_id, @syphilis_rapid_test_result, 0);
+UPDATE temp_anc_encs t SET syphilis_rapid_test_obs_group_id = obs_group_id_from_obs(syphilis_rapid_test_obs_id);
+UPDATE temp_anc_encs t SET syphilis_rapid_test_result = value_coded_name(syphilis_rapid_test_obs_id, 'en');
+UPDATE temp_anc_encs t SET syphilis_rapid_test_reason_not_performed = obs_from_group_id_value_coded_list_using_concept_id(syphilis_rapid_test_obs_group_id, @syphilis_rapid_test_reason_not_performed, 'en');
+UPDATE temp_anc_encs t SET hep_b_test_result = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @hep_b_test_result,'en');
 UPDATE temp_anc_encs t SET iptp_sp_malaria = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @iptp_sp_malaria);
 UPDATE temp_anc_encs t SET last_menstruation_date = obs_value_datetime_from_temp_using_concept_id(encounter_id, @last_menstruation_date);
 UPDATE temp_anc_encs t SET living = obs_value_numeric_from_temp_using_concept_id(encounter_id, @living);
@@ -265,7 +285,11 @@ urine_glucose,
 urine_protein,
 ferrous_sulfate_folic_acid,
 iptp_sp_malaria,
-hiv_syphilis_rapid_test,
+hiv_rapid_test_result,
+hiv_rapid_test_reason_not_performed,
+syphilis_rapid_test_result,
+syphilis_rapid_test_reason_not_performed,
+hep_b_test_result,
 nutrition_counseling,
 hiv_counsel_and_test,
 smokes_tobacco,
