@@ -92,7 +92,7 @@ INNER JOIN (
              FROM all_admissions a2
              WHERE a2.visit_id = t.visit_id
                AND a2.mcoe_location = 1
-             ORDER BY a2.start_datetime
+             ORDER BY a2.ward_start_datetime
              FOR XML PATH(''), TYPE
            ).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS admitted_mcoe_locations
     FROM (
