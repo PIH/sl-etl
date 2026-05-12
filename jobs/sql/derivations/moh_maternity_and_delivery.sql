@@ -230,15 +230,15 @@ from final_maternal_table_staging f
 inner join
 (
   select site, reporting_date,
-    COUNT(DISTINCT CASE WHEN (oxytocin_for_hemorrhage =1 OR misoprostol_for_hemorrhage = 1)
+    COUNT(DISTINCT CASE WHEN (uterotonic_after_birth = 1)
                         AND age_category = '<10' THEN pregnancy_program_id END)   as "<10",
-    COUNT(DISTINCT CASE WHEN (oxytocin_for_hemorrhage =1 OR misoprostol_for_hemorrhage = 1)
+    COUNT(DISTINCT CASE WHEN (uterotonic_after_birth = 1)
                         AND age_category = '10-14' THEN pregnancy_program_id END) as "10-14",
-    COUNT(DISTINCT CASE WHEN (oxytocin_for_hemorrhage =1 OR misoprostol_for_hemorrhage = 1)
+    COUNT(DISTINCT CASE WHEN (uterotonic_after_birth = 1)
                         AND age_category = '15-19' THEN pregnancy_program_id END) as "15-19",
-    COUNT(DISTINCT CASE WHEN (oxytocin_for_hemorrhage =1 OR misoprostol_for_hemorrhage = 1)
+    COUNT(DISTINCT CASE WHEN (uterotonic_after_birth = 1)
                         AND age_category = '20-25' THEN pregnancy_program_id END) as "20-25",
-    COUNT(DISTINCT CASE WHEN (oxytocin_for_hemorrhage =1 OR misoprostol_for_hemorrhage = 1)
+    COUNT(DISTINCT CASE WHEN (uterotonic_after_birth = 1)
                         AND age_category = '26+' THEN pregnancy_program_id END) as "26+"
   from moh_maternity_and_delivery_data
   group by site, reporting_date
