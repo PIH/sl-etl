@@ -9,14 +9,12 @@ age_category                      varchar(50),
 outcome                           varchar(255), 
 birth_weight                      float,        
 delivery_method                   varchar(255), 
-oxytocin_for_hemorrhage           bit,          
-misoprostol_for_hemorrhage        bit,          
+uterotonic_after_birth            bit,                   
 gestational_age                   int,          
 partogram_uploaded                bit,          
 birthdate                         datetime,     
 breastfeeding_initiation_datetime datetime,      
-labor_progress_form_entered       bit,
-postpartum_progress_form_entered  bit
+labor_progress_form_entered       bit
 );
 
 -- disaggregate deliveries into reporting_date, age categories
@@ -50,16 +48,13 @@ where l2.pregnancy_program_id = d.pregnancy_program_id
 order by l2.encounter_datetime desc);
 
 update d 
-set d.oxytocin_for_hemorrhage = l.oxytocin_for_hemorrhage,
-	d.misoprostol_for_hemorrhage = l.misoprostol_for_hemorrhage,
-	d.postpartum_progress_form_entered = 1
+set d.uterotonic_after_birth = l.uterotonic_after_birth
 from moh_maternity_and_delivery_data_staging d 
-inner join mch_postpartum_daily_encounter l on l.encounter_id = 
+inner join mch_labor_summary_encounter l on l.encounter_id = 
 (select top 1 l2.encounter_id  
-from mch_postpartum_daily_encounter l2
+from mch_labor_summary_encounter l2
 where l2.pregnancy_program_id = d.pregnancy_program_id
 order by l2.encounter_datetime desc);
-
 
 update d 
 set d.gestational_age = l.gestational_age,
