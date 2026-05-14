@@ -34,6 +34,7 @@ CREATE TABLE all_medications_prescribed
     dispensing_status           varchar(255),
     status_reason               varchar(255),
     refills_remaining           int,
+    num_substitutions           int,
     index_asc                   int,
     index_desc                  int
 )

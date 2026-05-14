@@ -53,6 +53,7 @@ quantity_dispensed          int,
 dispensing_status           varchar(255),
 status_reason               varchar(255),
 refills_remaining           int,
+num_substitutions           int,
 index_asc                   int,
 index_desc                  int,
 PRIMARY KEY (medication_prescription_id)
@@ -265,7 +266,7 @@ where md.status in (@refused, @onHold);
 
 drop temporary table if exists temp_dispense_qty;
 create temporary table temp_dispense_qty
-select md.drug_order_id, sum(quantity) "quantity_dispensed"
+select md.drug_order_id, sum(quantity) as quantity_dispensed, sum(was_substituted) as num_substitutions
 from medication_dispense md
 inner join all_medication_prescribed t on t.order_id = md.drug_order_id
 where md.voided = 0
@@ -275,7 +276,7 @@ create index temp_dispense_qty_oi on temp_dispense_qty(drug_order_id);
 
 update all_medication_prescribed a
 inner join  temp_dispense_qty t on t.drug_order_id = a.order_id
-set a.quantity_dispensed = t.quantity_dispensed;
+set a.quantity_dispensed = t.quantity_dispensed, a.num_substitutions = t.num_substitutions;
 
 update all_medication_prescribed a
 set dispensing_status = 
@@ -334,6 +335,7 @@ SELECT
     dispensing_status,
     status_reason,
     refills_remaining,
+    num_substitutions,
     index_asc,
     index_desc
 FROM all_medication_prescribed;
