@@ -53,15 +53,24 @@ create temporary table temp_ncd
  fbg_level                               double,          
  rbg_level                               double,          
  bmi                                     varchar(255),    
- obesity                                 bit,             
- number_hospitalizations_since_visit    double,          
- number_hospitalizations_last_12_months double,          
- last_hospitalization_discharge_date     datetime,        
- last_hospitalization_outcome            varchar(255),    
- number_hospitalizations_ncd             double,          
- number_days_hospitalized                double,          
- ncd_diagnoses_caused_hospitalization    text,         
- hospitalization_dka_last_12_months      boolean,         
+ obesity                                 bit,    
+ number_hospitalizations_since_visit     double,          
+ number_hospitalizations_for_ncds        double,
+ hospitalization_1_obs_group_id          int(11),
+ ncd_diagnoses_caused_hospitalization_1  text,
+ number_days_hospitalization_1           double,
+ discharge_date_hospitalization_1        date,
+ outcome_hospitalization_1               varchar(255),
+ hospitalization_2_obs_group_id          int(11), 
+ ncd_diagnoses_caused_hospitalization_2  text,
+ number_days_hospitalization_2           double,
+ discharge_date_hospitalization_2        date,
+ outcome_hospitalization_2               varchar(255), 
+ hospitalization_3_obs_group_id          int(11), 
+ ncd_diagnoses_caused_hospitalization_3  text,
+ number_days_hospitalization_3           double,
+ discharge_date_hospitalization_3        date,
+ outcome_hospitalization_3               varchar(255), 
  diabetes                                bit,             
  hypertension                            bit,             
  heart_failure                           bit,   
@@ -258,19 +267,6 @@ set disposition =
 		ELSE obs_value_coded_list_from_temp(encounter_id, 'PIH','8620',@locale)
 	END;
 
-
--- patient details section
-/*
- visit_type                        varchar(255),
- care_household                          bit,
- vulnerable                              varchar(255),
- education_level                         varchar(255),
- literacy_level                          varchar(255),
- employment_status                       varchar(255),
- referred_from                           text,
- other_referral                          text,
- */
-
 update temp_ncd t
 set visit_type = obs_value_coded_list_from_temp(encounter_id, 'PIH','6189',@locale);
 
@@ -293,7 +289,7 @@ update temp_ncd t
 set referred_from = obs_value_coded_list_from_temp(encounter_id, 'PIH','7454',@locale);
 
 update temp_ncd t
-set other_referral = obs_comments_from_temp(encounter_id, 'PIH','7454', 'PIH','5622');
+set other_referral = obs_value_text_from_temp(encounter_id, 'PIH','6421');
 
 update temp_ncd t
 set social_support = value_coded_as_boolean(obs_id_from_temp(encounter_id, 'PIH','14443',0));
@@ -372,29 +368,60 @@ set obesity =
 	if(obs_single_value_coded_from_temp(encounter_id, 'PIH','1293','PIH','7507')=@yes, 1,
 		if(obs_single_value_coded_from_temp(encounter_id, 'PIH','1734','PIH','7507')=@yes, 0,null));
 
+-- hospitalization section
 update temp_ncd t
-set number_hospitalizations_since_visit = obs_value_numeric_from_temp(encounter_id, 'PIH','12594');
-
-update temp_ncd t
- set number_hospitalizations_last_12_months = obs_value_numeric_from_temp(encounter_id, 'CIEL','5704');
+set number_hospitalizations_since_visit = obs_value_numeric_from_temp(encounter_id, 'PIH','5704');
 
 update temp_ncd t
-set last_hospitalization_discharge_date = obs_value_datetime_from_temp(encounter_id, 'PIH','3800');
+set number_hospitalizations_for_ncds = obs_value_numeric_from_temp(encounter_id, 'PIH','15160');
+
+-- hospitalization section 1
+update temp_ncd t
+set hospitalization_1_obs_group_id = obs_id_from_temp(encounter_id, 'PIH','3801',0);
 
 update temp_ncd t
-set last_hospitalization_outcome = obs_value_coded_list_from_temp(encounter_id, 'PIH','15159',@locale);
+set number_days_hospitalization_1 = obs_from_group_id_value_numeric_from_temp(hospitalization_1_obs_group_id,'PIH','2872');
 
 update temp_ncd t
-set number_hospitalizations_ncd = obs_value_numeric_from_temp(encounter_id, 'PIH','15160');
+set discharge_date_hospitalization_1 = obs_from_group_id_value_datetime_from_temp(hospitalization_1_obs_group_id,'PIH','3800');
 
 update temp_ncd t
-set hospitalization_dka_last_12_months =  value_coded_as_boolean(obs_id_from_temp(encounter_id, 'PIH','15158',0));
+set ncd_diagnoses_caused_hospitalization_1 = obs_from_group_id_value_coded_list_from_temp(hospitalization_1_obs_group_id, 'PIH','12476',@locale);
 
-update temp_ncd t 
-set number_days_hospitalized =  obs_value_numeric_from_temp(encounter_id, 'PIH','2872');
+update temp_ncd t
+set outcome_hospitalization_1 = obs_from_group_id_value_coded_list_from_temp(hospitalization_1_obs_group_id,'PIH','15159', @locale);
 
-update temp_ncd t 
-set ncd_diagnoses_caused_hospitalization =  obs_value_coded_list_from_temp(encounter_id, 'PIH','12476',@locale);
+-- hospitalization section 2
+update temp_ncd t
+set hospitalization_2_obs_group_id = obs_id_from_temp(encounter_id, 'PIH','3801',1);
+
+update temp_ncd t
+set number_days_hospitalization_2 = obs_from_group_id_value_numeric_from_temp(hospitalization_2_obs_group_id,'PIH','2872');
+
+update temp_ncd t
+set discharge_date_hospitalization_2 = obs_from_group_id_value_datetime_from_temp(hospitalization_2_obs_group_id,'PIH','3800');
+
+update temp_ncd t
+set ncd_diagnoses_caused_hospitalization_2 = obs_from_group_id_value_coded_list_from_temp(hospitalization_2_obs_group_id, 'PIH','12476',@locale);
+
+update temp_ncd t
+set outcome_hospitalization_2 = obs_from_group_id_value_coded_list_from_temp(hospitalization_2_obs_group_id,'PIH','15159', @locale);
+
+-- hospitalization section 3
+update temp_ncd t
+set hospitalization_3_obs_group_id = obs_id_from_temp(encounter_id, 'PIH','3801',2);
+
+update temp_ncd t
+set number_days_hospitalization_3 = obs_from_group_id_value_numeric_from_temp(hospitalization_3_obs_group_id,'PIH','2872');
+
+update temp_ncd t
+set discharge_date_hospitalization_3 = obs_from_group_id_value_datetime_from_temp(hospitalization_3_obs_group_id,'PIH','3800');
+
+update temp_ncd t
+set ncd_diagnoses_caused_hospitalization_3 = obs_from_group_id_value_coded_list_from_temp(hospitalization_3_obs_group_id, 'PIH','12476',@locale);
+
+update temp_ncd t
+set outcome_hospitalization_3 = obs_from_group_id_value_coded_list_from_temp(hospitalization_3_obs_group_id,'PIH','15159', @locale);
 
 update temp_ncd t
 set diabetes = 
@@ -1071,14 +1098,20 @@ fbg_level,
 rbg_level,
 bmi,
 obesity,
-number_hospitalizations_last_12_months,
-last_hospitalization_discharge_date,
-last_hospitalization_outcome,
-number_hospitalizations_ncd,
-hospitalization_dka_last_12_months,
-number_days_hospitalized,
-ncd_diagnoses_caused_hospitalization,
-number_hospitalizations_since_visit,
+number_hospitalizations_since_visit,          
+number_hospitalizations_for_ncds,
+ncd_diagnoses_caused_hospitalization_1,
+number_days_hospitalization_1,
+discharge_date_hospitalization_1,
+outcome_hospitalization_1,
+ncd_diagnoses_caused_hospitalization_2,
+number_days_hospitalization_2,
+discharge_date_hospitalization_2,
+outcome_hospitalization_2,
+ncd_diagnoses_caused_hospitalization_3,
+number_days_hospitalization_3,
+discharge_date_hospitalization_3,
+outcome_hospitalization_3,
 diabetes,
 hypertension,
 heart_failure,
