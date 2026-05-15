@@ -272,6 +272,11 @@ inner join all_medication_prescribed t on t.order_id = md.drug_order_id
 where md.voided = 0
 group by md.drug_order_id;
 
+update temp_dispense_qty 
+SET quantity_dispensed = null 
+where num_substitutions > 0;
+
+
 create index temp_dispense_qty_oi on temp_dispense_qty(drug_order_id);
 
 update all_medication_prescribed a
