@@ -33,7 +33,7 @@ create table ncd_monthly_summary_staging
     latest_penicillen_prescription_datetime        datetime,
     latest_folic_acid_prescription_datetime        datetime,
     latest_transfusion_date                        date,
-    latest_number_hospitalizations_last_12_months  float,
+    latest_number_hospitalizations_since_visit     float,
     latest_number_hospitalizations_datetime        datetime,
     latest_on_saba_datetime                        datetime,
     latest_on_oral_salbutamol_datetime             datetime,
@@ -406,14 +406,14 @@ from ncd_monthly_summary_staging t;
 
 -- update number of hospitalizations column based on last time question was answered on ncd encounter before the reporting date 
 update t 
-set latest_number_hospitalizations_last_12_months = e.number_hospitalizations_last_12_months,
+set latest_number_hospitalizations_since_visit = e.number_hospitalizations_since_visit,
 	latest_number_hospitalizations_datetime = e.encounter_datetime
 from ncd_monthly_summary_staging t
 inner join ncd_encounter e on e.encounter_id = (
     select top 1 e2.encounter_id from ncd_encounter e2
 	where e2.patient_id = t.patient_id
 	and cast(e2.encounter_datetime as DATE) <= t.reporting_date
-	and e2.number_hospitalizations_last_12_months is not null
+	and e2.number_hospitalizations_since_visit is not null
 );
 
 -- update latest_on_saba_datetime to latest time this option was checked on ncd encounter (before reporting date)
