@@ -44,7 +44,8 @@ from moh_maternity_and_delivery_data_staging d
 inner join mch_labor_summary_encounter l on l.encounter_id = 
 (select top 1 l2.encounter_id  
 from mch_labor_summary_encounter l2
-where l2.pregnancy_program_id = d.pregnancy_program_id
+inner join dim_date dd on dd.Date = cast(l2.encounter_datetime as date)
+where l2.pregnancy_program_id = d.pregnancy_program_id and dd.LastDayOfMonth = d.reporting_date
 order by l2.encounter_datetime desc);
 
 update d 
@@ -53,7 +54,8 @@ from moh_maternity_and_delivery_data_staging d
 inner join mch_labor_summary_encounter l on l.encounter_id = 
 (select top 1 l2.encounter_id  
 from mch_labor_summary_encounter l2
-where l2.pregnancy_program_id = d.pregnancy_program_id
+inner join dim_date dd on dd.Date = cast(l2.encounter_datetime as date)
+where l2.pregnancy_program_id = d.pregnancy_program_id and dd.LastDayOfMonth = d.reporting_date
 order by l2.encounter_datetime desc);
 
 update d 
@@ -64,7 +66,8 @@ from moh_maternity_and_delivery_data_staging d
 inner join mch_labor_progress_encounter l on l.encounter_id = 
 (select top 1 l2.encounter_id  
 from mch_labor_progress_encounter l2
-where l2.pregnancy_program_id = d.pregnancy_program_id
+inner join dim_date dd on dd.Date = cast(l2.encounter_datetime as date)
+where l2.pregnancy_program_id = d.pregnancy_program_id and dd.LastDayOfMonth = d.reporting_date
 order by l2.encounter_datetime desc);
 
 update d 
