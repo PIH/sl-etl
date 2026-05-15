@@ -244,7 +244,12 @@ set m.latest_maternity_encounter_type = iif(latest_maternity_encounter_date is n
 from mch_maternity_patient_staging m;
 
 update m
-set most_recent_hiv_status = l.result
+set most_recent_hiv_status = 
+CASE
+	when l.result like 'Yes' then 'Positive'
+	when l.result like 'No' then 'Negative'
+	else l.result
+END	
 from mch_maternity_patient_staging m
 inner join all_lab_results l on l.lab_obs_id = 
 	(select top 1 l2.lab_obs_id from all_lab_results l2
