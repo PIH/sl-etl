@@ -26,6 +26,7 @@ configuration:
         delimiter: "#"
         scripts:
           - "sql/utils/create_functions.sql"
+          - "sql/utils/create_procedures.sql"
           - "sql/utils/global_metadata.sql"
           - "sql/extractions/functions/appointments.sql"
     - type: "sql-execution"

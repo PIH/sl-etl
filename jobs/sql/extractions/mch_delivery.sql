@@ -164,14 +164,14 @@ create temporary table temp_mh_diagnosis
 select
        concept_name(value_coded,'en') AS diagnosis,
        obs_group_id,
-       @row_number:=if((@person_id=person_id) AND (@encounter_id=encounter_id) /*AND (@obs_group_id=obs_group_id)*/, @row_number + 1, 1) RANK,
+       @row_number:=if((@person_id=person_id) AND (@encounter_id=encounter_id) /*AND (@obs_group_id=obs_group_id)*/, @row_number + 1, 1) row_num,
        @person_id:=person_id person_id,
        @encounter_id:=encounter_id encounter_id
        -- ,@obs_group_id:=obs_group_id
 from   temp_obs 
 where  concept_id = concept_from_mapping('PIH','3064')--  AND person_id=114910
 order by person_id, encounter_id, obs_group_id, date_created asc;
-create index temp_mh_diagnosis_idx1 on temp_mh_diagnosis(encounter_id,rank);
+create index temp_mh_diagnosis_idx1 on temp_mh_diagnosis(encounter_id,row_num);
 
 
 update mch_delivery_form e

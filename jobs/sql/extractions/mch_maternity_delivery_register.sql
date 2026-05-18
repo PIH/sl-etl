@@ -118,66 +118,66 @@ drop table if exists temp_mh_initial_diagnosis;
 create temporary table temp_mh_initial_diagnosis
 select
        concept_name(value_coded,'en') diagnosis,
-       @row_number:=if((@person_id=person_id) AND (@encounter_id=encounter_id), @row_number + 1, 1) RANK,
+       @row_number:=if((@person_id=person_id) AND (@encounter_id=encounter_id), @row_number + 1, 1) row_num,
        @person_id:=person_id person_id,
-       @encounter_id:=encounter_id encounter_id   
-from   temp_obs 
-where  concept_id = concept_from_mapping('PIH','3064') -- @prior_visit_diagnosis 
+       @encounter_id:=encounter_id encounter_id
+from   temp_obs
+where  concept_id = concept_from_mapping('PIH','3064') -- @prior_visit_diagnosis
 order by person_id, encounter_id, obs_group_id, date_created asc;
-create index temp_mh_initial_diagnosis_idx1 on temp_mh_initial_diagnosis(encounter_id,rank);
+create index temp_mh_initial_diagnosis_idx1 on temp_mh_initial_diagnosis(encounter_id,row_num);
 
 update mch_maternity_delivery_register e
     inner join temp_mh_initial_diagnosis o on e.encounter_id = o.encounter_id
 set e.initial_diagnosis_1 = o.diagnosis
-where o.rank = 1;
+where o.row_num =1;
 
 update mch_maternity_delivery_register e
     inner join temp_mh_initial_diagnosis o on e.encounter_id = o.encounter_id
 set e.initial_diagnosis_2 = o.diagnosis
-where o.rank = 2;
+where o.row_num =2;
 
 update mch_maternity_delivery_register e
     inner join temp_mh_initial_diagnosis o on e.encounter_id = o.encounter_id
 set e.initial_diagnosis_3 = o.diagnosis
-where o.rank = 3;
+where o.row_num =3;
 
 update mch_maternity_delivery_register e
     inner join temp_mh_initial_diagnosis o on e.encounter_id = o.encounter_id
 set e.final_diagnosis_1 = o.diagnosis
-where o.rank = 4;
+where o.row_num =4;
 
 update mch_maternity_delivery_register e
     inner join temp_mh_initial_diagnosis o on e.encounter_id = o.encounter_id
 set e.final_diagnosis_2 = o.diagnosis
-where o.rank = 5;
+where o.row_num =5;
 
 update mch_maternity_delivery_register e
     inner join temp_mh_initial_diagnosis o on e.encounter_id = o.encounter_id
 set e.final_diagnosis_3 = o.diagnosis
-where o.rank = 6;
+where o.row_num =6;
 
 SET @row_number=0;
 drop table if exists temp_mh_other_diagnosis;
 create temporary table temp_mh_other_diagnosis
 select
        value_text diagnosis,
-       @row_number:=if((@person_id=person_id) AND (@encounter_id=encounter_id), @row_number + 1, 1) RANK,
+       @row_number:=if((@person_id=person_id) AND (@encounter_id=encounter_id), @row_number + 1, 1) row_num,
        @person_id:=person_id person_id,
-       @encounter_id:=encounter_id encounter_id   
-from   temp_obs 
+       @encounter_id:=encounter_id encounter_id
+from   temp_obs
 where  concept_id = concept_from_mapping('PIH','7416')
 order by person_id, encounter_id, obs_group_id, date_created asc;
-create index temp_mh_other_diagnosis_idx1 on temp_mh_other_diagnosis(encounter_id,rank);
+create index temp_mh_other_diagnosis_idx1 on temp_mh_other_diagnosis(encounter_id,row_num);
 
 update mch_maternity_delivery_register e
     inner join temp_mh_other_diagnosis o on e.encounter_id = o.encounter_id
 set e.initial_diagnosis_other = o.diagnosis
-where o.rank = 1;
+where o.row_num =1;
 
 update mch_maternity_delivery_register e
     inner join temp_mh_other_diagnosis o on e.encounter_id = o.encounter_id
 set e.final_diagnosis_other = o.diagnosis
-where o.rank = 2;
+where o.row_num =2;
 
 -- New Born Condition Attributes
 UPDATE mch_maternity_delivery_register SET fp_counselling=obs_value_coded_list_from_temp(encounter_id,'PIH','12241','en');
