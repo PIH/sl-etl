@@ -89,7 +89,6 @@ group by np.patient_id, np.emr_id, r.quarter_start_date, r.month_end_date
 create index ncd_monthly_summary_staging_ei on ncd_monthly_summary_staging(patient_id);
 create index ncd_monthly_summary_staging_c1 on ncd_monthly_summary_staging(patient_id, reporting_date);
 
-
 -- if the patient had multiple qualifying enrollments, set date_completed associated with the date_enrolled, if completed during the given month
 update s
 set s.date_completed = (
@@ -222,13 +221,6 @@ where EXISTS (
 	and e.missed_school = 1
 );
 
-insert into ncd_monthly_summary_staging (patient_id, emr_id, first_day_of_quarter, reporting_date, date_enrolled)
-select  np.patient_id, np.emr_id, r.quarter_start_date, r.month_end_date, max(np.date_enrolled)
-from    ncd_program np, #reporting_months r
-where   np.date_enrolled <= r.month_end_date
-and     (np.date_completed is null or np.date_completed >= r.month_start_date)
-group by np.patient_id, np.emr_id, r.quarter_start_date, r.month_end_date;
-
 -- days lost schooling 
 drop table if exists #latest_days_lost_schooling;
 select t.patient_id, t.reporting_date, max(e.encounter_datetime) max_encounter_datetime 
@@ -260,6 +252,7 @@ set t.total_days_lost_schooling_this_quarter = (
 	and e.encounter_datetime >= t.first_day_of_quarter
 )
 from ncd_monthly_summary_staging t;
+
 
 -- set update social_support_this_quarter to true if it had been checked since the beginning of the quarter to the reporting date
 update t 
