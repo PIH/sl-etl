@@ -1,19 +1,3 @@
--- pre-normalize matching fields once so the self-join and filter use indexed columns
--- rather than re-evaluating replace()/lower() expressions per-row
-drop table if exists #temp_normalized;
-select
-    patient_id,
-    replace(replace(telephone_number,' ',''),'-','') as phone_normalized,
-    lower(replace(name,' ',''))                      as name_normalized,
-    lower(replace(family_name,' ',''))               as family_name_normalized,
-    lower(replace(mothers_first_name,' ',''))        as mothers_first_name_normalized
-into #temp_normalized
-from all_patients
-where telephone_number > '0';
-
-create index ix_norm_phone on #temp_normalized(phone_normalized);
-create index ix_norm_pid   on #temp_normalized(patient_id);
-
 drop table if exists duplicate_patient_staging;
 create table duplicate_patient_staging
 (warning_type                       text,
@@ -37,6 +21,32 @@ patient_1_user_entered              text,
 patient_2_user_entered              text,
 patient_1_site                      varchar(100),
 patient_2_site                      varchar(100)
+);
+
+-- pre-normalize matching fields once so the self-join and filter use indexed columns
+-- rather than re-evaluating replace()/lower() expressions per-row
+drop table if exists #temp_normalized;
+    select
+    patient_id,
+    replace(replace(telephone_number,' ',''),'-','') as phone_normalized,
+    lower(replace(name,' ',''))                      as name_normalized,
+    lower(replace(family_name,' ',''))               as family_name_normalized,
+    lower(replace(mothers_first_name,' ',''))        as mothers_first_name_normalized
+into #temp_normalized
+from all_patients
+where telephone_number > '0';
+
+create index ix_norm_phone on #temp_normalized(phone_normalized);
+create index ix_norm_pid   on #temp_normalized(patient_id);
+
+-- drop rows where any matching field is a placeholder value (appears in > 1% of patients).
+-- a real personal identifier would never be shared by that fraction of the population;
+-- de-identified or clinic-wide values would be, and produce a combinatorial explosion in the self-join.
+delete from #temp_normalized
+where phone_normalized in (
+    select phone_normalized from #temp_normalized
+    group by phone_normalized
+    having count(*) > (select count(*) * 0.01 from #temp_normalized)
 );
 
 -- populate table with all pairs of candidates based on same telephone number
