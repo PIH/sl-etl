@@ -22,10 +22,10 @@ site               varchar(100),
 partition_num      int
 );
 
--- set data warning_id to continue from the current max 
-declare @maxId int 
-set @maxId = (select max(data_warning_id) + 1 from data_warnings)
-dbcc checkident(#temp_data_warnings, reseed, @maxId);
+-- @baseId is added to the temp table's identity values at insert time,
+-- avoiding DBCC CHECKIDENT (which requires elevated permissions).
+declare @baseId int
+set @baseId = (select isnull(max(data_warning_id), 0) from data_warnings)
 
 -- -------------------------------------------------- followup without intake
 -- anc followup
@@ -329,8 +329,8 @@ insert into data_warnings
 	other_details,
 	site, 
 	partition_num)
-select 
-	data_warning_id, 
+select
+	@baseId + data_warning_id,
 	warning_type,
 	event_type,
 	event_datetime,
