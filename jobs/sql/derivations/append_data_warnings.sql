@@ -22,10 +22,6 @@ site               varchar(100),
 partition_num      int
 );
 
--- @baseId is added to the temp table's identity values at insert time,
--- avoiding DBCC CHECKIDENT (which requires elevated permissions).
-declare @baseId int
-set @baseId = (select isnull(max(data_warning_id), 0) from data_warnings)
 
 -- -------------------------------------------------- followup without intake
 -- anc followup
@@ -330,7 +326,7 @@ insert into data_warnings
 	site, 
 	partition_num)
 select
-	@baseId + data_warning_id,
+	(select isnull(max(data_warning_id), 0) from data_warnings) + data_warning_id,
 	warning_type,
 	event_type,
 	event_datetime,
