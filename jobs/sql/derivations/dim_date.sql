@@ -41,7 +41,7 @@ CREATE TABLE [dim_date_staging]
 		[HolidayUSA] VARCHAR(50),--Name of Holiday in US
 		[IsHolidayUK] BIT Null,-- Flag 1=National Holiday, 0-No National Holiday
 		[HolidayUK] VARCHAR(50) Null --Name of Holiday in UK
-	)
+	);
 
 -- ------------------------------------------------------------------------------------
 
