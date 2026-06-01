@@ -45,13 +45,12 @@ CREATE TABLE [dim_date_staging]
 
 -- ------------------------------------------------------------------------------------
 
-DECLARE @StartDate DATE = '20130101';
-DECLARE @EndDate   DATE = '20500101';
-
 -- Replace the original WHILE loop with a single set-based INSERT.
 -- A tally CTE (L0-L4) generates integers 0..65535 without looping;
 -- ROW_NUMBER() window functions compute the per-weekday-in-month/quarter/year
 -- counts that previously required the @DayOfWeek table variable and ~54k DML ops.
+-- Date literals are inlined (not declared as variables) so petl can execute
+-- this as a single self-contained statement.
 WITH
 L0   AS (SELECT 1 AS c UNION ALL SELECT 1),
 L1   AS (SELECT 1 AS c FROM L0   A CROSS JOIN L0   B),
@@ -60,9 +59,9 @@ L3   AS (SELECT 1 AS c FROM L2   A CROSS JOIN L2   B),
 L4   AS (SELECT 1 AS c FROM L3   A CROSS JOIN L3   B),
 nums AS (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS n FROM L4),
 dates AS (
-    SELECT CAST(DATEADD(DAY, n, @StartDate) AS DATE) AS dt
+    SELECT CAST(DATEADD(DAY, n, CAST('20130101' AS DATE)) AS DATE) AS dt
     FROM nums
-    WHERE n < DATEDIFF(DAY, @StartDate, @EndDate)
+    WHERE n < DATEDIFF(DAY, CAST('20130101' AS DATE), CAST('20500101' AS DATE))
 ),
 base AS (
     SELECT
