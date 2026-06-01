@@ -9,6 +9,7 @@ datetime_entered   datetime,
 user_entered       varchar(255), 
 visit_type         varchar(255), 
 visit_location     varchar(255), 
+inborn             bit,
 index_asc          int,          
 index_desc         int           
 );                 
