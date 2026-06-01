@@ -11,8 +11,8 @@ CREATE TABLE [dim_date_staging]
 		[DayOfMonth] VARCHAR(2), -- Field will hold day number of Month
 		[DaySuffix] VARCHAR(4), -- Apply suffix as 1st, 2nd ,3rd etc
 		[DayName] VARCHAR(9), -- Contains name of the day, Sunday, Monday
-		[DayOfWeekUSA] VARCHAR(9),-- Sunday, Monday ... Saturday
-		[DayOfWeekUK] VARCHAR(9),-- Monday, Tuesday ... Sunday
+		[DayOfWeekUSA] CHAR(1),-- First Day Sunday=1 and Saturday=7
+		[DayOfWeekUK] CHAR(1),-- First Day Monday=1 and Sunday=7
 		[DayOfWeekInMonth] VARCHAR(2), --1st Monday or 2nd Monday in Month
 		[DayOfWeekInYear] VARCHAR(2),
 		[DayOfQuarter] VARCHAR(3),
@@ -106,12 +106,11 @@ SELECT
         ELSE                            CAST(dom AS VARCHAR) + 'th'
     END                            AS DaySuffix,
     DATENAME(DW, dt)               AS DayName,
-    DATENAME(DW, dt)               AS DayOfWeekUSA,
-    CASE dow
-        WHEN 2 THEN 'Monday'    WHEN 3 THEN 'Tuesday'  WHEN 4 THEN 'Wednesday'
-        WHEN 5 THEN 'Thursday'  WHEN 6 THEN 'Friday'   WHEN 7 THEN 'Saturday'
-        ELSE        'Sunday'
-    END                            AS DayOfWeekUK,
+    CAST(dow AS CHAR(1))           AS DayOfWeekUSA,
+    CAST(CASE dow
+        WHEN 1 THEN 7 WHEN 2 THEN 1 WHEN 3 THEN 2
+        WHEN 4 THEN 3 WHEN 5 THEN 4 WHEN 6 THEN 5 WHEN 7 THEN 6
+    END AS CHAR(1))                AS DayOfWeekUK,
     CAST(dow_in_month    AS VARCHAR(2)) AS DayOfWeekInMonth,
     CAST(dow_in_year     AS VARCHAR(2)) AS DayOfWeekInYear,
     CAST(dow_in_quarter  AS VARCHAR(3)) AS DayOfQuarter,
@@ -210,7 +209,7 @@ UPDATE dim_date_staging
 SET HolidayUSA = 'Thanksgiving Day'
 WHERE
     [Month] = 11
-  AND [DayOfWeekUSA] = 'Thursday'
+  AND [DayOfWeekUSA] = '5'
   AND DayOfWeekInMonth = 4
 
 -- ------ CHRISTMAS -----------------
@@ -240,7 +239,7 @@ WHERE DateKey IN
     FROM dim_date_staging
     WHERE
     [MonthName] = 'May'
-  AND [DayOfWeekUSA]  = 'Monday'
+  AND [DayOfWeekUSA]  = '2'
     GROUP BY
     [Year],
     [Month]
@@ -257,7 +256,7 @@ WHERE DateKey IN
     FROM dim_date_staging
     WHERE
     [MonthName] = 'September'
-  AND [DayOfWeekUSA] = 'Monday'
+  AND [DayOfWeekUSA] = '2'
     GROUP BY
     [Year],
     [Month]
@@ -282,7 +281,7 @@ UPDATE dim_date_staging
 SET HolidayUSA = 'Martin Luthor King Jr Day'
 WHERE
     [Month] = 1
-  AND [DayOfWeekUSA]  = 'Monday'
+  AND [DayOfWeekUSA]  = '2'
   AND [Year] >= 1983
   AND DayOfWeekInMonth = 3
 
@@ -291,7 +290,7 @@ UPDATE dim_date_staging
 SET HolidayUSA = 'President''s Day'
 WHERE
     [Month] = 2
-  AND [DayOfWeekUSA] = 'Monday'
+  AND [DayOfWeekUSA] = '2'
   AND DayOfWeekInMonth = 3
 
 -- --------------- Mother's Day - Second Sunday of May -------------------
@@ -299,7 +298,7 @@ UPDATE dim_date_staging
 SET HolidayUSA = 'Mother''s Day'
 WHERE
     [Month] = 5
-  AND [DayOfWeekUSA] = 'Sunday'
+  AND [DayOfWeekUSA] = '1'
   AND DayOfWeekInMonth = 2
 
 -- -------------- Father's Day - Third Sunday of June -------------
@@ -307,7 +306,7 @@ UPDATE dim_date_staging
 SET HolidayUSA = 'Father''s Day'
 WHERE
     [Month] = 6
-  AND [DayOfWeekUSA] = 'Sunday'
+  AND [DayOfWeekUSA] = '1'
   AND DayOfWeekInMonth = 3
 
 -- ------------------- Halloween 10/31 ---------------------
