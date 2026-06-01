@@ -1,21 +1,23 @@
 
+SET NOCOUNT ON;
+
 DROP TABLE IF EXISTS dim_date_staging;
 
 CREATE TABLE [dim_date_staging]
-	(	[DateKey] INT primary key, 
+	(	[DateKey] INT primary key,
 		[Date] DATETIME,
 		[FullDateUK] CHAR(10), -- Date in dd-MM-yyyy format
 		[FullDateUSA] CHAR(10),-- Date in MM-dd-yyyy format
 		[DayOfMonth] VARCHAR(2), -- Field will hold day number of Month
 		[DaySuffix] VARCHAR(4), -- Apply suffix as 1st, 2nd ,3rd etc
-		[DayName] VARCHAR(9), -- Contains name of the day, Sunday, Monday 
-		[DayOfWeekUSA] CHAR(1),-- First Day Sunday=1 and Saturday=7
-		[DayOfWeekUK] CHAR(1),-- First Day Monday=1 and Sunday=7
+		[DayName] VARCHAR(9), -- Contains name of the day, Sunday, Monday
+		[DayOfWeekUSA] VARCHAR(9),-- Sunday, Monday ... Saturday
+		[DayOfWeekUK] VARCHAR(9),-- Monday, Tuesday ... Sunday
 		[DayOfWeekInMonth] VARCHAR(2), --1st Monday or 2nd Monday in Month
 		[DayOfWeekInYear] VARCHAR(2),
 		[DayOfQuarter] VARCHAR(3),
 		[DayOfYear] VARCHAR(3),
-		[WeekOfMonth] VARCHAR(1),-- Week Number of Month 
+		[WeekOfMonth] VARCHAR(1),-- Week Number of Month
 		[WeekOfQuarter] VARCHAR(2), --Week Number of the Quarter
 		[WeekOfYear] VARCHAR(2),--Week Number of the Year
 		[Month] VARCHAR(2), --Number of the Month 1 to 12
@@ -43,164 +45,117 @@ CREATE TABLE [dim_date_staging]
 
 -- ------------------------------------------------------------------------------------
 
-DECLARE @StartDate DATETIME = '01/01/2013'
-DECLARE @EndDate DATETIME = '01/01/2050'
+DECLARE @StartDate DATE = '20130101';
+DECLARE @EndDate   DATE = '20500101';
 
-DECLARE
-@DayOfWeekInMonth INT,
-	@DayOfWeekInYear INT,
-	@DayOfQuarter INT,
-	@WeekOfMonth INT,
-	@CurrentYear INT,
-	@CurrentMonth INT,
-	@CurrentQuarter INT
-
-
-DECLARE @DayOfWeek TABLE (DOW INT, MonthCount INT, QuarterCount INT, YearCount INT)
-
-INSERT INTO @DayOfWeek VALUES (1, 0, 0, 0)
-INSERT INTO @DayOfWeek VALUES (2, 0, 0, 0)
-INSERT INTO @DayOfWeek VALUES (3, 0, 0, 0)
-INSERT INTO @DayOfWeek VALUES (4, 0, 0, 0)
-INSERT INTO @DayOfWeek VALUES (5, 0, 0, 0)
-INSERT INTO @DayOfWeek VALUES (6, 0, 0, 0)
-INSERT INTO @DayOfWeek VALUES (7, 0, 0, 0)
-
-
-DECLARE @CurrentDate AS DATETIME = @StartDate
-SET @CurrentMonth = DATEPART(MM, @CurrentDate)
-SET @CurrentYear = DATEPART(YY, @CurrentDate)
-SET @CurrentQuarter = DATEPART(QQ, @CurrentDate)
-
--- --------------------------------------------------------------------------------
-
-WHILE @CurrentDate < @EndDate
-BEGIN
-
-
-	IF @CurrentMonth != DATEPART(MM, @CurrentDate)
-BEGIN
-UPDATE @DayOfWeek
-SET MonthCount = 0
-    SET @CurrentMonth = DATEPART(MM, @CurrentDate)
-END
-
-	IF @CurrentQuarter != DATEPART(QQ, @CurrentDate)
-BEGIN
-UPDATE @DayOfWeek
-SET QuarterCount = 0
-    SET @CurrentQuarter = DATEPART(QQ, @CurrentDate)
-END
-
-
-	IF @CurrentYear != DATEPART(YY, @CurrentDate)
-BEGIN
-UPDATE @DayOfWeek
-SET YearCount = 0
-    SET @CurrentYear = DATEPART(YY, @CurrentDate)
-END
-
-
-UPDATE @DayOfWeek
-SET
-    MonthCount = MonthCount + 1,
-    QuarterCount = QuarterCount + 1,
-    YearCount = YearCount + 1
-WHERE DOW = DATEPART(DW, @CurrentDate)
-
+-- Replace the original WHILE loop with a single set-based INSERT.
+-- A tally CTE (L0-L4) generates integers 0..65535 without looping;
+-- ROW_NUMBER() window functions compute the per-weekday-in-month/quarter/year
+-- counts that previously required the @DayOfWeek table variable and ~54k DML ops.
+WITH
+L0   AS (SELECT 1 AS c UNION ALL SELECT 1),
+L1   AS (SELECT 1 AS c FROM L0   A CROSS JOIN L0   B),
+L2   AS (SELECT 1 AS c FROM L1   A CROSS JOIN L1   B),
+L3   AS (SELECT 1 AS c FROM L2   A CROSS JOIN L2   B),
+L4   AS (SELECT 1 AS c FROM L3   A CROSS JOIN L3   B),
+nums AS (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS n FROM L4),
+dates AS (
+    SELECT CAST(DATEADD(DAY, n, @StartDate) AS DATE) AS dt
+    FROM nums
+    WHERE n < DATEDIFF(DAY, @StartDate, @EndDate)
+),
+base AS (
+    SELECT
+        dt,
+        DATEPART(DW,   dt) AS dow,
+        DATEPART(DD,   dt) AS dom,
+        DATEPART(MM,   dt) AS mo,
+        DATEPART(QQ,   dt) AS qtr,
+        DATEPART(YEAR, dt) AS yr
+    FROM dates
+),
+counted AS (
+    SELECT *,
+        ROW_NUMBER() OVER (PARTITION BY yr, mo,  dow ORDER BY dt) AS dow_in_month,
+        ROW_NUMBER() OVER (PARTITION BY yr, qtr, dow ORDER BY dt) AS dow_in_quarter,
+        ROW_NUMBER() OVER (PARTITION BY yr,      dow ORDER BY dt) AS dow_in_year
+    FROM base
+)
+INSERT INTO dim_date_staging (
+    [DateKey], [Date], [FullDateUK], [FullDateUSA],
+    [DayOfMonth], [DaySuffix], [DayName], [DayOfWeekUSA], [DayOfWeekUK],
+    [DayOfWeekInMonth], [DayOfWeekInYear], [DayOfQuarter],
+    [DayOfYear], [WeekOfMonth], [WeekOfQuarter], [WeekOfYear],
+    [Month], [MonthName], [MonthOfQuarter], [Quarter], [QuarterName], [Fiscal_Quarter],
+    [Year], [YearName], [MonthYear], [MMYYYY],
+    [FirstDayOfMonth], [LastDayOfMonth],
+    [FirstDayOfQuarter], [LastDayOfQuarter],
+    [FirstDayOfYear], [LastDayOfYear],
+    [IsHolidayUSA], [IsWeekday], [HolidayUSA], [IsHolidayUK], [HolidayUK]
+)
 SELECT
-        @DayOfWeekInMonth = MonthCount,
-        @DayOfQuarter = QuarterCount,
-        @DayOfWeekInYear = YearCount
-FROM @DayOfWeek
-WHERE DOW = DATEPART(DW, @CurrentDate)
-
-
-    INSERT INTO dim_date_staging
-SELECT
-
-    CONVERT (char(8),@CurrentDate,112) as DateKey,
-    @CurrentDate AS Date,
-		CONVERT (char(10),@CurrentDate,103) as FullDateUK,
-		CONVERT (char(10),@CurrentDate,101) as FullDateUSA,
-		DATEPART(DD, @CurrentDate) AS DayOfMonth,
-		CASE
-			WHEN DATEPART(DD,@CurrentDate) IN (11,12,13)
-			THEN CAST(DATEPART(DD,@CurrentDate) AS VARCHAR) + 'th'
-			WHEN RIGHT(DATEPART(DD,@CurrentDate),1) = 1
-			THEN CAST(DATEPART(DD,@CurrentDate) AS VARCHAR) + 'st'
-			WHEN RIGHT(DATEPART(DD,@CurrentDate),1) = 2
-			THEN CAST(DATEPART(DD,@CurrentDate) AS VARCHAR) + 'nd'
-			WHEN RIGHT(DATEPART(DD,@CurrentDate),1) = 3
-			THEN CAST(DATEPART(DD,@CurrentDate) AS VARCHAR) + 'rd'
-			ELSE CAST(DATEPART(DD,@CurrentDate) AS VARCHAR) + 'th'
-END AS DaySuffix,
-
-		DATENAME(DW, @CurrentDate) AS DayName,
-		DATEPART(DW, @CurrentDate) AS DayOfWeekUSA,
-
-		CASE DATEPART(DW, @CurrentDate)
-			WHEN 1 THEN 7
-			WHEN 2 THEN 1
-			WHEN 3 THEN 2
-			WHEN 4 THEN 3
-			WHEN 5 THEN 4
-			WHEN 6 THEN 5
-			WHEN 7 THEN 6
-END
-AS DayOfWeekUK,
-
-		@DayOfWeekInMonth AS DayOfWeekInMonth,
-		@DayOfWeekInYear AS DayOfWeekInYear,
-		@DayOfQuarter AS DayOfQuarter,
-		DATEPART(DY, @CurrentDate) AS DayOfYear,
-		DATEPART(WW, @CurrentDate) + 1 - DATEPART(WW, CONVERT(VARCHAR,DATEPART(MM, @CurrentDate)) + '/1/' + CONVERT(VARCHAR,DATEPART(YY, @CurrentDate))) AS WeekOfMonth,
-		(DATEDIFF(DD, DATEADD(QQ, DATEDIFF(QQ, 0, @CurrentDate), 0), @CurrentDate) / 7) + 1 AS WeekOfQuarter,
-		DATEPART(WW, @CurrentDate) AS WeekOfYear,
-		DATEPART(MM, @CurrentDate) AS Month,
-		DATENAME(MM, @CurrentDate) AS MonthName,
-		CASE
-			WHEN DATEPART(MM, @CurrentDate) IN (1, 4, 7, 10) THEN 1
-			WHEN DATEPART(MM, @CurrentDate) IN (2, 5, 8, 11) THEN 2
-			WHEN DATEPART(MM, @CurrentDate) IN (3, 6, 9, 12) THEN 3
-END AS MonthOfQuarter,
-		concat('Q',DATEPART(QQ, @CurrentDate)) AS Quarter,
-		CASE DATEPART(QQ, @CurrentDate)
-			WHEN 1 THEN 'First'
-			WHEN 2 THEN 'Second'
-			WHEN 3 THEN 'Third'
-			WHEN 4 THEN 'Fourth'
-END AS QuarterName,
+    CONVERT(char(8),  dt, 112)     AS DateKey,
+    CAST(dt AS DATETIME)           AS [Date],
+    CONVERT(char(10), dt, 103)     AS FullDateUK,
+    CONVERT(char(10), dt, 101)     AS FullDateUSA,
+    CAST(dom AS VARCHAR(2))        AS DayOfMonth,
     CASE
-        WHEN MONTH(@CurrentDate) BETWEEN 1  AND 3  THEN 'Q3'
-        WHEN MONTH(@CurrentDate) BETWEEN 4  AND 6  THEN 'Q4'
-        WHEN MONTH(@CurrentDate) BETWEEN 7  AND 9  THEN 'Q1'
-        WHEN MONTH(@CurrentDate) BETWEEN 10 AND 12 THEN 'Q2'
-    END AS Fiscal_Quarter,
-		DATEPART(YEAR, @CurrentDate) AS Year,
-		'CY ' + CONVERT(VARCHAR, DATEPART(YEAR, @CurrentDate)) AS YearName,
-		LEFT(DATENAME(MM, @CurrentDate), 3) + '-' + CONVERT(VARCHAR, DATEPART(YY, @CurrentDate)) AS MonthYear,
-		RIGHT('0' + CONVERT(VARCHAR, DATEPART(MM, @CurrentDate)),2) + CONVERT(VARCHAR, DATEPART(YY, @CurrentDate)) AS MMYYYY,
-		CONVERT(DATETIME, CONVERT(DATE, DATEADD(DD, - (DATEPART(DD, @CurrentDate) - 1), @CurrentDate))) AS FirstDayOfMonth,
-		CONVERT(DATETIME, CONVERT(DATE, DATEADD(DD, - (DATEPART(DD, (DATEADD(MM, 1, @CurrentDate)))), DATEADD(MM, 1, @CurrentDate)))) AS LastDayOfMonth,
-		DATEADD(QQ, DATEDIFF(QQ, 0, @CurrentDate), 0) AS FirstDayOfQuarter,
-		DATEADD(QQ, DATEDIFF(QQ, -1, @CurrentDate), -1) AS LastDayOfQuarter,
-		CONVERT(DATETIME, '01/01/' + CONVERT(VARCHAR, DATEPART(YY, @CurrentDate))) AS FirstDayOfYear,
-		CONVERT(DATETIME, '12/31/' + CONVERT(VARCHAR, DATEPART(YY, @CurrentDate))) AS LastDayOfYear,
-		NULL AS IsHolidayUSA,
-		CASE DATEPART(DW, @CurrentDate)
-			WHEN 1 THEN 0
-			WHEN 2 THEN 1
-			WHEN 3 THEN 1
-			WHEN 4 THEN 1
-			WHEN 5 THEN 1
-			WHEN 6 THEN 1
-			WHEN 7 THEN 0
-END AS IsWeekday,
-		NULL AS HolidayUSA, Null, Null
-
-	SET @CurrentDate = DATEADD(DD, 1, @CurrentDate)
-END
+        WHEN dom IN (11,12,13)     THEN CAST(dom AS VARCHAR) + 'th'
+        WHEN dom % 10 = 1          THEN CAST(dom AS VARCHAR) + 'st'
+        WHEN dom % 10 = 2          THEN CAST(dom AS VARCHAR) + 'nd'
+        WHEN dom % 10 = 3          THEN CAST(dom AS VARCHAR) + 'rd'
+        ELSE                            CAST(dom AS VARCHAR) + 'th'
+    END                            AS DaySuffix,
+    DATENAME(DW, dt)               AS DayName,
+    DATENAME(DW, dt)               AS DayOfWeekUSA,
+    CASE dow
+        WHEN 2 THEN 'Monday'    WHEN 3 THEN 'Tuesday'  WHEN 4 THEN 'Wednesday'
+        WHEN 5 THEN 'Thursday'  WHEN 6 THEN 'Friday'   WHEN 7 THEN 'Saturday'
+        ELSE        'Sunday'
+    END                            AS DayOfWeekUK,
+    CAST(dow_in_month    AS VARCHAR(2)) AS DayOfWeekInMonth,
+    CAST(dow_in_year     AS VARCHAR(2)) AS DayOfWeekInYear,
+    CAST(dow_in_quarter  AS VARCHAR(3)) AS DayOfQuarter,
+    CAST(DATEPART(DY, dt) AS VARCHAR(3))                                         AS DayOfYear,
+    CAST(DATEPART(WW, dt) + 1 - DATEPART(WW, DATEFROMPARTS(yr, mo, 1))
+         AS VARCHAR(1))            AS WeekOfMonth,
+    CAST((DATEDIFF(DAY, DATEADD(QQ, DATEDIFF(QQ, 0, dt), 0), dt) / 7) + 1
+         AS VARCHAR(2))            AS WeekOfQuarter,
+    CAST(DATEPART(WW, dt) AS VARCHAR(2))                                         AS WeekOfYear,
+    CAST(mo  AS VARCHAR(2))        AS [Month],
+    DATENAME(MM, dt)               AS MonthName,
+    CAST(CASE
+        WHEN mo IN (1, 4, 7, 10)   THEN 1
+        WHEN mo IN (2, 5, 8, 11)   THEN 2
+        WHEN mo IN (3, 6, 9, 12)   THEN 3
+    END AS VARCHAR(2))             AS MonthOfQuarter,
+    'Q' + CAST(qtr AS CHAR(1))    AS Quarter,
+    CASE qtr
+        WHEN 1 THEN 'First'  WHEN 2 THEN 'Second'
+        WHEN 3 THEN 'Third'  WHEN 4 THEN 'Fourth'
+    END                            AS QuarterName,
+    CASE
+        WHEN mo BETWEEN 1  AND 3   THEN 'Q3'
+        WHEN mo BETWEEN 4  AND 6   THEN 'Q4'
+        WHEN mo BETWEEN 7  AND 9   THEN 'Q1'
+        WHEN mo BETWEEN 10 AND 12  THEN 'Q2'
+    END                            AS Fiscal_Quarter,
+    CAST(yr AS CHAR(4))            AS [Year],
+    'CY ' + CAST(yr AS VARCHAR)   AS YearName,
+    LEFT(DATENAME(MM, dt), 3) + '-' + CAST(yr AS VARCHAR) AS MonthYear,
+    RIGHT('0' + CAST(mo AS VARCHAR), 2) + CAST(yr AS VARCHAR) AS MMYYYY,
+    DATEFROMPARTS(yr, mo, 1)       AS FirstDayOfMonth,
+    EOMONTH(dt)                    AS LastDayOfMonth,
+    CAST(DATEADD(QQ, DATEDIFF(QQ, 0,  dt), 0)  AS DATE) AS FirstDayOfQuarter,
+    CAST(DATEADD(QQ, DATEDIFF(QQ, -1, dt), -1) AS DATE) AS LastDayOfQuarter,
+    DATEFROMPARTS(yr, 1,  1)       AS FirstDayOfYear,
+    DATEFROMPARTS(yr, 12, 31)      AS LastDayOfYear,
+    NULL                           AS IsHolidayUSA,
+    CAST(CASE dow WHEN 1 THEN 0 WHEN 7 THEN 0 ELSE 1 END AS BIT) AS IsWeekday,
+    NULL                           AS HolidayUSA,
+    NULL                           AS IsHolidayUK,
+    NULL                           AS HolidayUK
+FROM counted;
 
 -- ------------------------------------------------------------------
 
@@ -231,13 +186,13 @@ WHERE [Month] = 8 AND [DayOfMonth]  = 25
 
 -- Boxing Day  December 26
 UPDATE dim_date_staging
-SET HolidayUK = 'Boxing Day'
-WHERE [Month] = 12 AND [DayOfMonth]  = 26
+SET HolidayUK = 'Christmas Day'
+WHERE [Month] = 12 AND [DayOfMonth]  = 25
 
 --CHRISTMAS
 UPDATE dim_date_staging
-SET HolidayUK = 'Christmas Day'
-WHERE [Month] = 12 AND [DayOfMonth]  = 25
+SET HolidayUK = 'Boxing Day'
+WHERE [Month] = 12 AND [DayOfMonth]  = 26
 
 --New Years Day
 UPDATE dim_date_staging
@@ -364,66 +319,19 @@ WHERE
   AND [DayOfMonth] = 31
 
 -- ------------ Election Day - The first Tuesday after the first Monday in November -------------
-BEGIN
-	DECLARE @Holidays TABLE (ID INT IDENTITY(1,1), DateID int, Week TINYINT, YEAR CHAR(4), DAY CHAR(2))
-
-		INSERT INTO @Holidays(DateID, [Year],[Day])
-SELECT
-    DateKey,
-    [Year],
-    [DayOfMonth]
-FROM dim_date_staging
-WHERE
-    [Month] = 11
-  AND [DayOfWeekUSA] = 'Monday'
-ORDER BY
-    YEAR,
-    DayOfMonth
-
-DECLARE @CNTR INT, @POS INT, @STARTYEAR INT, @ENDYEAR INT, @MINDAY INT
-
-SELECT
-        @CURRENTYEAR = MIN([Year])
-     , @STARTYEAR = MIN([Year])
-     , @ENDYEAR = MAX([Year])
-FROM @Holidays
-
-         WHILE @CURRENTYEAR <= @ENDYEAR
-BEGIN
-SELECT @CNTR = COUNT([Year])
-FROM @Holidays
-WHERE [Year] = @CURRENTYEAR
-
-SET @POS = 1
-
-    WHILE @POS <= @CNTR
-BEGIN
-SELECT @MINDAY = MIN(DAY)
-FROM @Holidays
-WHERE
-    [Year] = @CURRENTYEAR
-  AND [Week] IS NULL
-
-UPDATE @Holidays
-SET [Week] = @POS
-WHERE
-    [Year] = @CURRENTYEAR
-  AND [Day] = @MINDAY
-
-SELECT @POS = @POS + 1
-END
-
-SELECT @CURRENTYEAR = @CURRENTYEAR + 1
-END
-
 UPDATE dim_date_staging
-SET HolidayUSA  = 'Election Day'
-    FROM dim_date_staging DT
-			JOIN @Holidays HL ON (HL.DateID + 1) = DT.DateKey
-WHERE
-    [Week] = 1
-END
-	--set flag for USA holidays in Dimension
+SET HolidayUSA = 'Election Day'
+WHERE DateKey IN (
+    SELECT CONVERT(char(8), DATEADD(DAY, 1,
+        -- first Monday of November for each year
+        DATEADD(DAY, (9 - DATEPART(DW, DATEFROMPARTS(CAST([Year] AS INT), 11, 1))) % 7,
+                DATEFROMPARTS(CAST([Year] AS INT), 11, 1))
+    ), 112)
+    FROM dim_date_staging
+    GROUP BY [Year]
+)
+
+--set flag for USA holidays in Dimension
 UPDATE dim_date_staging
 SET IsHolidayUSA = CASE WHEN HolidayUSA  IS NULL THEN 0 WHEN HolidayUSA  IS NOT NULL THEN 1 END
 
