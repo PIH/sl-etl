@@ -3,6 +3,8 @@ SELECT patient_identifier_type_id INTO @identifier_type
 FROM patient_identifier_type pit WHERE uuid ='1a2acce0-7426-11e5-a837-0800200c9a66';
 SELECT patient_identifier_type_id INTO @kgh_identifier_type 
 FROM patient_identifier_type pit WHERE uuid ='c09a1d24-7162-11eb-8aa6-0242ac110002';
+select visit_attribute_type_id into @inbornAttributeType from visit_attribute_type vat where uuid =  '86f716fc-5e26-4eb1-9484-46370cff28f0';
+
 
 drop temporary table if exists temp_visits;
 create temporary table temp_visits
@@ -14,12 +16,13 @@ visit_date_started	datetime,
 visit_date_stopped	datetime,
 datetime_entered	datetime,
 visit_creator		int,
-user_entered	varchar(255),
+user_entered	    varchar(255),
 visit_type_id		int,
 visit_type			varchar(255),
-checkin_encounter_id	int,	
+checkin_encounter_id int,	
 location_id			int,
 visit_location		varchar(255),
+inborn              bit,
 index_asc			int,
 index_desc			int
 );
@@ -43,14 +46,8 @@ emr_id							VARCHAR(25)
 INSERT INTO temp_identifiers(patient_id)
 select distinct patient_id from temp_visits;
 
-update temp_identifiers t 
-set emr_id = (
-select distinct identifier
-from patient_identifier 
-where identifier_type = CASE WHEN @partition=1 THEN @identifier_type WHEN @partition=2 THEN @kgh_identifier_type END 
-and voided = 0
-and patient_id = t.patient_id
-and preferred=1);
+set @primary_emr_uuid = metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType');
+UPDATE temp_identifiers SET emr_id=patient_identifier(patient_id,@primary_emr_uuid );
 
 CREATE INDEX temp_identifiers_p ON temp_identifiers (patient_id);
 
@@ -86,78 +83,9 @@ update temp_visits tv
 inner join temp_users tu on tu.creator = tv.visit_creator
 set tv.user_entered = tu.creator_name;
 
-
--- ---- Ascending Order ------------------------------------------
-
-drop table if exists int_asc;
-create table int_asc
-select emr_id, visit_date_started, visit_id from temp_visits vs 
-ORDER BY emr_id  asc, visit_date_started  asc, visit_id asc;
-
-
-set @row_number := 0;
-
-DROP TABLE IF EXISTS asc_order;
-CREATE TABLE asc_order
-SELECT 
-    @row_number:=CASE
-        WHEN @emr_id = emr_id  
-			THEN @row_number + 1
-        ELSE 1
-    END AS index_asc,
-    @emr_id:=emr_id  emr_id,
-    visit_date_started,visit_id
-FROM
-    int_asc;
-   
-update temp_visits es
-inner join 
-(
- select index_asc,emr_id,visit_date_started,visit_id
- from asc_order
-
-) x 
- on x.emr_id=es.emr_id 
- and x.visit_date_started=es.visit_date_started
- and x.visit_id=es.visit_id
-set es.index_asc =x.index_asc;
-    
-
--- ---- Descending Order ------------------------------------------
-
-drop table if exists int_desc;
-create table int_desc
-select emr_id, visit_date_started, visit_id from temp_visits vs 
-ORDER BY emr_id asc, visit_date_started  desc, visit_id desc;
-
-
-set @row_number := 0;
-
-DROP TABLE IF EXISTS desc_order;
-CREATE TABLE desc_order
-SELECT 
-    @row_number:=CASE
-        WHEN @emr_id = emr_id  
-			THEN @row_number + 1
-        ELSE 1
-    END AS index_desc,
-    @emr_id:=emr_id  emr_id,
-    visit_date_started,visit_id
-FROM
-    int_desc;
-   
-update temp_visits es
-inner join 
-(
- select index_desc,emr_id,visit_date_started,visit_id
- from desc_order
-) x 
- on x.emr_id=es.emr_id 
- and x.visit_date_started=es.visit_date_started
- and x.visit_id=es.visit_id
-set es.index_desc = x.index_desc;
-
-
+update temp_visits tv 
+inner join visit_attribute va on va.visit_id = tv.visit_id and value_reference = 'true'
+set inborn = 1;  
 
 select
 concat(@partition,"-",patient_id) patient_id,
@@ -169,6 +97,7 @@ datetime_entered,
 user_entered,
 visit_type,
 visit_location,
+inborn,
 index_asc,
 index_desc
 from temp_visits;

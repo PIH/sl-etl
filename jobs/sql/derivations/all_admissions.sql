@@ -25,6 +25,7 @@ CREATE TABLE all_admissions_staging
   ending_disposition                varchar(255),
   age_at_admission                  int,
   newborn                           bit,
+  inborn                            bit,
   site                              varchar(255),
   partition_num                     int  
 );
@@ -132,7 +133,14 @@ set newborn =
 		when 0 then 1
 		else 0
 	end
-from all_admissions_staging a ;	
+from all_admissions_staging a;	
+
+update a  
+set inborn = 1 
+from all_admissions_staging a 
+inner join all_visits av on av.visit_id = a.visit_id and av.inborn = 1  
+where newborn = 1;
+update a set inborn = 0 from all_admissions_staging a where inborn is null;
 
 DROP TABLE IF EXISTS all_admissions;
 EXEC sp_rename 'dbo.all_admissions_staging', 'all_admissions';
