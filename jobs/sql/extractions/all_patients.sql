@@ -83,6 +83,9 @@ set t.name = n.given_name,
 	t.family_name = n.family_name,
 	t.last_modified_name_datetime = COALESCE(date_changed,date_created);
 
+update temp_patients t 
+set t.cause_of_death = concept_name(cause_of_death_concept_id, @locale);
+
 -- address info
 update temp_patients t
 inner join person_address a on a.person_address_id =
