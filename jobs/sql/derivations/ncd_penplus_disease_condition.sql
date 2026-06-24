@@ -39,12 +39,20 @@ FROM ncd_encounter
 WHERE diabetes_type = 'Type 2 diabetes'
 GROUP BY ncd_program_id, patient_id, emr_id, site;
 
+-- Diabetes: Gestational
+INSERT INTO ncd_penplus_disease_condition_staging
+    (ncd_program_id, patient_id, emr_id, site, first_instance, latest_instance, disease_category, disease_condition)
+SELECT ncd_program_id, patient_id, emr_id, site, MIN(encounter_datetime), MAX(encounter_datetime), 'Diabetes', 'Gestational Diabetes'
+FROM ncd_encounter
+WHERE diabetes_type = 'Gestational diabetes'
+GROUP BY ncd_program_id, patient_id, emr_id, site;
+
 -- Diabetes: Unspecified/Gestational
 INSERT INTO ncd_penplus_disease_condition_staging 
     (ncd_program_id, patient_id, emr_id, site, first_instance, latest_instance, disease_category, disease_condition)
-SELECT ncd_program_id, patient_id, emr_id, site, MIN(encounter_datetime), MAX(encounter_datetime), 'Diabetes', 'Unspecified/Gestational Diabetes'
+SELECT ncd_program_id, patient_id, emr_id, site, MIN(encounter_datetime), MAX(encounter_datetime), 'Diabetes', 'Unspecified'
 FROM ncd_encounter
-WHERE (diabetes_type NOT IN ('Type 1 diabetes', 'Type 2 diabetes') or diabetes_type is null)
+WHERE (diabetes_type NOT IN ('Type 1 diabetes', 'Type 2 diabetes', 'Gestational diabetes') or diabetes_type is null)
   AND diabetes_section_populated = 1
 GROUP BY ncd_program_id, patient_id, emr_id, site;
 
