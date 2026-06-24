@@ -288,6 +288,10 @@ set employment_status = obs_value_coded_list_from_temp(encounter_id, 'PIH','3395
 update temp_ncd t
 set referred_from = obs_value_coded_list_from_temp(encounter_id, 'PIH','7454',@locale);
 
+-- update referred from to match form
+UPDATE temp_ncd set referred_from = replace(referred_from, 'Hospitalized', 'Inpatient Ward');
+UPDATE temp_ncd set referred_from = replace(referred_from, 'Primary care clinic', 'OPD');
+
 update temp_ncd t
 set other_referral = obs_value_text_from_temp(encounter_id, 'PIH','6421');
 
