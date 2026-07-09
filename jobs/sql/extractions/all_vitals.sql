@@ -77,7 +77,7 @@ provider_name					VARCHAR(255)
 INSERT INTO temp_providers(provider_id)
 select distinct provider_id from temp_vitals tv;
 
-update temp_providers t set provider_name = username(provider_id);	
+update temp_providers t set provider_name = provider_name_from_provider_id(provider_id);
 
 CREATE INDEX temp_providers_p ON temp_providers(provider_id);
 
