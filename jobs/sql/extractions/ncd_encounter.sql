@@ -115,6 +115,7 @@ create temporary table temp_ncd
  ckd_controlled                          varchar(255),    
  liver_indicators_obs_group              int(11),         
  liver_disease_controlled                varchar(255),    
+ on_hepatitis_b_treatment                bit,
  sickle_cell_type                        varchar(255),    
  sickle_cell_complications               text,            
  next_appointment_date                   date,            
@@ -615,6 +616,9 @@ set liver_indicators_obs_group = obs_id_from_temp(encounter_id,'PIH','14827',0);
 
 update temp_ncd t
 set  liver_disease_controlled = obs_from_group_id_value_coded_list_from_temp(liver_indicators_obs_group, 'PIH','11506',@locale);
+
+update temp_ncd t
+set on_hepatitis_b_treatment = value_coded_as_boolean(obs_id_from_temp(encounter_id, 'PIH','14889',0));
 
 set @sickle_cell_trait = concept_from_mapping('PIH','7915');
 set @sickle_anemia = concept_from_mapping('PIH','7908');
@@ -1156,6 +1160,7 @@ on_steroid_inhaler,
 ckd_stage,
 ckd_controlled,
 liver_disease_controlled,
+on_hepatitis_b_treatment,
 sickle_cell_type,
 sickle_cell_complications,
 next_appointment_date,
