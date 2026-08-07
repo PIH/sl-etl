@@ -51,9 +51,13 @@ GROUP BY ncd_program_id, patient_id, emr_id, site;
 INSERT INTO ncd_penplus_disease_condition_staging 
     (ncd_program_id, patient_id, emr_id, site, first_instance, latest_instance, disease_category, disease_condition)
 SELECT ncd_program_id, patient_id, emr_id, site, MIN(encounter_datetime), MAX(encounter_datetime), 'Diabetes', 'Unspecified'
-FROM ncd_encounter
+FROM ncd_encounter e 
 WHERE (diabetes_type NOT IN ('Type 1 diabetes', 'Type 2 diabetes', 'Gestational diabetes') or diabetes_type is null)
   AND diabetes_section_populated = 1
+  AND NOT EXISTS  -- only specify "unspecified" if no other types had been specified
+   (SELECT 1 FROM ncd_penplus_disease_condition_staging n
+   WHERE n.patient_id = e.patient_id 
+   and cast(n.disease_category as nvarchar(max)) = 'Diabetes')
 GROUP BY ncd_program_id, patient_id, emr_id, site;
 
 -- Cardiac: Rheumatic heart disease
