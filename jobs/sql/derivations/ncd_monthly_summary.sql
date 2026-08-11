@@ -4,7 +4,7 @@ create table ncd_monthly_summary_staging
     patient_id                                     varchar(50),
     emr_id                                         varchar(20),
     gender                                         varchar(50),
-    birthdate                                            date,
+    birthdate                                      date,
     date_enrolled                                  date,
     date_completed                                 date,
     outcome                                        varchar(255),
@@ -15,6 +15,7 @@ create table ncd_monthly_summary_staging
     ever_missed_school_this_month                  bit,
     latest_days_lost_schooling_this_quarter        float,
     total_days_lost_schooling_this_quarter         float,
+    referred_from                                  varchar(255),
     social_support_this_quarter                    bit,
     on_insulin_latest_encounter                    bit,
     home_glucometer                                bit,
@@ -44,11 +45,12 @@ create table ncd_monthly_summary_staging
     latest_HBsAg_datetime                          datetime,
     latest_esophageal_varices_prophylaxis_datetime datetime,
     latest_electrolytes_panel_datetime             datetime,
-    most_recent_bp_diastolic                            float,
-    most_recent_bp_systolic                             float,
+    most_recent_bp_diastolic                       float,
+    most_recent_bp_systolic                        float,
     latest_seizure_frequency_datetime              datetime,
     latest_seizure_frequency                       float,
     latest_anti_epilepsy_prescription_datetime     datetime,
+    on_hepatitis_b_treatment                       bit,
     last_diabetes_type                             varchar(255),
     type_1_diabetes                                bit,
     type_2_diabetes                                bit,
@@ -196,6 +198,17 @@ inner join ncd_encounter e on e.encounter_id = (
 	order by encounter_datetime desc, encounter_id desc
 );
 
+update t 
+set t.on_hepatitis_b_treatment = e.on_hepatitis_b_treatment
+from ncd_monthly_summary_staging t
+inner join ncd_encounter e on e.encounter_id = (
+    select top 1 e2.encounter_id from ncd_encounter e2
+	where e2.patient_id = t.patient_id
+	and cast(e2.encounter_datetime as DATE) <= t.reporting_date
+	and e2.on_hepatitis_b_treatment is not null
+	order by encounter_datetime desc, encounter_id desc
+);
+
 -- decode diabetes type into booleans
 update t
 set type_1_diabetes = iif(last_diabetes_type = 'Type 1 diabetes',1,null)
@@ -264,6 +277,17 @@ where EXISTS (
 	and cast(e.encounter_datetime as DATE) <= t.reporting_date
 	and e.encounter_datetime >= first_day_of_quarter
 	and e.social_support = 1
+);
+
+update t 
+set t.referred_from = e.referred_from
+from ncd_monthly_summary_staging t
+inner join ncd_encounter e on e.encounter_id = (
+    select top 1 e2.encounter_id from ncd_encounter e2
+	where e2.patient_id = t.patient_id
+	and cast(e2.encounter_datetime as DATE) <= t.reporting_date
+	and e2.referred_from is not null
+	order by encounter_datetime desc, encounter_id desc
 );
 
 -- update on_insulin_latest_encounter based on whether insulin was prescribed (all_medications_prescribed) on the latest ncd encounter 
