@@ -50,7 +50,7 @@ create table ncd_monthly_summary_staging
     latest_seizure_frequency_datetime              datetime,
     latest_seizure_frequency                       float,
     latest_anti_epilepsy_prescription_datetime     datetime,
-    on_hepatitis_b_treatment                       bit,
+    on_hepatitis_b_treatment                       varchar(255),
     last_diabetes_type                             varchar(255),
     type_1_diabetes                                bit,
     type_2_diabetes                                bit,
