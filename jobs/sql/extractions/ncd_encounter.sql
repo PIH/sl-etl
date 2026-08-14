@@ -1,5 +1,201 @@
 -- Note!  this script, which is for an etl, has a cloned script for an EMR export in config-pihsl
 
+-- ============================================================
+-- CONCEPT DEFINITIONS
+-- ============================================================
+
+-- Shared
+SET @concept_other               = concept_from_mapping('CIEL', '5622');
+
+-- -- Diabetes (concept_id)
+SET @dm_confirmed_finding        = concept_from_mapping('CIEL', '1127');
+SET @dm_diabetes_mellitus        = concept_from_mapping('CIEL', '113271');
+SET @dm_diabetic_ketoacidosis    = concept_from_mapping('CIEL', '119109');
+SET @dm_type2                    = concept_from_mapping('CIEL', '124755');
+SET @dm_type1                    = concept_from_mapping('CIEL', '137300');
+SET @dm_neuropathy               = concept_from_mapping('CIEL', '142429');
+SET @dm_retinopathy              = concept_from_mapping('CIEL', '142820');
+SET @dm_diabetic_foot            = concept_from_mapping('CIEL', '143265');
+SET @dm_in_pregnancy             = concept_from_mapping('CIEL', '156567');
+SET @dm_gestational              = concept_from_mapping('CIEL', '165471');
+SET @dm_hba1c_test               = concept_from_mapping('CIEL', '167916');
+SET @dm_hba1c_result             = concept_from_mapping('CIEL', '167917');
+SET @dm_pih_11974                = concept_from_mapping('PIH', '11974');
+SET @dm_pih_14485                = concept_from_mapping('PIH', '14485');
+SET @dm_pih_14705                = concept_from_mapping('PIH', '14705');
+SET @dm_pih_14706                = concept_from_mapping('PIH', '14706');
+SET @dm_pih_14711                = concept_from_mapping('PIH', '14711');
+SET @dm_pih_14778                = concept_from_mapping('PIH', '14778');
+SET @dm_pih_14779                = concept_from_mapping('PIH', '14779');
+SET @dm_pih_14781                = concept_from_mapping('PIH', '14781');
+SET @dm_pih_14782                = concept_from_mapping('PIH', '14782');
+SET @dm_pih_14469                = concept_from_mapping('PIH', '14469');
+
+-- Heart Failure (concept_id)
+SET @hf_heart_failure            = concept_from_mapping('CIEL', '160714');
+SET @hf_dyspnea                  = concept_from_mapping('CIEL', '122496');
+SET @hf_edema                    = concept_from_mapping('CIEL', '127640');
+SET @hf_fatigue                  = concept_from_mapping('CIEL', '130166');
+SET @hf_orthopnea                = concept_from_mapping('CIEL', '130783');
+SET @hf_pnd                      = concept_from_mapping('CIEL', '131689');
+SET @hf_jvd                      = concept_from_mapping('CIEL', '136394');
+SET @hf_nyha_class               = concept_from_mapping('PIH', 'NYHA CLASS');
+SET @hf_pih_14725                = concept_from_mapping('PIH', '14725');
+SET @hf_pih_6329                 = concept_from_mapping('PIH', '6329');
+SET @hf_pih_14733                = concept_from_mapping('PIH', '14733');
+SET @hf_pih_14724                = concept_from_mapping('PIH', '14724');
+SET @hf_pih_14742                = concept_from_mapping('PIH', '14742');
+SET @hf_pih_14752                = concept_from_mapping('PIH', '14752');
+SET @hf_pih_14754                = concept_from_mapping('PIH', '14754');
+SET @hf_pih_14756                = concept_from_mapping('PIH', '14756');
+SET @hf_pih_20164                = concept_from_mapping('PIH', '20164');
+
+-- Heart Failure (value_coded)
+SET @hf_vc_edema                 = concept_from_mapping('CIEL', '5016');
+SET @hf_ciel_168116              = concept_from_mapping('CIEL', '168116');
+SET @hf_cardiomegaly             = concept_from_mapping('CIEL', '117386');
+SET @hf_afib                     = concept_from_mapping('CIEL', '113227');
+SET @hf_pericardial_effusion     = concept_from_mapping('CIEL', '127376');
+SET @hf_constrictive_pericarditis = concept_from_mapping('CIEL', '119092');
+SET @hf_dilated_cardiomyopathy   = concept_from_mapping('CIEL', '120148');
+SET @hf_hypertensive_heart_disease = concept_from_mapping('CIEL', '124800');
+SET @hf_ischemic_heart_disease   = concept_from_mapping('CIEL', '119956');
+SET @hf_lvh                      = concept_from_mapping('CIEL', '139529');
+SET @hf_mitral_valve_disease     = concept_from_mapping('CIEL', '142317');
+SET @hf_aortic_stenosis          = concept_from_mapping('CIEL', '113918');
+SET @hf_aortic_regurgitation     = concept_from_mapping('CIEL', '113096');
+SET @hf_rheumatic_heart_disease  = concept_from_mapping('CIEL', '134082');
+SET @hf_infective_endocarditis   = concept_from_mapping('CIEL', '115735');
+SET @hf_myocarditis              = concept_from_mapping('CIEL', '121532');
+SET @hf_restrictive_cardiomyopathy = concept_from_mapping('CIEL', '148546');
+SET @hf_hypertrophic_cardiomyopathy = concept_from_mapping('CIEL', '134088');
+SET @hf_cor_pulmonale            = concept_from_mapping('PIH', 'COR PULMONALE');
+SET @hf_pulmonary_hypertension   = concept_from_mapping('CIEL', '117152');
+SET @hf_pulmonary_embolism       = concept_from_mapping('CIEL', '124033');
+SET @hf_vsd                      = concept_from_mapping('CIEL', '159343');
+SET @hf_asd                      = concept_from_mapping('CIEL', '148203');
+SET @hf_pda                      = concept_from_mapping('CIEL', '148202');
+SET @hf_tetralogy_of_fallot      = concept_from_mapping('CIEL', '113504');
+SET @hf_coarctation_of_aorta     = concept_from_mapping('CIEL', '119624');
+SET @hf_ebstein_anomaly          = concept_from_mapping('CIEL', '148196');
+SET @hf_tricuspid_regurgitation  = concept_from_mapping('CIEL', '123240');
+SET @hf_mitral_stenosis          = concept_from_mapping('CIEL', '130715');
+SET @hf_aortic_aneurysm          = concept_from_mapping('CIEL', '144674');
+SET @hf_cardiac_tamponade        = concept_from_mapping('CIEL', '124944');
+SET @hf_ciel_163712              = concept_from_mapping('CIEL', '163712');
+SET @hf_ciel_168127              = concept_from_mapping('CIEL', '168127');
+SET @hf_ciel_168128              = concept_from_mapping('CIEL', '168128');
+SET @hf_ciel_168182              = concept_from_mapping('CIEL', '168182');
+SET @hf_ciel_169981              = concept_from_mapping('CIEL', '169981');
+SET @hf_ciel_127436              = concept_from_mapping('CIEL', '127436');
+SET @hf_ciel_127437              = concept_from_mapping('CIEL', '127437');
+SET @hf_ciel_127438              = concept_from_mapping('CIEL', '127438');
+SET @hf_pih_14836                = concept_from_mapping('PIH', '14836');
+SET @hf_pih_12231                = concept_from_mapping('PIH', '12231');
+SET @hf_pih_20004                = concept_from_mapping('PIH', '20004');
+SET @hf_pih_14753                = concept_from_mapping('PIH', '14753');
+SET @hf_pih_14750                = concept_from_mapping('PIH', '14750');
+SET @hf_pih_11973                = concept_from_mapping('PIH', '11973');
+SET @hf_pih_20165                = concept_from_mapping('PIH', '20165');
+SET @hf_pih_20166                = concept_from_mapping('PIH', '20166');
+SET @hf_pih_20167                = concept_from_mapping('PIH', '20167');
+SET @hf_pih_20168                = concept_from_mapping('PIH', '20168');
+
+-- Hypertension (concept_id)
+SET @htn_ciel_165583             = concept_from_mapping('CIEL', '165583');
+SET @htn_pih_11940               = concept_from_mapping('PIH', '11940');
+SET @htn_pih_11971               = concept_from_mapping('PIH', '11971');
+SET @htn_pih_14456               = concept_from_mapping('PIH', '14456');
+SET @htn_pih_14457               = concept_from_mapping('PIH', '14457');
+SET @htn_pih_14462               = concept_from_mapping('PIH', '14462');
+
+-- Kidney (concept_id)
+SET @kidney_ciel_165570          = concept_from_mapping('CIEL', '165570');
+SET @kidney_pih_3597             = concept_from_mapping('PIH', '3597');
+SET @kidney_pih_14717            = concept_from_mapping('PIH', '14717');
+SET @kidney_pih_14732            = concept_from_mapping('PIH', '14732');
+SET @kidney_pih_14765            = concept_from_mapping('PIH', '14765');
+SET @kidney_pih_14766            = concept_from_mapping('PIH', '14766');
+SET @kidney_pih_14815            = concept_from_mapping('PIH', '14815');
+
+-- Liver (concept_id)
+SET @liver_pih_14875             = concept_from_mapping('PIH', '14875');
+SET @liver_pih_14827             = concept_from_mapping('PIH', '14827');
+SET @liver_pih_14890             = concept_from_mapping('PIH', '14890');
+
+-- Liver (value_coded)
+SET @liver_hepatitis_b           = concept_from_mapping('CIEL', '121812');
+SET @liver_hepatitis_c           = concept_from_mapping('CIEL', '120557');
+SET @liver_hepatitis_e           = concept_from_mapping('CIEL', '145347');
+SET @liver_ciel_146184           = concept_from_mapping('CIEL', '146184');
+SET @liver_ciel_149157           = concept_from_mapping('CIEL', '149157');
+SET @liver_ciel_143118           = concept_from_mapping('CIEL', '143118');
+SET @liver_ciel_168297           = concept_from_mapping('CIEL', '168297');
+SET @liver_ciel_168298           = concept_from_mapping('CIEL', '168298');
+SET @liver_ciel_168300           = concept_from_mapping('CIEL', '168300');
+SET @liver_ciel_168301           = concept_from_mapping('CIEL', '168301');
+SET @liver_pih_14910             = concept_from_mapping('PIH', '14910');
+SET @liver_pih_14911             = concept_from_mapping('PIH', '14911');
+SET @liver_pih_15156             = concept_from_mapping('PIH', '15156');
+
+-- Lung (concept_id)
+SET @lung_copd_group             = concept_from_mapping('PIH', 'COPD group classification');
+SET @lung_pih_7397               = concept_from_mapping('PIH', '7397');
+SET @lung_pih_7399               = concept_from_mapping('PIH', '7399');
+SET @lung_pih_7405               = concept_from_mapping('PIH', '7405');
+SET @lung_pih_11972              = concept_from_mapping('PIH', '11972');
+SET @lung_pih_14587              = concept_from_mapping('PIH', '14587');
+SET @lung_pih_14610              = concept_from_mapping('PIH', '14610');
+SET @lung_pih_14617              = concept_from_mapping('PIH', '14617');
+SET @lung_pih_14620              = concept_from_mapping('PIH', '14620');
+SET @lung_pih_14812              = concept_from_mapping('PIH', '14812');
+
+-- Lung (value_coded)
+SET @lung_asthma                 = concept_from_mapping('CIEL', '116711');
+SET @lung_copd                   = concept_from_mapping('CIEL', '132486');
+SET @lung_bronchiectasis         = concept_from_mapping('CIEL', '127611');
+SET @lung_ciel_1295              = concept_from_mapping('CIEL', '1295');
+SET @lung_ciel_121011            = concept_from_mapping('CIEL', '121011');
+SET @lung_ciel_121375            = concept_from_mapping('CIEL', '121375');
+SET @lung_ciel_143381            = concept_from_mapping('CIEL', '143381');
+SET @lung_pih_14601              = concept_from_mapping('PIH', '14601');
+
+-- Palliative Care (concept_id)
+SET @palliative_ciel_165310      = concept_from_mapping('CIEL', '165310');
+SET @palliative_ciel_160379      = concept_from_mapping('CIEL', '160379');
+SET @palliative_ciel_1788        = concept_from_mapping('CIEL', '1788');
+SET @palliative_ciel_1887        = concept_from_mapping('CIEL', '1887');
+SET @palliative_pih_14816        = concept_from_mapping('PIH', '14816');
+SET @palliative_pih_14817        = concept_from_mapping('PIH', '14817');
+SET @palliative_pih_14859        = concept_from_mapping('PIH', '14859');
+
+-- Palliative Care (value_coded)
+SET @palliative_ciel_116026      = concept_from_mapping('CIEL', '116026');
+SET @palliative_ciel_116066      = concept_from_mapping('CIEL', '116066');
+SET @palliative_ciel_133328      = concept_from_mapping('CIEL', '133328');
+SET @palliative_ciel_134788      = concept_from_mapping('CIEL', '134788');
+SET @palliative_ciel_145438      = concept_from_mapping('CIEL', '145438');
+SET @palliative_ciel_155569      = concept_from_mapping('CIEL', '155569');
+SET @palliative_pih_14771        = concept_from_mapping('PIH', '14771');
+SET @palliative_pih_14772        = concept_from_mapping('PIH', '14772');
+
+-- Sickle Cell (concept_id)
+SET @sc_ciel_168730              = concept_from_mapping('CIEL', '168730');
+SET @sc_pih_14826                = concept_from_mapping('PIH', '14826');
+SET @sc_pih_14858                = concept_from_mapping('PIH', '14858');
+SET @sc_pih_14872                = concept_from_mapping('PIH', '14872');
+SET @sc_pih_14924                = concept_from_mapping('PIH', '14924');
+SET @sc_pih_15162                = concept_from_mapping('PIH', '15162');
+
+-- Sickle Cell (value_coded)
+SET @sc_sickle_cell_disease      = concept_from_mapping('CIEL', '117703');
+SET @sc_sickle_cell_crisis       = concept_from_mapping('CIEL', '126513');
+SET @sc_sickle_cell_trait        = concept_from_mapping('CIEL', '126512');
+SET @sc_complications            = concept_from_mapping('CIEL', '168107');
+SET @sc_hemoglobin_s             = concept_from_mapping('CIEL', '117635');
+SET @sc_painful_crisis           = concept_from_mapping('CIEL', '76613');
+SET @sc_acute_chest_syndrome     = concept_from_mapping('CIEL', '81724');
+
 select encounter_type_id INTO @NCDInitial FROM encounter_type where uuid = 'ae06d311-1866-455b-8a64-126a9bd74171'; 
 select encounter_type_id INTO @NCDFollowup FROM encounter_type where uuid = '5cbfd6a2-92d9-4ad0-b526-9d29bfe1d10c'; 
 select encounter_type_id INTO @NCDFollowupPart1 FROM encounter_type where uuid = 'e02a8c32-4f14-4ff7-a4e9-2f087d9a1cf7'; 
@@ -113,9 +309,10 @@ create temporary table temp_ncd
  ckd_stage                               varchar(255),    
  ckd_indicators_obs_group                int(11),         
  ckd_controlled                          varchar(255),    
- liver_indicators_obs_group              int(11),         
+ liver_indicators_obs_group              int(11),       
  liver_disease_controlled                varchar(255),    
- on_hepatitis_b_treatment                bit,
+ hepatitis_b_obs_group                   int(11),
+ on_hepatitis_b_treatment                varchar(255),
  sickle_cell_type                        varchar(255),    
  sickle_cell_complications               text,            
  next_appointment_date                   date,            
@@ -615,10 +812,13 @@ update temp_ncd t
 set liver_indicators_obs_group = obs_id_from_temp(encounter_id,'PIH','14827',0);
 
 update temp_ncd t
+set hepatitis_b_obs_group = obs_id_from_temp(encounter_id,'PIH','14890',0);
+
+update temp_ncd t
 set  liver_disease_controlled = obs_from_group_id_value_coded_list_from_temp(liver_indicators_obs_group, 'PIH','11506',@locale);
 
 update temp_ncd t
-set on_hepatitis_b_treatment = value_coded_as_boolean(obs_id_from_temp(encounter_id, 'PIH','14889',0));
+set  on_hepatitis_b_treatment = obs_from_group_id_value_coded_list_from_temp(hepatitis_b_obs_group, 'PIH','14889',@locale);
 
 set @sickle_cell_trait = concept_from_mapping('PIH','7915');
 set @sickle_anemia = concept_from_mapping('PIH','7908');
@@ -756,268 +956,308 @@ set lab_tests_ordered =
 	and o.order_type_id = @testOrder
 	group by encounter_id);
 
--- check if sections are populated
-update temp_ncd t 
-set diabetes_section_populated = 1 
-where exists
-(select 1 from temp_obs o 
-where o.encounter_id = t.encounter_id 
-and o.concept_id in (
-	concept_from_mapping('CIEL','1127'),
-	concept_from_mapping('CIEL','113271'),
-	concept_from_mapping('CIEL','119109'),
-	concept_from_mapping('CIEL','124755'),
-	concept_from_mapping('CIEL','137300'),
-	concept_from_mapping('CIEL','142429'),
-	concept_from_mapping('CIEL','142820'),
-	concept_from_mapping('CIEL','143265'),
-	concept_from_mapping('CIEL','156567'),
-	concept_from_mapping('CIEL','165471'),
-	concept_from_mapping('CIEL','167916'),
-	concept_from_mapping('CIEL','167917'),
-	concept_from_mapping('CIEL','5622'),
-	concept_from_mapping('PIH','11974'),
-	concept_from_mapping('PIH','14485'),
-	concept_from_mapping('PIH','14705'),
-	concept_from_mapping('PIH','14706'),
-	concept_from_mapping('PIH','14711'),
-	concept_from_mapping('PIH','14778'),
-	concept_from_mapping('PIH','14779'),
-	concept_from_mapping('PIH','14781'),
-	concept_from_mapping('PIH','14782'),
-	concept_from_mapping('PIH','14469')));
+
+-- ============================================================
+-- CHECK IF SECTIONS ARE POPULATED
+-- ============================================================
+
+-- Diabetes
+UPDATE temp_ncd t
+SET diabetes_section_populated = 1
+WHERE EXISTS (
+    SELECT 1 FROM temp_obs o
+    WHERE o.encounter_id = t.encounter_id
+    AND o.concept_id IN (
+        @dm_confirmed_finding,
+        @dm_diabetes_mellitus,
+        @dm_diabetic_ketoacidosis,
+        @dm_type2,
+        @dm_type1,
+        @dm_neuropathy,
+        @dm_retinopathy,
+        @dm_diabetic_foot,
+        @dm_in_pregnancy,
+        @dm_gestational,
+        @dm_hba1c_test,
+        @dm_hba1c_result,
+        @concept_other,
+        @dm_pih_11974,
+        @dm_pih_14485,
+        @dm_pih_14705,
+        @dm_pih_14706,
+        @dm_pih_14711,
+        @dm_pih_14778,
+        @dm_pih_14779,
+        @dm_pih_14781,
+        @dm_pih_14782,
+        @dm_pih_14469
+    )
+);
+
+-- Heart Failure (concept_id)
+UPDATE temp_ncd t
+SET heart_failure_section_populated = 1
+WHERE EXISTS (
+    SELECT 1 FROM temp_obs o
+    WHERE o.encounter_id = t.encounter_id
+    AND o.concept_id IN (
+        @hf_pih_14725,
+        @hf_heart_failure,
+        @hf_pih_6329,
+        @hf_pih_14733,
+        @hf_dyspnea,
+        @hf_edema,
+        @hf_fatigue,
+        @hf_orthopnea,
+        @hf_pnd,
+        @hf_jvd,
+        @hf_pih_14724,
+        @hf_pih_14742,
+        @hf_pih_14752,
+        @hf_pih_14754,
+        @hf_pih_14756,
+        @hf_pih_20164,
+        @hf_nyha_class
+    )
+);
+
+-- Heart Failure (value_coded)
+UPDATE temp_ncd t
+SET heart_failure_section_populated = 1
+WHERE EXISTS (
+    SELECT 1 FROM temp_obs o
+    WHERE o.encounter_id = t.encounter_id
+    AND o.value_coded IN (
+        @hf_vc_edema,
+        @hf_ciel_168116,
+        @hf_cardiomegaly,
+        @hf_afib,
+        @hf_pih_14836,
+        @hf_pericardial_effusion,
+        @hf_constrictive_pericarditis,
+        @hf_dilated_cardiomyopathy,
+        @hf_hypertensive_heart_disease,
+        @hf_ischemic_heart_disease,
+        @hf_pih_12231,
+        @hf_pih_20004,
+        @hf_lvh,
+        @hf_mitral_valve_disease,
+        @hf_aortic_stenosis,
+        @hf_aortic_regurgitation,
+        @hf_ciel_163712,
+        @hf_ciel_168128,
+        @hf_ciel_168182,
+        @hf_ciel_169981,
+        @hf_pih_14753,
+        @hf_ciel_127437,
+        @hf_ciel_127438,
+        @hf_ciel_127436,
+        @hf_pih_20166,
+        @hf_pih_14750,
+        @hf_pih_20167,
+        @hf_pih_20168,
+        @hf_rheumatic_heart_disease,
+        @hf_infective_endocarditis,
+        @hf_myocarditis,
+        @hf_restrictive_cardiomyopathy,
+        @hf_hypertrophic_cardiomyopathy,
+        @hf_cor_pulmonale,
+        @hf_pulmonary_hypertension,
+        @hf_pulmonary_embolism,
+        @hf_ciel_168127,
+        @hf_vsd,
+        @hf_asd,
+        @hf_pda,
+        @hf_tetralogy_of_fallot,
+        @hf_coarctation_of_aorta,
+        @hf_ebstein_anomaly,
+        @hf_tricuspid_regurgitation,
+        @hf_mitral_stenosis,
+        @hf_aortic_aneurysm,
+        @hf_cardiac_tamponade,
+        @hf_pih_20165,
+        @hf_pih_20164,
+        @hf_pih_11973
+    )
+);
+
+-- Hypertension
+UPDATE temp_ncd t
+SET hypertension_section_populated = 1
+WHERE EXISTS (
+    SELECT 1 FROM temp_obs o
+    WHERE o.encounter_id = t.encounter_id
+    AND o.concept_id IN (
+        @htn_pih_11940,
+        @htn_ciel_165583,
+        @htn_pih_11971,
+        @htn_pih_14456,
+        @htn_pih_14457,
+        @htn_pih_14462
+    )
+);
+
+-- Kidney
+UPDATE temp_ncd t
+SET kidney_section_populated = 1
+WHERE EXISTS (
+    SELECT 1 FROM temp_obs o
+    WHERE o.encounter_id = t.encounter_id
+    AND o.concept_id IN (
+        @kidney_pih_14732,
+        @kidney_pih_14717,
+        @kidney_pih_14765,
+        @kidney_pih_14815,
+        @kidney_pih_3597,
+        @kidney_pih_14766,
+        @kidney_ciel_165570
+    )
+);
+
+-- Liver (concept_id)
+UPDATE temp_ncd t
+SET liver_section_populated = 1
+WHERE EXISTS (
+    SELECT 1 FROM temp_obs o
+    WHERE o.encounter_id = t.encounter_id
+    AND o.concept_id IN (
+        @liver_pih_14875,
+        @liver_pih_14827,
+        @liver_pih_14890
+    )
+);
+
+-- Liver (value_coded)
+UPDATE temp_ncd t
+SET liver_section_populated = 1
+WHERE EXISTS (
+    SELECT 1 FROM temp_obs o
+    WHERE o.encounter_id = t.encounter_id
+    AND o.value_coded IN (
+        @liver_hepatitis_b,
+        @liver_hepatitis_c,
+        @liver_hepatitis_e,
+        @liver_ciel_168297,
+        @liver_ciel_168298,
+        @liver_pih_14911,
+        @liver_ciel_168300,
+        @liver_ciel_168301,
+        @liver_ciel_149157,
+        @liver_pih_15156,
+        @liver_pih_14910,
+        @liver_ciel_146184,
+        @liver_ciel_143118
+    )
+);
+
+-- Lung (concept_id)
+UPDATE temp_ncd t
+SET lung_section_populated = 1
+WHERE EXISTS (
+    SELECT 1 FROM temp_obs o
+    WHERE o.encounter_id = t.encounter_id
+    AND o.concept_id IN (
+        @lung_pih_11972,
+        @lung_pih_14587,
+        @lung_pih_14610,
+        @lung_pih_14617,
+        @lung_pih_14620,
+        @lung_pih_14812,
+        @lung_pih_7397,
+        @lung_pih_7399,
+        @lung_pih_7405,
+        @lung_copd_group
+    )
+);
+
+-- Lung (value_coded)
+UPDATE temp_ncd t
+SET lung_section_populated = 1
+WHERE EXISTS (
+    SELECT 1 FROM temp_obs o
+    WHERE o.encounter_id = t.encounter_id
+    AND o.value_coded IN (
+        @lung_asthma,
+        @lung_pih_14601,
+        @lung_copd,
+        @lung_bronchiectasis,
+        @lung_ciel_1295,
+        @lung_ciel_121375,
+        @lung_ciel_121011,
+        @lung_ciel_143381
+    )
+);
+
+-- Palliative Care (concept_id)
+UPDATE temp_ncd t
+SET palliative_care_section_populated = 1
+WHERE EXISTS (
+    SELECT 1 FROM temp_obs o
+    WHERE o.encounter_id = t.encounter_id
+    AND o.concept_id IN (
+        @palliative_ciel_165310,
+        @palliative_pih_14817,
+        @palliative_pih_14859,
+        @palliative_ciel_160379,
+        @palliative_ciel_1788,
+        @palliative_ciel_1887,
+        @palliative_pih_14816
+    )
+);
+
+-- Palliative Care (value_coded)
+UPDATE temp_ncd t
+SET palliative_care_section_populated = 1
+WHERE EXISTS (
+    SELECT 1 FROM temp_obs o
+    WHERE o.encounter_id = t.encounter_id
+    AND o.value_coded IN (
+        @palliative_pih_14772,
+        @palliative_ciel_155569,
+        @palliative_ciel_145438,
+        @palliative_ciel_116066,
+        @palliative_ciel_134788,
+        @palliative_ciel_116026,
+        @palliative_ciel_133328,
+        @palliative_pih_14771,
+        @concept_other
+    )
+);
+
+-- Sickle Cell (concept_id)
+UPDATE temp_ncd t
+SET sickle_cell_section_populated = 1
+WHERE EXISTS (
+    SELECT 1 FROM temp_obs o
+    WHERE o.encounter_id = t.encounter_id
+    AND o.concept_id IN (
+        @sc_pih_14924,
+        @sc_ciel_168730,
+        @sc_pih_14858,
+        @sc_pih_14872,
+        @sc_pih_15162,
+        @sc_pih_14826
+    )
+);
+
+-- Sickle Cell (value_coded)
+UPDATE temp_ncd t
+SET sickle_cell_section_populated = 1
+WHERE EXISTS (
+    SELECT 1 FROM temp_obs o
+    WHERE o.encounter_id = t.encounter_id
+    AND o.value_coded IN (
+        @sc_sickle_cell_disease,
+        @sc_sickle_cell_crisis,
+        @sc_sickle_cell_trait,
+        @sc_complications,
+        @sc_hemoglobin_s,
+        @sc_painful_crisis,
+        @sc_acute_chest_syndrome
+    )
+);
 
 
-update temp_ncd t 
-set heart_failure_section_populated = 1 
-where exists
-(select 1 from temp_obs o 
-where o.encounter_id = t.encounter_id 
-and o.concept_id in (
-	concept_from_mapping('PIH', '14725'),
-	concept_from_mapping('CIEL', '160714'),
-	concept_from_mapping('PIH', '6329'),
-	concept_from_mapping('PIH', '14733'),
-	concept_from_mapping('CIEL', '122496'),
-	concept_from_mapping('CIEL', '127640'),
-	concept_from_mapping('CIEL', '130166'),
-	concept_from_mapping('CIEL', '130783'),
-	concept_from_mapping('CIEL', '131689'),
-	concept_from_mapping('CIEL', '136394'),
-	concept_from_mapping('PIH', '14724'),
-	concept_from_mapping('PIH', '14742'),
-	concept_from_mapping('PIH', '14752'),
-	concept_from_mapping('PIH', '14752'),
-	concept_from_mapping('PIH', '14754'),
-	concept_from_mapping('PIH', '14754'),
-	concept_from_mapping('PIH', '14756'),
-	concept_from_mapping('PIH', '20164'),
-	concept_from_mapping('PIH', 'NYHA CLASS')));
-
-update temp_ncd t 
-set heart_failure_section_populated = 1 
-where exists
-(select 1 from temp_obs o 
-where o.encounter_id = t.encounter_id 
-and o.value_coded in (
-concept_from_mapping('CIEL', '5016'),
-concept_from_mapping('CIEL', '168116'),
-concept_from_mapping('CIEL', '117386'),
-concept_from_mapping('CIEL', '113227'),
-concept_from_mapping('PIH', '14836'),
-concept_from_mapping('CIEL', '127376'),
-concept_from_mapping('CIEL', '119092'),
-concept_from_mapping('CIEL', '120148'),
-concept_from_mapping('CIEL', '124800'),
-concept_from_mapping('CIEL', '119956'),
-concept_from_mapping('PIH', '12231'),
-concept_from_mapping('PIH', '20004'),
-concept_from_mapping('CIEL', '139529'),
-concept_from_mapping('CIEL', '142317'),
-concept_from_mapping('CIEL', '113918'),
-concept_from_mapping('CIEL', '113096'),
-concept_from_mapping('CIEL', '163712'),
-concept_from_mapping('CIEL', '168128'),
-concept_from_mapping('CIEL', '168182'),
-concept_from_mapping('CIEL', '169981'),
-concept_from_mapping('PIH', '14753'),
-concept_from_mapping('CIEL', '127437'),
-concept_from_mapping('CIEL', '127438'),
-concept_from_mapping('CIEL', '127436'),
-concept_from_mapping('PIH', '20166'),
-concept_from_mapping('PIH', '14750'),
-concept_from_mapping('PIH', '20167'),
-concept_from_mapping('PIH', '20168'),
-concept_from_mapping('CIEL', '134082'),
-concept_from_mapping('CIEL', '115735'),
-concept_from_mapping('CIEL', '121532'),
-concept_from_mapping('CIEL', '148546'),
-concept_from_mapping('CIEL', '134088'),
-concept_from_mapping('PIH', 'COR PULMONALE'),
-concept_from_mapping('CIEL', '117152'),
-concept_from_mapping('CIEL', '124033'),
-concept_from_mapping('CIEL', '168127'),
-concept_from_mapping('CIEL', '159343'),
-concept_from_mapping('CIEL', '148203'),
-concept_from_mapping('CIEL', '148202'),
-concept_from_mapping('CIEL', '113504'),
-concept_from_mapping('CIEL', '119624'),
-concept_from_mapping('CIEL', '148196'),
-concept_from_mapping('CIEL', '123240'),
-concept_from_mapping('CIEL', '130715'),
-concept_from_mapping('CIEL', '144674'),
-concept_from_mapping('CIEL', '124944'),
-concept_from_mapping('PIH', '20165'),
-concept_from_mapping('PIH', '20164'),
-concept_from_mapping('PIH', '11973')));
-
-update temp_ncd t 
-set hypertension_section_populated = 1 
-where exists
-(select 1 from temp_obs o 
-where o.encounter_id = t.encounter_id 
-and o.concept_id in (
-concept_from_mapping('PIH', '11940'),
-concept_from_mapping('CIEL', '165583'),
-concept_from_mapping('PIH', '11971'),
-concept_from_mapping('PIH', '14456'),
-concept_from_mapping('PIH', '14457'),
-concept_from_mapping('PIH', '14462')));
-
-
-update temp_ncd t 
-set kidney_section_populated = 1 
-where exists
-(select 1 from temp_obs o 
-where o.encounter_id = t.encounter_id 
-and o.concept_id in (
-concept_from_mapping('PIH', '14732'),
-concept_from_mapping('PIH', '14717'),
-concept_from_mapping('PIH', '14765'),
-concept_from_mapping('PIH', '14815'),
-concept_from_mapping('PIH', '3597'),
-concept_from_mapping('PIH', '14766'),
-concept_from_mapping('CIEL', '165570')));
-
-update temp_ncd t 
-set liver_section_populated = 1 
-where exists
-(select 1 from temp_obs o 
-where o.encounter_id = t.encounter_id 
-and o.concept_id in (
-concept_from_mapping('PIH', '14875'),
-concept_from_mapping('PIH', '14827'),
-concept_from_mapping('PIH', '14890')));
-
-update temp_ncd t 
-set liver_section_populated = 1 
-where exists
-(select 1 from temp_obs o 
-where o.encounter_id = t.encounter_id 
-and o.value_coded in (
-concept_from_mapping('CIEL', '121812'),
-concept_from_mapping('CIEL', '120557'),
-concept_from_mapping('CIEL', '145347'),
-concept_from_mapping('CIEL', '168297'),
-concept_from_mapping('CIEL', '168298'),
-concept_from_mapping('PIH', '14911'),
-concept_from_mapping('CIEL', '168300'),
-concept_from_mapping('CIEL', '168301'),
-concept_from_mapping('CIEL', '149157'),
-concept_from_mapping('PIH', '15156'),
-concept_from_mapping('PIH', '14910'),
-concept_from_mapping('CIEL', '146184'),
-concept_from_mapping('CIEL', '143118')));
-
-update temp_ncd t 
-set lung_section_populated = 1 
-where exists
-(select 1 from temp_obs o 
-where o.encounter_id = t.encounter_id 
-and o.concept_id in (
-concept_from_mapping('PIH', '11972'),
-concept_from_mapping('PIH', '14587'),
-concept_from_mapping('PIH', '14610'),
-concept_from_mapping('PIH', '14617'),
-concept_from_mapping('PIH', '14620'),
-concept_from_mapping('PIH', '14812'),
-concept_from_mapping('PIH', '7397'),
-concept_from_mapping('PIH', '7399'),
-concept_from_mapping('PIH', '7405'),
-concept_from_mapping('PIH', 'COPD group classification')));
-
-
-update temp_ncd t 
-set lung_section_populated = 1 
-where exists
-(select 1 from temp_obs o 
-where o.encounter_id = t.encounter_id 
-and o.value_coded in (
-concept_from_mapping('CIEL', '116711'),
-concept_from_mapping('PIH', '14601'),
-concept_from_mapping('CIEL', '132486'),
-concept_from_mapping('CIEL', '127611'),
-concept_from_mapping('CIEL', '1295'),
-concept_from_mapping('CIEL', '121375'),
-concept_from_mapping('CIEL', '121011'),
-concept_from_mapping('CIEL', '143381')));
-
-update temp_ncd t 
-set palliative_care_section_populated = 1 
-where exists
-(select 1 from temp_obs o 
-where o.encounter_id = t.encounter_id 
-and o.concept_id in (
-concept_from_mapping('CIEL', '165310'),
-concept_from_mapping('PIH', '14817'),
-concept_from_mapping('PIH', '14859'),
-concept_from_mapping('CIEL', '160379'),
-concept_from_mapping('CIEL', '1788'),
-concept_from_mapping('CIEL', '1887'),
-concept_from_mapping('PIH', '14816')));
-
-update temp_ncd t 
-set palliative_care_section_populated = 1 
-where exists
-(select 1 from temp_obs o 
-where o.encounter_id = t.encounter_id 
-and o.value_coded in (
-concept_from_mapping('PIH', '14772'),
-concept_from_mapping('CIEL', '155569'),
-concept_from_mapping('CIEL', '145438'),
-concept_from_mapping('CIEL', '116066'),
-concept_from_mapping('CIEL', '134788'),
-concept_from_mapping('CIEL', '116026'),
-concept_from_mapping('CIEL', '133328'),
-concept_from_mapping('PIH', '14771'),
-concept_from_mapping('CIEL', '5622')));
-
-update temp_ncd t 
-set sickle_cell_section_populated = 1 
-where exists
-(select 1 from temp_obs o 
-where o.encounter_id = t.encounter_id 
-and o.concept_id in (
-concept_from_mapping('PIH', '14924'),
-concept_from_mapping('CIEL', '168730'),
-concept_from_mapping('PIH', '14858'),
-concept_from_mapping('PIH', '14872'),
-concept_from_mapping('PIH', '15162'),
-concept_from_mapping('PIH', '14826')));
-
-update temp_ncd t 
-set sickle_cell_section_populated = 1 
-where exists
-(select 1 from temp_obs o 
-where o.encounter_id = t.encounter_id 
-and o.value_coded in (
-concept_from_mapping('CIEL', '117703'),
-concept_from_mapping('CIEL', '126513'),
-concept_from_mapping('CIEL', '126512'),
-concept_from_mapping('CIEL', '168107'),
-concept_from_mapping('CIEL', '117635'),
-concept_from_mapping('CIEL', '76613'),
-concept_from_mapping('CIEL', '81724')));
 
 -- The ascending/descending indexes are calculated ordering on the encounter date
 -- new temp tables are used to build them and then joined into the main temp table.
