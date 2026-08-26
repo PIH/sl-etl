@@ -60,4 +60,5 @@ configuration:
           - tableName: "mother_child_relationship"
           - tableName: "mch_newborn_admission_encounter"
           - tableName: "mch_triage_encounter"
+          - tableName: "surgical_note_encounter"          
           - tableName: "data_warnings"
