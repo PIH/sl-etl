@@ -516,3 +516,17 @@ set ai.index_asc = avi.index_asc,
 	ai.index_desc = avi.index_desc 
 from all_immunizations ai
 inner join #derived_indexes avi on avi.obs_id = ai.obs_id;
+
+-- update index asc/desc on surgical_note_encounter
+drop table if exists #derived_indexes;
+select  encounter_id, encounter_datetime,
+        ROW_NUMBER() over (partition by patient_id order by encounter_datetime asc,  encounter_id asc)  as index_asc,
+        ROW_NUMBER() over (partition by patient_id order by encounter_datetime desc, encounter_id desc) as index_desc
+into #derived_indexes
+from surgical_note_encounter;
+
+update sn
+set sn.index_asc  = sni.index_asc,
+    sn.index_desc = sni.index_desc
+from surgical_note_encounter sn
+inner join #derived_indexes sni on sn.encounter_id = sni.encounter_id;
