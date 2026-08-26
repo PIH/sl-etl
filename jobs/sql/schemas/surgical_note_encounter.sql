@@ -1,4 +1,4 @@
-create table surgical_note
+create table surgical_note_encounter
 (
     patient_id                           varchar(50),
     emr_id                               varchar(50),
