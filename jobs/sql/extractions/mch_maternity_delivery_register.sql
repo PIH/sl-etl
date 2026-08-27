@@ -69,10 +69,12 @@ create index temp_obs_ci3 on temp_obs(obs_group_id,concept_id);
 
 DROP TEMPORARY TABLE if exists temp_obs_pac;
 CREATE TEMPORARY TABLE temp_obs_pac
-select o.obs_id, concept_name(value_coded,'en') pac_type, o.encounter_id, o.person_id 
+select o.obs_id, concept_name(value_coded,'en') pac_type, o.encounter_id, o.person_id
 from obs o inner join temp_encounter t on o.encounter_id = t.encounter_id
 where o.voided = 0
 AND o.concept_id = concept_from_mapping('PIH','14376');
+
+create index temp_obs_pac_ei on temp_obs_pac(encounter_id, person_id);
 
 INSERT INTO mch_maternity_delivery_register(patient_id, emrid, encounter_id,location,provider)
 SELECT e.patient_id,patient_identifier(e.patient_id,'1a2acce0-7426-11e5-a837-0800200c9a66'), e.encounter_id,

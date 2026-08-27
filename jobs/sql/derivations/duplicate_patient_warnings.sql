@@ -56,6 +56,9 @@ from #temp_normalized p1
 inner join #temp_normalized p2 on p1.patient_id < p2.patient_id
     and p1.phone_normalized = p2.phone_normalized;
 
+CREATE INDEX duplicate_patient_staging_p1 ON duplicate_patient_staging(patient_1_patient_id);
+CREATE INDEX duplicate_patient_staging_p2 ON duplicate_patient_staging(patient_2_patient_id);
+
 -- remove candidates where name, family_name, or mothers_first_name doesn't match
 -- (NULL fields are treated as unknown and do not eliminate a pair)
 delete t

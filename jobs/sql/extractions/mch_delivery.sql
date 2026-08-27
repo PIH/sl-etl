@@ -232,6 +232,8 @@ CREATE TEMPORARY TABLE pac_type_values
 SELECT encounter_id,value_coded_name(obs_id,'en') name FROM temp_obs
 WHERE concept_id=concept_from_mapping('PIH','14376');
 
+create index pac_type_values_ei on pac_type_values(encounter_id);
+
 SELECT 
 concat(@partition,"-",patient_id)  as patient_id,
 emr_id,

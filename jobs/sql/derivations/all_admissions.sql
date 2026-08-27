@@ -53,6 +53,9 @@ FROM adt_encounters ae;
 
 DELETE FROM all_admissions_staging WHERE encounter_type = 'Exit from Inpatient Care';
 
+CREATE INDEX all_admissions_staging_vi ON all_admissions_staging(visit_id);
+CREATE INDEX all_admissions_staging_pi ON all_admissions_staging(patient_id);
+
 -- update end datetime based on visit end date
 UPDATE a
 SET ward_end_datetime = v.visit_date_stopped

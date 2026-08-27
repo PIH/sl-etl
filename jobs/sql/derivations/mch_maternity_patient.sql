@@ -45,7 +45,9 @@ where encounter_type in
 'Postpartum progress')
 union
 select DISTINCT emr_id, patient_id, site 
-from mch_pregnancy_program ; 
+from mch_pregnancy_program ;
+
+CREATE INDEX mch_maternity_patient_staging_pi ON mch_maternity_patient_staging(patient_id);
 
 -- all_patient fields
 update m
@@ -150,15 +152,17 @@ from mch_postpartum_daily_encounter x
 inner join mch_maternity_patient_staging m on m.patient_id = x.patient_id;
 
 insert into #maternity_encounters (patient_id, encounter_id, encounter_type, encounter_datetime )
-select x.patient_id, x.encounter_id, x.encounter_type, x.encounter_datetime  
+select x.patient_id, x.encounter_id, x.encounter_type, x.encounter_datetime
 from all_encounters x
 inner join mch_maternity_patient_staging m on m.patient_id = x.patient_id
-where x.encounter_type in 
+where x.encounter_type in
 ('Sierra Leone Maternal Check-in',
 'Maternal Discharge',
 'Sierra Leone Maternal Admission',
 'Sierra Leone MCH Triage',
 'MCH Delivery');
+
+CREATE INDEX maternity_encounters_pi ON #maternity_encounters(patient_id);
 
 update m
 set most_recent_height = e.height

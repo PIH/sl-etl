@@ -58,12 +58,14 @@ index_desc               int
 );
 
 insert into temp_ED_Triage (patient_id, encounter_id, visit_id, encounter_datetime, date_entered, user_entered)
-select e.patient_id, e.encounter_id, e.visit_id,e.encounter_datetime, e.date_created , person_name_of_user(e.creator) 
+select e.patient_id, e.encounter_id, e.visit_id,e.encounter_datetime, e.date_created , person_name_of_user(e.creator)
 from encounter e
 where e.encounter_type = @EDTriageEnc and e.voided = 0
 AND ((date(e.encounter_datetime) >=@startDate) or (@startDate is null))
 AND ((date(e.encounter_datetime) <=@endDate) or (@endDate is null))
 ;
+
+create index temp_ED_Triage_ei on temp_ED_Triage(encounter_id);
 
 -- patient level info
 DROP TEMPORARY TABLE IF EXISTS temp_ed_patient;

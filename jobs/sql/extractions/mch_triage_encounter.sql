@@ -35,6 +35,8 @@ where e.voided = 0
 AND encounter_type IN (@mch_triage)
 ORDER BY encounter_datetime desc;
 
+create index temp_mch_triage_ei on temp_mch_triage(encounter_id);
+
 UPDATE temp_mch_triage
 set user_entered = person_name_of_user(user_entered);
 
