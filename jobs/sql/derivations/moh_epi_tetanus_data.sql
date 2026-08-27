@@ -14,7 +14,10 @@ immunization_sequence_number int);
 
 insert into moh_epi_tetanus_data_staging (site, patient_id, emr_id, obs_id, mcoe_location, pregnancy_program_id, immunization, immunization_date, immunization_sequence_number)
 select site, patient_id, emr_id, obs_id, mcoe_location, pregnancy_program_id, immunization, immunization_date, immunization_sequence_number from all_immunizations;
-	
+
+CREATE INDEX moh_epi_tetanus_data_staging_di ON moh_epi_tetanus_data_staging(immunization_date);
+CREATE INDEX moh_epi_tetanus_data_staging_ppid ON moh_epi_tetanus_data_staging(pregnancy_program_id);
+
 UPDATE e
 SET e.pregnancy_state = s.state
 FROM moh_epi_tetanus_data_staging e

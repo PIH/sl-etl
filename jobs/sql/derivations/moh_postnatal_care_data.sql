@@ -31,9 +31,11 @@ from mch_postpartum_daily_encounter mpe
 inner join mch_delivery_summary_encounter mdse on mdse.pregnancy_program_id = mpe.pregnancy_program_id
 where datediff(day, mdse.encounter_datetime, mpe.encounter_datetime) between 0 and 42;
 
-update t 
+CREATE INDEX moh_postnatal_care_data_staging_di ON moh_postnatal_care_data_staging(encounter_datetime);
+
+update t
 set t.reporting_date = dd.LastDayOfMonth
-from moh_postnatal_care_data_staging t 
+from moh_postnatal_care_data_staging t
 inner join dim_date dd on dd.Date = cast(encounter_datetime as date); 
  
 update t 

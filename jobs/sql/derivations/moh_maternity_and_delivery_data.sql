@@ -38,7 +38,9 @@ birthdate
 from mch_delivery_summary_encounter d
 inner join dim_date dd on dd.Date = cast(d.encounter_datetime as date);
 
-update d 
+CREATE INDEX moh_maternity_delivery_data_staging_ppid ON moh_maternity_and_delivery_data_staging(pregnancy_program_id);
+
+update d
 set d.breastfeeding_initiation_datetime = l.breastfeeding_initiation_datetime
 from moh_maternity_and_delivery_data_staging d 
 inner join mch_labor_summary_encounter l on l.encounter_id = 

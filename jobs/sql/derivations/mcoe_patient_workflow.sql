@@ -16,13 +16,16 @@ admitted_to_mcoe bit,
 admitted_mcoe_locations text
 )
 
-insert into mcoe_patient_workflow_staging(visit_id, patient_id, first_mcoe_datetime) 
+insert into mcoe_patient_workflow_staging(visit_id, patient_id, first_mcoe_datetime)
 select visit_id, patient_id, min(encounter_datetime)
-from all_encounters 
+from all_encounters
 where mcoe_location = 1
  and inpatient_location = 1 -- include only inpatient for now... will need to update when outpatient moves to MCOE
-group by visit_id, patient_id 
+group by visit_id, patient_id
 having min(encounter_datetime) >= '2026-02-14';
+
+CREATE INDEX mcoe_patient_workflow_staging_pi ON mcoe_patient_workflow_staging(patient_id);
+CREATE INDEX mcoe_patient_workflow_staging_vi ON mcoe_patient_workflow_staging(visit_id);
 
 -- delete extranneous rows without a visit
 delete m
