@@ -218,6 +218,8 @@ CREATE temporary table temp_visit_counts
 SELECT encounter_id, patient_id, pregnancy_program_id, number_anc_visit, encounter_datetime, visit_type
 from temp_anc_encs t;
 
+create index temp_visit_counts_ei on temp_visit_counts(encounter_id);
+
 DROP temporary table if exists temp_visit_counts_dup;
 CREATE temporary table temp_visit_counts_dup
 select * from temp_visit_counts

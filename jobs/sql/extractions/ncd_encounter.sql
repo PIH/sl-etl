@@ -926,6 +926,8 @@ CREATE TABLE order_hb1ac AS
 SELECT t.encounter_id,CASE WHEN o.concept_id = concept_from_mapping('PIH','7460') THEN TRUE ELSE FALSE END AS "lab_order_hba1c"
 FROM temp_ncd t LEFT OUTER JOIN orders o ON t.encounter_id=o.encounter_id AND o.voided=0;
 
+create index order_hb1ac_ei on order_hb1ac(encounter_id);
+
 UPDATE temp_ncd t
 INNER JOIN order_hb1ac o ON t.encounter_id=o.encounter_id
 SET t.lab_order_hba1c= o.lab_order_hba1c;

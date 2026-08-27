@@ -173,8 +173,10 @@ set entry_lag_hours = TIMESTAMPDIFF(HOUR, encounter_datetime, datetime_entered)
 where retrospective = 1;
 
 drop temporary table if exists temp_inpatient_locations;
-create temporary table temp_inpatient_locations 
+create temporary table temp_inpatient_locations
 (select distinct location_id from location_tag_map ltm where ltm.location_tag_id  = @admission_location);
+
+create index temp_inpatient_locations_li on temp_inpatient_locations(location_id);
 
 update temp_all_encounters ae
 inner join temp_inpatient_locations l on l.location_id = ae.location_id
@@ -207,10 +209,12 @@ and not exists
 
 drop temporary table if exists temp_other_modifiers;
 create temporary table temp_other_modifiers
-select o.encounter_id, GROUP_CONCAT(distinct username(o.creator) separator ', ') "other_modifiers", GROUP_CONCAT(distinct date(date_created) separator ', ') "dates_modified" 
-from obs o 
+select o.encounter_id, GROUP_CONCAT(distinct username(o.creator) separator ', ') "other_modifiers", GROUP_CONCAT(distinct date(date_created) separator ', ') "dates_modified"
+from obs o
 inner join temp_all_encounters t where t.encounter_id = o.encounter_id  and o.creator <> t.creator
 group by encounter_id;
+
+create index temp_other_modifiers_ei on temp_other_modifiers(encounter_id);
 
 update temp_all_encounters t
 inner join temp_other_modifiers m on m.encounter_id = t.encounter_id 

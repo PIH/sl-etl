@@ -159,6 +159,8 @@ FROM (SELECT
             ORDER BY encounter_id, obs_group_id ASC
         ) index_ascending );
 
+create index temp_fhr_index_asc_ei on temp_fhr_index_asc(encounter_id);
+
 update temp_labor_encs t
 inner join temp_fhr_index_asc tvia on tvia.encounter_id = t.encounter_id
 set t.fhr1 = tvia.value_numeric

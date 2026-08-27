@@ -94,11 +94,15 @@ SELECT max(encounter_datetime) encounter_datetime, patient_id
 FROM temp_encounter
 GROUP BY patient_id;
 
+create index recent_encounter_pi on recent_encounter(patient_id);
+
 DROP TEMPORARY TABLE IF EXISTS first_encounter;
 CREATE TEMPORARY TABLE first_encounter
 SELECT min(encounter_datetime) encounter_datetime, patient_id
 FROM temp_encounter
 GROUP BY patient_id;
+
+create index first_encounter_pi on first_encounter(patient_id);
 
 create index temp_encounter_ci1 on temp_encounter(encounter_id);
 create index temp_encounter_eoi on temp_encounter(echocardiogram_obs_group_id);
@@ -132,11 +136,15 @@ SELECT patient_id, max(echocardiogram_date) AS echocardiogram_date
 FROM temp_encounter te
 GROUP BY patient_id;
 
+create index last_echocardiogram_pi on last_echocardiogram(patient_id);
+
 DROP TEMPORARY TABLE if exists temp_mschool_card;
 CREATE TEMPORARY TABLE temp_mschool_card
 SELECT person_id, max(ever_missed_school) AS ever_missed_school, max(cardiomyopathy) AS cardiomyopathy
 FROM temp_obs
 GROUP BY person_id;
+
+create index temp_mschool_card_pi on temp_mschool_card(person_id);
 
 INSERT INTO ncd_patient(patient_id, emr_id, 
 current_age, gender, dead, date_of_death, birthdate)
@@ -360,13 +368,14 @@ SET tgt.ever_missed_school=tm.ever_missed_school, tgt.cardiomyopathy=tm.cardiomy
 DROP TABLE IF EXISTS hb1ac_results;
 CREATE TABLE hb1ac_results AS
 SELECT e.encounter_id, cast(e.encounter_datetime AS date) AS encounter_date, CAST(o.obs_datetime AS date) AS obs_date,
-o.person_id, o.value_numeric 
-FROM encounter e 
-INNER JOIN obs o ON e.encounter_id = o.encounter_id 
+o.person_id, o.value_numeric
+FROM encounter e
+INNER JOIN obs o ON e.encounter_id = o.encounter_id
 WHERE e.encounter_type =@labResultEnc
 AND o.concept_id NOT IN (@order_number,@result_date,@test_location,@test_status,@collection_date_estimated)
 AND o.concept_id = concept_from_mapping('PIH','7460');
 
+create index hb1ac_results_pi on hb1ac_results(person_id);
 
 UPDATE ncd_patient t
 INNER JOIN hb1ac_results o ON t.patient_id=o.person_id
