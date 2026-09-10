@@ -90,7 +90,6 @@ ORDER BY encounter_datetime desc;
 create index temp_labor_encs_ei on temp_anc_encs(encounter_id);
 create index temp_anc_encs_c1 on temp_anc_encs(patient_id, pregnancy_program_id,encounter_datetime);
 
-
 UPDATE temp_anc_encs
 set user_entered = person_name_of_user(user_entered);
 
@@ -162,56 +161,129 @@ SET @urine_glucose = concept_from_mapping('PIH','12292');
 SET @urine_protein = concept_from_mapping('PIH','12272');
 SET @uses_drugs = concept_from_mapping('PIH','2546');
 SET @weight = concept_from_mapping('PIH','5089');
-set @mwh = concept_from_mapping('PIH','20930');
+SET @mwh = concept_from_mapping('PIH','20930');
+SET @yes = concept_from_mapping('PIH', '1065');
+SET @no  = concept_from_mapping('PIH', '1066');
 
-UPDATE temp_anc_encs t SET abortus = obs_value_numeric_from_temp_using_concept_id(encounter_id, @abortus);
-UPDATE temp_anc_encs t SET albendazole = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @albendazole);
-UPDATE temp_anc_encs t SET birth_weight_other_babies = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @birth_weight_other_babies,'en');
-UPDATE temp_anc_encs t SET blood_type = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @blood_type,'en');
-UPDATE temp_anc_encs t SET bp_diastolic = obs_value_numeric_from_temp_using_concept_id(encounter_id, @bp_diastolic);
-UPDATE temp_anc_encs t SET bp_systolic = obs_value_numeric_from_temp_using_concept_id(encounter_id, @bp_systolic);
-UPDATE temp_anc_encs t SET counseled_danger_signs = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @counseled_danger_signs);
-UPDATE temp_anc_encs t SET danger_signs = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @danger_signs,'en');
-UPDATE temp_anc_encs t SET drinks_alcohol = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @drinks_alcohol,'en');
-UPDATE temp_anc_encs t SET drinks_per_day = obs_value_numeric_from_temp_using_concept_id(encounter_id, @drinks_per_day);
-UPDATE temp_anc_encs t SET drug_name = obs_value_text_from_temp_using_concept_id(encounter_id, @drug_name);
-UPDATE temp_anc_encs t SET estimated_delivery_date = obs_value_datetime_from_temp_using_concept_id(encounter_id, @estimated_delivery_date);
-UPDATE temp_anc_encs t SET estimated_gestational_age = obs_value_numeric_from_temp_using_concept_id(encounter_id, @estimated_gestational_age);
-UPDATE temp_anc_encs t SET ferrous_sulfate_folic_acid = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @ferrous_sulfate_folic_acid);
-UPDATE temp_anc_encs t SET fetal_heart_rate = obs_value_numeric_from_temp_using_concept_id(encounter_id, @fetal_heart_rate);
-UPDATE temp_anc_encs t SET fundal_height = obs_value_numeric_from_temp_using_concept_id(encounter_id, @fundal_height);
-UPDATE temp_anc_encs t SET gravida = obs_value_numeric_from_temp_using_concept_id(encounter_id, @gravida);
-UPDATE temp_anc_encs t SET height = obs_value_numeric_from_temp_using_concept_id(encounter_id, @height);
-UPDATE temp_anc_encs t SET high_risk_factors = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @high_risk_factors,'en');
-UPDATE temp_anc_encs t SET hiv_counsel_and_test = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @hiv_counsel_and_test);
-UPDATE temp_anc_encs t SET hiv_rapid_test_obs_id = obs_id_from_temp_using_concept_id(encounter_id, @hiv_rapid_test_result, 0);
-UPDATE temp_anc_encs t SET hiv_rapid_test_obs_group_id = obs_group_id_from_obs(hiv_rapid_test_obs_id);
-UPDATE temp_anc_encs t SET hiv_rapid_test_result = value_coded_name(hiv_rapid_test_obs_id, 'en');
-UPDATE temp_anc_encs t SET hiv_rapid_test_reason_not_performed = obs_from_group_id_value_coded_list_using_concept_id(hiv_rapid_test_obs_group_id, @hiv_rapid_test_reason_not_performed, 'en');
-UPDATE temp_anc_encs t SET syphilis_rapid_test_obs_id = obs_id_from_temp_using_concept_id(encounter_id, @syphilis_rapid_test_result, 0);
-UPDATE temp_anc_encs t SET syphilis_rapid_test_obs_group_id = obs_group_id_from_obs(syphilis_rapid_test_obs_id);
-UPDATE temp_anc_encs t SET syphilis_rapid_test_result = value_coded_name(syphilis_rapid_test_obs_id, 'en');
-UPDATE temp_anc_encs t SET syphilis_rapid_test_reason_not_performed = obs_from_group_id_value_coded_list_using_concept_id(syphilis_rapid_test_obs_group_id, @syphilis_rapid_test_reason_not_performed, 'en');
-UPDATE temp_anc_encs t SET hep_b_test_result = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @hep_b_test_result,'en');
-UPDATE temp_anc_encs t SET iptp_sp_malaria = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @iptp_sp_malaria);
-UPDATE temp_anc_encs t SET last_menstruation_date = obs_value_datetime_from_temp_using_concept_id(encounter_id, @last_menstruation_date);
-UPDATE temp_anc_encs t SET living = obs_value_numeric_from_temp_using_concept_id(encounter_id, @living);
-UPDATE temp_anc_encs t SET llin = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @llin);
-UPDATE temp_anc_encs t SET malaria_rdt = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @malaria_rdt,'en');
-UPDATE temp_anc_encs t SET number_anc_visit = obs_value_numeric_from_temp_using_concept_id(encounter_id, @number_anc_visit);
-UPDATE temp_anc_encs t SET nutrition_counseling = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @nutrition_counseling);
-UPDATE temp_anc_encs t SET parity = obs_value_numeric_from_temp_using_concept_id(encounter_id, @parity);
-UPDATE temp_anc_encs t SET prior_neonatal_deaths = obs_value_numeric_from_temp_using_concept_id(encounter_id, @prior_neonatal_deaths);
-UPDATE temp_anc_encs t SET prior_stillbirths = obs_value_numeric_from_temp_using_concept_id(encounter_id, @prior_stillbirths);
-UPDATE temp_anc_encs t SET return_visit_date = obs_value_datetime_from_temp_using_concept_id(encounter_id, @return_visit_date);
-UPDATE temp_anc_encs t SET smokes_tobacco = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @smokes_tobacco,'en');
-UPDATE temp_anc_encs t SET trimester_enrolled = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @trimester_enrolled,'en');
-UPDATE temp_anc_encs t SET urine_glucose = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @urine_glucose,'en');
-UPDATE temp_anc_encs t SET urine_protein = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @urine_protein,'en');
-UPDATE temp_anc_encs t SET uses_drugs = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @uses_drugs,'en');
-UPDATE temp_anc_encs t SET weight = obs_value_numeric_from_temp_using_concept_id(encounter_id, @weight);
-UPDATE temp_anc_encs t SET other_risk_factors = obs_comments_from_temp(encounter_id, 'PIH','11673','PIH','5622');
-UPDATE temp_anc_encs t SET maternal_waiting_home = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @mwh,'en');
+DROP TEMPORARY TABLE IF EXISTS temp_obs_pivoted;
+CREATE TEMPORARY TABLE temp_obs_pivoted
+SELECT
+    encounter_id,
+    max(case when concept_id = @abortus then value_numeric end) "abortus",
+    max(case when concept_id = @albendazole then if(value_coded = @yes, 1, if(value_coded = @no, 0, null)) end) "albendazole",
+    group_concat(distinct case when concept_id = @birth_weight_other_babies then concept_name(value_coded, @locale) end separator '| ') "birth_weight_other_babies",
+    group_concat(distinct case when concept_id = @blood_type then concept_name(value_coded, @locale) end separator '| ') "blood_type",
+    max(case when concept_id = @bp_diastolic then value_numeric end) "bp_diastolic",
+    max(case when concept_id = @bp_systolic then value_numeric end) "bp_systolic",
+    max(case when concept_id = @counseled_danger_signs then if(value_coded = @yes, 1, if(value_coded = @no, 0, null)) end) "counseled_danger_signs",
+    group_concat(distinct case when concept_id = @danger_signs then concept_name(value_coded, @locale) end separator '| ') "danger_signs",
+    group_concat(distinct case when concept_id = @drinks_alcohol then concept_name(value_coded, @locale) end separator '| ') "drinks_alcohol",
+    max(case when concept_id = @drinks_per_day then value_numeric end) "drinks_per_day",
+    max(case when concept_id = @drug_name then value_text end) "drug_name",
+    max(case when concept_id = @estimated_delivery_date then value_datetime end) "estimated_delivery_date",
+    max(case when concept_id = @estimated_gestational_age then value_numeric end) "estimated_gestational_age",
+    max(case when concept_id = @ferrous_sulfate_folic_acid then if(value_coded = @yes, 1, if(value_coded = @no, 0, null)) end) "ferrous_sulfate_folic_acid",
+    max(case when concept_id = @fetal_heart_rate then value_numeric end) "fetal_heart_rate",
+    max(case when concept_id = @fundal_height then value_numeric end) "fundal_height",
+    max(case when concept_id = @gravida then value_numeric end) "gravida",
+    max(case when concept_id = @height then value_numeric end) "height",
+    group_concat(distinct case when concept_id = @high_risk_factors then concept_name(value_coded, @locale) end separator '| ') "high_risk_factors",
+    max(case when concept_id = @hiv_counsel_and_test then if(value_coded = @yes, 1, if(value_coded = @no, 0, null)) end) "hiv_counsel_and_test",
+    -- HIV rapid test obs_id/group_id kept as post-pivot UPDATEs below
+    max(case when concept_id = @hiv_rapid_test_result then obs_id end) "hiv_rapid_test_obs_id",
+    max(case when concept_id = @hiv_rapid_test_result then concept_name(value_coded, @locale) end) "hiv_rapid_test_result",
+    -- Syphilis rapid test obs_id/group_id kept as post-pivot UPDATEs below
+    max(case when concept_id = @syphilis_rapid_test_result then obs_id end) "syphilis_rapid_test_obs_id",
+    max(case when concept_id = @syphilis_rapid_test_result then concept_name(value_coded, @locale) end) "syphilis_rapid_test_result",
+    group_concat(distinct case when concept_id = @hep_b_test_result then concept_name(value_coded, @locale) end separator '| ') "hep_b_test_result",
+    max(case when concept_id = @iptp_sp_malaria then if(value_coded = @yes, 1, if(value_coded = @no, 0, null)) end) "iptp_sp_malaria",
+    max(case when concept_id = @last_menstruation_date then value_datetime end) "last_menstruation_date",
+    max(case when concept_id = @living then value_numeric end) "living",
+    max(case when concept_id = @llin then if(value_coded = @yes, 1, if(value_coded = @no, 0, null)) end) "llin",
+    group_concat(distinct case when concept_id = @malaria_rdt then concept_name(value_coded, @locale) end separator '| ') "malaria_rdt",
+    max(case when concept_id = @number_anc_visit then value_numeric end) "number_anc_visit",
+    max(case when concept_id = @nutrition_counseling then if(value_coded = @yes, 1, if(value_coded = @no, 0, null)) end) "nutrition_counseling",
+    max(case when concept_id = @parity then value_numeric end) "parity",
+    max(case when concept_id = @prior_neonatal_deaths then value_numeric end) "prior_neonatal_deaths",
+    max(case when concept_id = @prior_stillbirths then value_numeric end) "prior_stillbirths",
+    max(case when concept_id = @return_visit_date then value_datetime end) "return_visit_date",
+    group_concat(distinct case when concept_id = @smokes_tobacco then concept_name(value_coded, @locale) end separator '| ') "smokes_tobacco",
+    group_concat(distinct case when concept_id = @trimester_enrolled then concept_name(value_coded, @locale) end separator '| ') "trimester_enrolled",
+    group_concat(distinct case when concept_id = @urine_glucose then concept_name(value_coded, @locale) end separator '| ') "urine_glucose",
+    group_concat(distinct case when concept_id = @urine_protein then concept_name(value_coded, @locale) end separator '| ') "urine_protein",
+    group_concat(distinct case when concept_id = @uses_drugs then concept_name(value_coded, @locale) end separator '| ') "uses_drugs",
+    max(case when concept_id = @weight then value_numeric end) "weight",
+    group_concat(distinct case when concept_id = @mwh then concept_name(value_coded, @locale) end separator '| ') "maternal_waiting_home"
+FROM temp_obs
+GROUP BY encounter_id;
+ALTER TABLE temp_obs_pivoted
+    ADD COLUMN hiv_rapid_test_obs_group_id int,
+    ADD COLUMN hiv_rapid_test_reason_not_performed varchar(255),
+    ADD COLUMN syphilis_rapid_test_obs_group_id int,
+    ADD COLUMN syphilis_rapid_test_reason_not_performed varchar(255),
+    ADD COLUMN other_risk_factors varchar(255);
+
+-- obs_group lookups can't be pivoted; kept as UPDATEs
+UPDATE temp_obs_pivoted SET hiv_rapid_test_obs_group_id = obs_group_id_from_obs(hiv_rapid_test_obs_id);
+UPDATE temp_obs_pivoted SET hiv_rapid_test_reason_not_performed = obs_from_group_id_value_coded_list_using_concept_id(hiv_rapid_test_obs_group_id, @hiv_rapid_test_reason_not_performed, 'en');
+UPDATE temp_obs_pivoted SET syphilis_rapid_test_obs_group_id = obs_group_id_from_obs(syphilis_rapid_test_obs_id);
+UPDATE temp_obs_pivoted SET syphilis_rapid_test_reason_not_performed = obs_from_group_id_value_coded_list_using_concept_id(syphilis_rapid_test_obs_group_id, @syphilis_rapid_test_reason_not_performed, 'en');
+UPDATE temp_obs_pivoted SET other_risk_factors = obs_comments_from_temp(encounter_id, 'PIH','11673','PIH','5622');
+
+ALTER TABLE temp_obs_pivoted ADD INDEX (encounter_id);
+
+UPDATE temp_anc_encs t
+INNER JOIN temp_obs_pivoted c ON c.encounter_id = t.encounter_id
+SET
+    t.abortus = c.abortus,
+    t.albendazole = c.albendazole,
+    t.birth_weight_other_babies = c.birth_weight_other_babies,
+    t.blood_type = c.blood_type,
+    t.bp_diastolic = c.bp_diastolic,
+    t.bp_systolic = c.bp_systolic,
+    t.counseled_danger_signs = c.counseled_danger_signs,
+    t.danger_signs = c.danger_signs,
+    t.drinks_alcohol = c.drinks_alcohol,
+    t.drinks_per_day = c.drinks_per_day,
+    t.drug_name = c.drug_name,
+    t.estimated_delivery_date = c.estimated_delivery_date,
+    t.estimated_gestational_age = c.estimated_gestational_age,
+    t.ferrous_sulfate_folic_acid = c.ferrous_sulfate_folic_acid,
+    t.fetal_heart_rate = c.fetal_heart_rate,
+    t.fundal_height = c.fundal_height,
+    t.gravida = c.gravida,
+    t.height = c.height,
+    t.high_risk_factors = c.high_risk_factors,
+    t.hiv_counsel_and_test = c.hiv_counsel_and_test,
+    t.hiv_rapid_test_obs_id = c.hiv_rapid_test_obs_id,
+    t.hiv_rapid_test_obs_group_id = c.hiv_rapid_test_obs_group_id,
+    t.hiv_rapid_test_result = c.hiv_rapid_test_result,
+    t.hiv_rapid_test_reason_not_performed = c.hiv_rapid_test_reason_not_performed,
+    t.syphilis_rapid_test_obs_id = c.syphilis_rapid_test_obs_id,
+    t.syphilis_rapid_test_obs_group_id = c.syphilis_rapid_test_obs_group_id,
+    t.syphilis_rapid_test_result = c.syphilis_rapid_test_result,
+    t.syphilis_rapid_test_reason_not_performed = c.syphilis_rapid_test_reason_not_performed,
+    t.hep_b_test_result = c.hep_b_test_result,
+    t.iptp_sp_malaria = c.iptp_sp_malaria,
+    t.last_menstruation_date = c.last_menstruation_date,
+    t.living = c.living,
+    t.llin = c.llin,
+    t.malaria_rdt = c.malaria_rdt,
+    t.number_anc_visit = c.number_anc_visit,
+    t.nutrition_counseling = c.nutrition_counseling,
+    t.parity = c.parity,
+    t.prior_neonatal_deaths = c.prior_neonatal_deaths,
+    t.prior_stillbirths = c.prior_stillbirths,
+    t.return_visit_date = c.return_visit_date,
+    t.smokes_tobacco = c.smokes_tobacco,
+    t.trimester_enrolled = c.trimester_enrolled,
+    t.urine_glucose = c.urine_glucose,
+    t.urine_protein = c.urine_protein,
+    t.uses_drugs = c.uses_drugs,
+    t.weight = c.weight,
+    t.other_risk_factors = c.other_risk_factors,
+    t.maternal_waiting_home = c.maternal_waiting_home;
+
 -- calculate actual visit count
 DROP temporary table if exists temp_visit_counts;
 CREATE temporary table temp_visit_counts
@@ -238,14 +310,24 @@ inner join temp_visit_counts vc on vc.encounter_id =
 	limit 1)
 SET latest_entered_number_anc_visit = vc.number_anc_visit;	
 
+DROP temporary table if exists temp_actual_visit_count;
+CREATE TEMPORARY TABLE temp_actual_visit_count AS
+SELECT
+    t.encounter_id,
+    COUNT(vc.encounter_id) AS visit_count
+FROM temp_anc_encs t
+INNER JOIN temp_visit_counts vc
+    ON vc.patient_id = t.patient_id
+    AND (vc.pregnancy_program_id = t.pregnancy_program_id
+         OR (vc.pregnancy_program_id IS NULL AND t.pregnancy_program_id IS NULL))
+    AND vc.encounter_datetime <= t.encounter_datetime
+GROUP BY t.encounter_id;
+
+ALTER TABLE temp_actual_visit_count ADD INDEX (encounter_id);
+
 UPDATE temp_anc_encs t
-set t.actual_visit_number = 
-	ifnull(latest_entered_number_anc_visit,1) -1  + 
-	(select count(*) from temp_visit_counts vc
-	where vc.patient_id = t.patient_id
-	and ((vc.pregnancy_program_id = t.pregnancy_program_id)
-		or (vc.pregnancy_program_id is null and  t.pregnancy_program_id is null))
-	and vc.encounter_datetime <= t.encounter_datetime);
+INNER JOIN temp_actual_visit_count avc ON avc.encounter_id = t.encounter_id
+SET t.actual_visit_number = IFNULL(t.latest_entered_number_anc_visit, 1) - 1 + avc.visit_count;
 
 SELECT
 concat(@partition,"-",patient_id) as patient_id,
