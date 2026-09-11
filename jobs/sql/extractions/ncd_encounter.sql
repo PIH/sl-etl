@@ -196,6 +196,58 @@ SET @sc_hemoglobin_s             = concept_from_mapping('CIEL', '117635');
 SET @sc_painful_crisis           = concept_from_mapping('CIEL', '76613');
 SET @sc_acute_chest_syndrome     = concept_from_mapping('CIEL', '81724');
 
+-- Pivot concept variables (used by temp_obs_pivoted below)
+SET @yes_concept                 = concept_from_mapping('PIH', 'YES');
+SET @no_concept                  = concept_from_mapping('PIH', '1066');
+SET @visit_type_c                = concept_from_mapping('PIH', '6189');
+SET @vulnerable_c                = concept_from_mapping('PIH', '11959');
+SET @education_level_c           = concept_from_mapping('PIH', '1688');
+SET @literacy_level_c            = concept_from_mapping('PIH', '13736');
+SET @employment_status_c         = concept_from_mapping('PIH', '3395');
+SET @referred_from_c             = concept_from_mapping('PIH', '7454');
+SET @other_referral_c            = concept_from_mapping('PIH', '6421');
+SET @social_support_c            = concept_from_mapping('PIH', '14443');
+SET @social_support_type_c       = concept_from_mapping('PIH', '2156');
+SET @days_lost_schooling_c       = concept_from_mapping('PIH', '14446');
+SET @hiv_c                       = concept_from_mapping('PIH', '1169');
+SET @comorbidities_c             = concept_from_mapping('PIH', '12976');
+SET @bp_systolic_c               = concept_from_mapping('PIH', '5085');
+SET @bp_diastolic_c              = concept_from_mapping('PIH', '5086');
+SET @fbg_level_c                 = concept_from_mapping('CIEL', '160912');
+SET @rbg_level_c                 = concept_from_mapping('CIEL', '887');
+SET @num_hosp_since_visit_c      = concept_from_mapping('PIH', '5704');
+SET @num_hosp_for_ncds_c         = concept_from_mapping('PIH', '15160');
+SET @care_household_c            = concept_from_mapping('PIH', '10642');
+SET @missed_school_c             = concept_from_mapping('PIH', '5629');
+SET @hydroxyurea_c               = concept_from_mapping('PIH', '14870');
+SET @reason_no_hydroxyurea_c     = concept_from_mapping('PIH', '15169');
+SET @dm_home_glucometer_c        = concept_from_mapping('PIH', '14503');
+SET @dm_on_insulin_c             = concept_from_mapping('PIH', '6756');
+SET @dm_complications_c          = concept_from_mapping('PIH', '14485');
+SET @htn_type_c                  = concept_from_mapping('PIH', '11940');
+SET @htn_stage_c                 = concept_from_mapping('PIH', '12699');
+SET @nyha_class_c                = concept_from_mapping('PIH', '3139');
+SET @ckd_stage_c                 = concept_from_mapping('PIH', '12501');
+SET @on_beta_blocker_c           = concept_from_mapping('PIH', '14723');
+SET @secondary_abx_c             = concept_from_mapping('PIH', '15168');
+SET @cardiac_surg_sched_c        = concept_from_mapping('PIH', '15165');
+SET @cardiac_surg_type_c         = concept_from_mapping('PIH', '7887');
+SET @cardiac_surg_perf_date_c    = concept_from_mapping('PIH', '10485');
+SET @referred_to_surg_hf_c       = concept_from_mapping('PIH', '14738');
+SET @transfusion_c               = concept_from_mapping('PIH', '7868');
+SET @transfusion_date_c          = concept_from_mapping('PIH', '11064');
+SET @asthma_severity_c           = concept_from_mapping('PIH', '7405');
+SET @nighttime_waking_c          = concept_from_mapping('PIH', '11731');
+SET @symptoms_2x_c               = concept_from_mapping('PIH', '11803');
+SET @inhaler_2x_c                = concept_from_mapping('PIH', '11991');
+SET @esophageal_proph_c          = concept_from_mapping('PIH', '15164');
+SET @sc_complications_c          = concept_from_mapping('PIH', '15157');
+SET @next_appt_c                 = concept_from_mapping('PIH', '5096');
+SET @transfer_site_c             = concept_from_mapping('PIH', '14424');
+SET @disposition_c               = concept_from_mapping('PIH', '8620');
+SET @bmi_c                       = concept_from_mapping('PIH', '14126');
+
+
 select encounter_type_id INTO @NCDInitial FROM encounter_type where uuid = 'ae06d311-1866-455b-8a64-126a9bd74171'; 
 select encounter_type_id INTO @NCDFollowup FROM encounter_type where uuid = '5cbfd6a2-92d9-4ad0-b526-9d29bfe1d10c'; 
 select encounter_type_id INTO @NCDFollowupPart1 FROM encounter_type where uuid = 'e02a8c32-4f14-4ff7-a4e9-2f087d9a1cf7'; 
@@ -448,6 +500,149 @@ WHERE concept_id=concept_from_mapping('PIH','14587');
 
 create index limitation_obs_id_c1 on limitation_obs_id(encounter_id, obs_group_id);
 
+-- ============================================================
+-- PIVOT TEMP TABLE: single-pass collation of pivotable obs
+-- ============================================================
+DROP TEMPORARY TABLE IF EXISTS temp_obs_pivoted;
+CREATE TEMPORARY TABLE temp_obs_pivoted AS
+SELECT
+    encounter_id,
+    max(case when concept_id = @bp_systolic_c           then value_numeric end) "bp_systolic",
+    max(case when concept_id = @bp_diastolic_c          then value_numeric end) "bp_diastolic",
+    max(case when concept_id = @fbg_level_c             then value_numeric end) "fbg_level",
+    max(case when concept_id = @rbg_level_c             then value_numeric end) "rbg_level",
+    max(case when concept_id = @num_hosp_since_visit_c  then value_numeric end) "number_hospitalizations_since_visit",
+    max(case when concept_id = @num_hosp_for_ncds_c     then value_numeric end) "number_hospitalizations_for_ncds",
+    max(case when concept_id = @days_lost_schooling_c   then value_numeric end) "days_lost_schooling",
+    max(case when concept_id = @next_appt_c             then DATE(value_datetime) end) "next_appointment_date",
+    max(case when concept_id = @cardiac_surg_perf_date_c then value_datetime end)      "cardiac_surgery_performed_date",
+    max(case when concept_id = @transfusion_date_c      then value_datetime end)        "transfusion_date",
+    max(case when concept_id = @other_referral_c        then value_text end) "other_referral",
+    max(case when concept_id = @care_household_c
+        then case when value_coded = @yes_concept then 1 when value_coded = @no_concept then 0 else null end end) "care_household",
+    max(case when concept_id = @social_support_c
+        then case when value_coded = @yes_concept then 1 when value_coded = @no_concept then 0 else null end end) "social_support",
+    max(case when concept_id = @missed_school_c
+        then case when value_coded = @yes_concept then 1 when value_coded = @no_concept then 0 else null end end) "missed_school",
+    max(case when concept_id = @hydroxyurea_c
+        then case when value_coded = @yes_concept then 1 when value_coded = @no_concept then 0 else null end end) "treatment_with_hydroxyurea",
+    max(case when concept_id = @dm_home_glucometer_c
+        then case when value_coded = @yes_concept then 1 when value_coded = @no_concept then 0 else null end end) "diabetes_home_glucometer",
+    max(case when concept_id = @dm_on_insulin_c
+        then case when value_coded = @yes_concept then 1 when value_coded = @no_concept then 0 else null end end) "diabetes_on_insulin",
+    max(case when concept_id = @secondary_abx_c
+        then case when value_coded = @yes_concept then 1 when value_coded = @no_concept then 0 else null end end) "secondary_antibiotic_prophylaxis",
+    max(case when concept_id = @transfusion_c
+        then case when value_coded = @yes_concept then 1 when value_coded = @no_concept then 0 else null end end) "transfusion_past_12_months",
+    max(case when concept_id = @visit_type_c            then concept_name(value_coded, @locale) end) "visit_type",
+    max(case when concept_id = @vulnerable_c            then concept_name(value_coded, @locale) end) "vulnerable",
+    max(case when concept_id = @education_level_c       then concept_name(value_coded, @locale) end) "education_level",
+    max(case when concept_id = @literacy_level_c        then concept_name(value_coded, @locale) end) "literacy_level",
+    max(case when concept_id = @employment_status_c     then concept_name(value_coded, @locale) end) "employment_status",
+    max(case when concept_id = @hiv_c                   then concept_name(value_coded, @locale) end) "hiv",
+    max(case when concept_id = @htn_type_c              then concept_name(value_coded, @locale) end) "hypertension_type",
+    max(case when concept_id = @nyha_class_c            then concept_name(value_coded, @locale) end) "nyha_classification",
+    max(case when concept_id = @ckd_stage_c             then concept_name(value_coded, @locale) end) "ckd_stage",
+    max(case when concept_id = @on_beta_blocker_c       then concept_name(value_coded, @locale) end) "on_beta_blocker",
+    max(case when concept_id = @asthma_severity_c       then concept_name(value_coded, @locale) end) "asthma_severity",
+    max(case when concept_id = @nighttime_waking_c      then concept_name(value_coded, @locale) end) "nighttime_waking_asthma",
+    max(case when concept_id = @symptoms_2x_c           then concept_name(value_coded, @locale) end) "symptoms_2x_week_asthma",
+    max(case when concept_id = @inhaler_2x_c            then concept_name(value_coded, @locale) end) "inhaler_for_symptoms_2x_week_asthma",
+    max(case when concept_id = @esophageal_proph_c      then concept_name(value_coded, @locale) end) "on_esophageal_varices_prophylaxis",
+    max(case when concept_id = @cardiac_surg_sched_c    then concept_name(value_coded, @locale) end) "cardiac_surgery_scheduled",
+    max(case when concept_id = @cardiac_surg_type_c     then concept_name(value_coded, @locale) end) "type_cardiac_surgery",
+    max(case when concept_id = @referred_to_surg_hf_c  then concept_name(value_coded, @locale) end) "referred_to_surgery_for_heart_failure",
+    group_concat(distinct case when concept_id = @reason_no_hydroxyurea_c then concept_name(value_coded, @locale) end separator ' | ') "reason_no_hydroxyurea",
+    max(case when concept_id = @transfer_site_c         then concept_name(value_coded, @locale) end) "transfer_site",
+    group_concat(distinct case when concept_id = @referred_from_c       then concept_name(value_coded, @locale) end separator ' | ') "referred_from",
+    group_concat(distinct case when concept_id = @social_support_type_c then concept_name(value_coded, @locale) end separator ' | ') "social_support_type",
+    group_concat(distinct case when concept_id = @comorbidities_c       then concept_name(value_coded, @locale) end separator ' | ') "comorbidities",
+    group_concat(distinct case when concept_id = @dm_complications_c    then concept_name(value_coded, @locale) end separator ' | ') "diabetes_complications",
+    group_concat(distinct case when concept_id = @sc_complications_c    then concept_name(value_coded, @locale) end separator ' | ') "sickle_cell_complications",
+    max(case when concept_id = @disposition_c           then concept_name(value_coded, @locale) end) "disposition_raw",
+    max(case when concept_id = @bmi_c                   then concept_name(value_coded, @locale) end) "bmi_raw",
+    max(case when concept_id = @htn_stage_c             then concept_name(value_coded, @locale) end) "hypertension_stage_raw"
+FROM temp_obs
+GROUP BY encounter_id;
+
+ALTER TABLE temp_obs_pivoted ADD INDEX (encounter_id);
+
+-- Single-pass UPDATE from pivot table
+UPDATE temp_ncd t
+INNER JOIN temp_obs_pivoted p ON p.encounter_id = t.encounter_id
+SET
+    t.bp_systolic                           = p.bp_systolic,
+    t.bp_diastolic                          = p.bp_diastolic,
+    t.fbg_level                             = p.fbg_level,
+    t.rbg_level                             = p.rbg_level,
+    t.number_hospitalizations_since_visit   = p.number_hospitalizations_since_visit,
+    t.number_hospitalizations_for_ncds      = p.number_hospitalizations_for_ncds,
+    t.days_lost_schooling                   = p.days_lost_schooling,
+    t.next_appointment_date                 = p.next_appointment_date,
+    t.cardiac_surgery_performed_date        = p.cardiac_surgery_performed_date,
+    t.transfusion_date                      = p.transfusion_date,
+    t.other_referral                        = p.other_referral,
+    t.care_household                        = p.care_household,
+    t.social_support                        = p.social_support,
+    t.missed_school                         = p.missed_school,
+    t.treatment_with_hydroxyurea            = p.treatment_with_hydroxyurea,
+    t.diabetes_home_glucometer              = p.diabetes_home_glucometer,
+    t.diabetes_on_insulin                   = p.diabetes_on_insulin,
+    t.secondary_antibiotic_prophylaxis      = p.secondary_antibiotic_prophylaxis,
+    t.transfusion_past_12_months            = p.transfusion_past_12_months,
+    t.visit_type                            = p.visit_type,
+    t.vulnerable                            = p.vulnerable,
+    t.education_level                       = p.education_level,
+    t.literacy_level                        = p.literacy_level,
+    t.employment_status                     = p.employment_status,
+    t.hiv                                   = p.hiv,
+    t.hypertension_type                     = p.hypertension_type,
+    t.nyha_classification                   = p.nyha_classification,
+    t.ckd_stage                             = p.ckd_stage,
+    t.on_beta_blocker                       = p.on_beta_blocker,
+    t.asthma_severity                       = p.asthma_severity,
+    t.nighttime_waking_asthma               = p.nighttime_waking_asthma,
+    t.symptoms_2x_week_asthma               = p.symptoms_2x_week_asthma,
+    t.inhaler_for_symptoms_2x_week_asthma   = p.inhaler_for_symptoms_2x_week_asthma,
+    t.on_esophageal_varices_prophylaxis     = p.on_esophageal_varices_prophylaxis,
+    t.cardiac_surgery_scheduled             = p.cardiac_surgery_scheduled,
+    t.type_cardiac_surgery                  = p.type_cardiac_surgery,
+    t.referred_to_surgery_for_heart_failure = p.referred_to_surgery_for_heart_failure,
+    t.reason_no_hydroxyurea                 = p.reason_no_hydroxyurea,
+    t.transfer_site                         = p.transfer_site,
+    t.referred_from                         = p.referred_from,
+    t.social_support_type                   = p.social_support_type,
+    t.comorbidities                         = p.comorbidities,
+    t.diabetes_complications                = p.diabetes_complications,
+    t.sickle_cell_complications             = p.sickle_cell_complications;
+
+-- Post-pivot CASE transforms for fields requiring value mapping
+UPDATE temp_ncd t
+INNER JOIN temp_obs_pivoted p ON p.encounter_id = t.encounter_id
+SET
+    t.disposition = CASE p.disposition_raw
+        WHEN concept_name(concept_from_mapping('PIH','2224'),@locale)  THEN 'Laboratory tests outstanding'
+        WHEN concept_name(concept_from_mapping('PIH','12358'),@locale) THEN 'No action taken'
+        ELSE p.disposition_raw
+    END,
+    t.bmi = CASE p.bmi_raw
+        WHEN concept_name(concept_from_mapping('PIH','7507'),@locale)  THEN 'Moderate obese'
+        WHEN concept_name(concept_from_mapping('PIH','14455'),@locale) THEN 'Severe obese'
+        ELSE p.bmi_raw
+    END,
+    t.hypertension_stage = CASE p.hypertension_stage_raw
+        WHEN concept_name(concept_from_mapping('PIH','12697'),@locale) THEN 'Pre-HTN'
+        WHEN concept_name(concept_from_mapping('PIH','12698'),@locale) THEN '1 (Mild)'
+        WHEN concept_name(concept_from_mapping('PIH','12695'),@locale) THEN '2 (Moderate)'
+        ELSE p.hypertension_stage_raw
+    END;
+
+-- Post-pivot string replacements
+UPDATE temp_ncd SET referred_from          = replace(referred_from, 'Hospitalized', 'Inpatient Ward');
+UPDATE temp_ncd SET referred_from          = replace(referred_from, 'Primary care clinic', 'OPD');
+UPDATE temp_ncd SET diabetes_complications = replace(diabetes_complications, 'Cerebrovascular accident', 'Stroke');
+
+
 update temp_ncd t
 set echocardiogram_obs_group_id=obs_group_id_of_value_coded_from_temp(encounter_id,'PIH','8614','PIH','3763');
 
@@ -455,61 +650,7 @@ UPDATE temp_ncd t
 SET echocardiogram_date=obs_from_group_id_value_datetime_from_temp(t.echocardiogram_obs_group_id,'PIH','12847');
 
 update temp_ncd t
-set next_appointment_date = DATE(obs_value_datetime_from_temp(encounter_id, 'PIH','5096'));
-
-update temp_ncd t
-set disposition = 
-	CASE obs_value_coded_list_from_temp(encounter_id, 'PIH','8620',@locale)
-		WHEN concept_name(concept_from_mapping('PIH','2224'),@locale) then 'Laboratory tests outstanding'
-		WHEN concept_name(concept_from_mapping('PIH','12358'),@locale) then 'No action taken'
-		ELSE obs_value_coded_list_from_temp(encounter_id, 'PIH','8620',@locale)
-	END;
-
-update temp_ncd t
-set visit_type = obs_value_coded_list_from_temp(encounter_id, 'PIH','6189',@locale);
-
-update temp_ncd t
-set care_household = value_coded_as_boolean(obs_id_from_temp(encounter_id, 'PIH','10642',0));
-
-update temp_ncd t
-set vulnerable = obs_value_coded_list_from_temp(encounter_id, 'PIH','11959',@locale);
-
-update temp_ncd t
-set education_level = obs_value_coded_list_from_temp(encounter_id, 'PIH','1688',@locale);
-
-update temp_ncd t
-set literacy_level = obs_value_coded_list_from_temp(encounter_id, 'PIH','13736',@locale);
-
-update temp_ncd t
-set employment_status = obs_value_coded_list_from_temp(encounter_id, 'PIH','3395',@locale);
-
-update temp_ncd t
-set referred_from = obs_value_coded_list_from_temp(encounter_id, 'PIH','7454',@locale);
-
--- update referred from to match form
-UPDATE temp_ncd set referred_from = replace(referred_from, 'Hospitalized', 'Inpatient Ward');
-UPDATE temp_ncd set referred_from = replace(referred_from, 'Primary care clinic', 'OPD');
-
-update temp_ncd t
-set other_referral = obs_value_text_from_temp(encounter_id, 'PIH','6421');
-
-update temp_ncd t
-set social_support = value_coded_as_boolean(obs_id_from_temp(encounter_id, 'PIH','14443',0));
-
-update temp_ncd t
-set social_support_type = obs_value_coded_list_from_temp(encounter_id, 'PIH','2156',@locale);
-
-update temp_ncd t
 set other_social_support = obs_comments_from_temp(encounter_id, 'PIH','2156', 'PIH','5622');
-
-update temp_ncd t
-set missed_school = value_coded_as_boolean(obs_id_from_temp(encounter_id, 'PIH','5629',0));
-
-update temp_ncd t
-set days_lost_schooling = obs_value_numeric_from_temp(encounter_id, 'PIH','14446');
-
-update temp_ncd t
-set hiv = obs_value_coded_list_from_temp(encounter_id, 'PIH','1169',@locale);
 
 -- risk factors
 set @yes_concept = concept_from_mapping('PIH','YES');
@@ -538,32 +679,9 @@ set risk_factors = (
 	group by encounter_id);
 
 update temp_ncd t
-set comorbidities = obs_value_coded_list_from_temp(encounter_id, 'PIH','12976',@locale);
-
-update temp_ncd t
-set bp_systolic = obs_value_numeric_from_temp(encounter_id, 'PIH','5085');
-
-update temp_ncd t
-set bp_diastolic = obs_value_numeric_from_temp(encounter_id, 'PIH','5086');
-
-update temp_ncd t
 set glucose_fingerstick = 
 	if(obs_single_value_coded_from_temp(encounter_id, 'PIH','6689','PIH','1065')=@yes, 'FBG',
 		if(obs_single_value_coded_from_temp(encounter_id, 'PIH','6689','PIH','1066')=@yes, 'RBG',null));
-
-update temp_ncd t 
-set fbg_level = obs_value_numeric_from_temp(encounter_id, 'CIEL','160912');
-
-update temp_ncd t 
-set rbg_level = obs_value_numeric_from_temp(encounter_id, 'CIEL','887');
-	
-update temp_ncd t
-set bmi = 
-	CASE obs_value_coded_list_from_temp(encounter_id, 'PIH','14126',@locale)
-		WHEN concept_name(concept_from_mapping('PIH','7507'),@locale) then 'Moderate obese'
-		WHEN concept_name(concept_from_mapping('PIH','14455'),@locale) then 'Severe obese'
-		ELSE obs_value_coded_list_from_temp(encounter_id, 'PIH','14126',@locale)
-	END;
 
 update temp_ncd t
 set obesity = 
@@ -571,12 +689,6 @@ set obesity =
 		if(obs_single_value_coded_from_temp(encounter_id, 'PIH','1734','PIH','7507')=@yes, 0,null));
 
 -- hospitalization section
-update temp_ncd t
-set number_hospitalizations_since_visit = obs_value_numeric_from_temp(encounter_id, 'PIH','5704');
-
-update temp_ncd t
-set number_hospitalizations_for_ncds = obs_value_numeric_from_temp(encounter_id, 'PIH','15160');
-
 -- hospitalization section 1
 update temp_ncd t
 set hospitalization_1_obs_group_id = obs_id_from_temp(encounter_id, 'PIH','3801',0);
@@ -698,27 +810,10 @@ update temp_ncd t
 set other_ncd_onset_date =  obs_from_group_id_value_datetime(obs_group_id_of_value_coded(encounter_id, 'PIH','10529','PIH','5622'), 'PIH','7538');
 
 update temp_ncd t
-set treatment_with_hydroxyurea  = value_coded_as_boolean(obs_id_from_temp(encounter_id, 'PIH','14870',0));
-
-update temp_ncd t
-set reason_no_hydroxyurea = obs_value_coded_list_from_temp(encounter_id, 'PIH','15169',@locale);
-
-update temp_ncd t
 set diabetes_indicators_obs_group = obs_id_from_temp(encounter_id,'PIH','14469',0 );
 
 update temp_ncd t
 set  diabetes_control = obs_from_group_id_value_coded_list_from_temp(diabetes_indicators_obs_group, 'PIH','11506',@locale);
-
-update temp_ncd t
-set diabetes_home_glucometer = value_coded_as_boolean(obs_id_from_temp(encounter_id, 'PIH','14503',0));
-
-update temp_ncd t
-set diabetes_on_insulin = value_coded_as_boolean(obs_id_from_temp(encounter_id, 'PIH','6756',0));
-
-update temp_ncd t
-set diabetes_complications = obs_value_coded_list_from_temp(encounter_id, 'PIH','14485',@locale);
-update temp_ncd t
-set diabetes_complications = replace(diabetes_complications, 'Cerebrovascular accident', 'Stroke'); -- update to match form verbiage
 
 set @dx = concept_from_mapping('PIH','3064');
 set @type_1_dm = concept_from_mapping('PIH','6691');
@@ -742,27 +837,12 @@ update temp_ncd t
 set  hypertension_controlled = obs_from_group_id_value_coded_list_from_temp(hypertension_indicators_obs_group, 'PIH','11506',@locale);
 
 update temp_ncd t
-set hypertension_type = obs_value_coded_list_from_temp(encounter_id, 'PIH','11940',@locale);
-
-update temp_ncd t
-set hypertension_stage = 
-	CASE obs_value_coded_list_from_temp(encounter_id, 'PIH','12699',@locale)
-		WHEN concept_name(concept_from_mapping('PIH','12697'),@locale) then 'Pre-HTN'
-		WHEN concept_name(concept_from_mapping('PIH','12698'),@locale) then '1 (Mild)'
-		WHEN concept_name(concept_from_mapping('PIH','12695'),@locale) then '2 (Moderate)'		
-		ELSE obs_value_coded_list_from_temp(encounter_id, 'PIH','12699',@locale)
-	END;
-
-update temp_ncd t
 set rheumatic_heart_disease = 
 	if(obs_single_value_coded_from_temp(encounter_id, 'PIH','3064','PIH','221')=@yes, 1,null);
 
 update temp_ncd t
 set congenital_heart_disease = 
 	if(obs_single_value_coded_from_temp(encounter_id, 'PIH','3064','PIH','3131')=@yes, 1,null);
-
-update temp_ncd t
-set nyha_classification = obs_value_coded_list_from_temp(encounter_id, 'PIH','3139',@locale);
 
 set @copd = concept_from_mapping('PIH','3716');
 set @bronchiectasis = concept_from_mapping('PIH','7952');
@@ -789,9 +869,6 @@ set on_oral_salbutamol =
 update temp_ncd t
 set on_steroid_inhaler = 
 	if(obs_single_value_coded_from_temp(encounter_id, 'PIH','14603','PIH','14609')=@yes, 1,null);
-
-update temp_ncd t
-set ckd_stage = obs_value_coded_list_from_temp(encounter_id, 'PIH','12501',@locale);
 
 UPDATE temp_ncd t
 SET echooptions = obs_from_group_id_value_coded_list(echocardiogram_obs_group_id,'PIH','3763',@locale);
@@ -835,15 +912,6 @@ and o.concept_id = @dx
  and o.value_coded IN (@sickle_cell_trait,@sickle_anemia,@beta_thalassemia,@hemoglobin_c,@other_hemoglobinopathy)
 limit 1);
 
-update temp_ncd t
-set sickle_cell_complications = obs_value_coded_list_from_temp(encounter_id,'PIH', '15157',@locale);
-
-
-update temp_ncd t
-set transfer_site = obs_value_datetime_from_temp(encounter_id, 'PIH','14424');
-
-update temp_ncd t
-set transfer_site = obs_value_coded_list_from_temp(encounter_id, 'PIH','14424',@locale);
 
 UPDATE temp_ncd t
 SET on_on_ace_inhibitor_group_id = obs_id_from_temp(encounter_id, 'PIH','14724', 0);
@@ -853,26 +921,8 @@ update temp_ncd t
 set on_ace_inhibitor = obs_from_group_id_value_coded_list_from_temp(on_on_ace_inhibitor_group_id,'PIH','14531',@locale );
 
 update temp_ncd t
-set on_beta_blocker = obs_value_coded_list_from_temp(encounter_id,'PIH', '14723',@locale);
-
-update temp_ncd t
-set secondary_antibiotic_prophylaxis = value_coded_as_boolean(obs_id_from_temp(encounter_id, 'PIH','15168',0));
-
-update temp_ncd t
-set cardiac_surgery_scheduled = obs_value_coded_list_from_temp(encounter_id,'PIH', '15165',@locale);
-
-update temp_ncd t
-set type_cardiac_surgery = obs_value_coded_list_from_temp(encounter_id,'PIH', '7887',@locale);
-
-update temp_ncd t
 set cardiac_surgery_performed = 
 	if(obs_single_value_coded_from_temp(encounter_id, 'PIH','10484','PIH','7827')=@yes, 1,null);
-
-update temp_ncd t
-set cardiac_surgery_performed_date = obs_value_datetime_from_temp(encounter_id, 'PIH','10485');
-
-update temp_ncd t
-set referred_to_surgery_for_heart_failure = obs_value_coded_list_from_temp(encounter_id, 'PIH','14738',@locale);
 
 update temp_ncd t
 set scd_penicillin_treatment = 
@@ -883,27 +933,12 @@ set scd_folic_acid_treatment =
 	if(obs_single_value_coded_from_temp(encounter_id, 'PIH','14857','PIH','257')=@yes, 1,null);
 
 update temp_ncd t
-set transfusion_past_12_months = value_coded_as_boolean(obs_id_from_temp(encounter_id, 'PIH','7868',0));
-
-update temp_ncd t
-set transfusion_date = obs_value_datetime_from_temp(encounter_id, 'PIH','11064');
-
-update temp_ncd t
-set asthma_severity = obs_value_coded_list_from_temp(encounter_id,'PIH', '7405',@locale);
-
-update temp_ncd t
-set nighttime_waking_asthma = obs_value_coded_list_from_temp(encounter_id,'PIH', '11731',@locale);
-UPDATE temp_ncd t
 SET nighttime_count = if(nighttime_waking_asthma=@yes, 1, 0);
-	
-update temp_ncd t
-set symptoms_2x_week_asthma = obs_value_coded_list_from_temp(encounter_id,'PIH', '11803',@locale);
-UPDATE temp_ncd t
+
+update temp_ncd t	
 SET symptoms_2x_count = if(symptoms_2x_week_asthma=@yes, 1, 0);
 
 update temp_ncd t
-set inhaler_for_symptoms_2x_week_asthma = obs_value_coded_list_from_temp(encounter_id,'PIH', '11991',@locale);
-UPDATE temp_ncd t
 SET inhaler_count = if(inhaler_for_symptoms_2x_week_asthma=@yes, 1, 0);
 
 UPDATE temp_ncd t
@@ -921,8 +956,8 @@ WHEN ((nighttime_count+symptoms_2x_count+inhaler_count+activity_count) BETWEEN 1
 WHEN ((nighttime_count+symptoms_2x_count+inhaler_count+activity_count)  = 0 ) THEN 'Well controlled'
 END;
 
-DROP TABLE IF EXISTS order_hb1ac;
-CREATE TABLE order_hb1ac AS
+DROP TEMPORARY TABLE IF EXISTS order_hb1ac;
+CREATE TEMPORARY TABLE order_hb1ac AS
 SELECT t.encounter_id,CASE WHEN o.concept_id = concept_from_mapping('PIH','7460') THEN TRUE ELSE FALSE END AS "lab_order_hba1c"
 FROM temp_ncd t LEFT OUTER JOIN orders o ON t.encounter_id=o.encounter_id AND o.voided=0;
 
@@ -931,9 +966,6 @@ create index order_hb1ac_ei on order_hb1ac(encounter_id);
 UPDATE temp_ncd t
 INNER JOIN order_hb1ac o ON t.encounter_id=o.encounter_id
 SET t.lab_order_hba1c= o.lab_order_hba1c;
-
-update temp_ncd t
-set on_esophageal_varices_prophylaxis = obs_value_coded_list_from_temp(encounter_id,'PIH', '15164',@locale);
 
 UPDATE temp_ncd t
 SET diabetic_coma = answer_exists_in_encounter(t.encounter_id, 'PIH', '14921', 'PIH','14482');
