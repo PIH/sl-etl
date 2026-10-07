@@ -1,0 +1,6 @@
+# In-memory H2 database, used only to read CSV files committed to this repo (via H2's CSVREAD function)
+# so they can be bulk-loaded into the warehouse with a sqlserver-bulk-import job. Nothing is persisted.
+databaseType: "h2"
+databaseName: "mem:csv_files"
+user: "sa"
+password: ""
