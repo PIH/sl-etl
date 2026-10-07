@@ -18,6 +18,21 @@ configuration:
         iterations:
           - scriptName: "create_functions"
           
+    # Chiefdom -> lat/long mapping for the Power BI map. Source of truth is jobs/data/chiefdom_coordinates.csv
+    # (edit the CSV to change coordinates). Read via in-memory H2 (CSVREAD) and bulk-loaded; table is dropped and recreated.
+    - type: "sqlserver-bulk-import"
+      description: "Loading chiefdom_coordinates from CSV"
+      parameters:
+        csvFile: "${petl.jobDir}/data/chiefdom_coordinates.csv"
+      configuration:
+        extract:
+          datasource: "csv-files.yml"
+          query: "sql/extractions/chiefdom_coordinates.sql"
+        load:
+          datasource: "warehouse.yml"
+          table: "chiefdom_coordinates"
+          schema: "sql/schemas/chiefdom_coordinates.sql"
+
     - type: "iterating-job"
       description: "Create derived staging tables"
       configuration:
