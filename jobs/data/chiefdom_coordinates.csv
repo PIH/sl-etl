@@ -1,13 +1,13 @@
 gid_3,country,province,district,chiefdom,province_gadm,district_gadm,chiefdom_gadm,latitude,longitude,point_source
-SLE.1.1.1_1,Sierra Leone,Eastern,Kailahun,Dia,Eastern,Kailahun,Dia,7.964252,-10.644701,centroid
-SLE.1.1.2_1,Sierra Leone,Eastern,Kailahun,Jawie,Eastern,Kailahun,Jawie,7.881339,-10.896391,centroid
+SLE.1.1.1_1,Sierra Leone,Eastern,Kailahun,Dea,Eastern,Kailahun,Dia,7.964252,-10.644701,centroid
+SLE.1.1.9_1,Sierra Leone,Eastern,Kailahun,Jaluahun,Eastern,Kailahun,Njaluahun,7.999701,-10.921483,centroid
+SLE.1.1.2_1,Sierra Leone,Eastern,Kailahun,Jawei,Eastern,Kailahun,Jawie,7.881339,-10.896391,centroid
 SLE.1.1.3_1,Sierra Leone,Eastern,Kailahun,Kissi Kama,Eastern,Kailahun,KissiKama,8.391155,-10.413286,centroid
 SLE.1.1.4_1,Sierra Leone,Eastern,Kailahun,Kissi Teng,Eastern,Kailahun,KissiTeng,8.390110,-10.345417,centroid
 SLE.1.1.5_1,Sierra Leone,Eastern,Kailahun,Kissi Tongi,Eastern,Kailahun,KissiTongi,8.223344,-10.364105,centroid
 SLE.1.1.6_1,Sierra Leone,Eastern,Kailahun,Luawa,Eastern,Kailahun,Luawa,8.221993,-10.564030,centroid
 SLE.1.1.7_1,Sierra Leone,Eastern,Kailahun,Malema,Eastern,Kailahun,Malema,7.771030,-10.764231,centroid
 SLE.1.1.8_1,Sierra Leone,Eastern,Kailahun,Mandu,Eastern,Kailahun,Mandu,7.981472,-10.745621,centroid
-SLE.1.1.9_1,Sierra Leone,Eastern,Kailahun,Njaluahun,Eastern,Kailahun,Njaluahun,7.999701,-10.921483,centroid
 SLE.1.1.10_1,Sierra Leone,Eastern,Kailahun,Pehe Bongre,Eastern,Kailahun,PeheBongre,8.145699,-10.782048,centroid
 SLE.1.1.11_1,Sierra Leone,Eastern,Kailahun,Peje West,Eastern,Kailahun,PejeWest,8.186893,-10.829209,centroid
 SLE.1.1.12_1,Sierra Leone,Eastern,Kailahun,Penguia,Eastern,Kailahun,Penguia,8.342509,-10.722236,centroid
@@ -19,7 +19,7 @@ SLE.1.2.3_1,Sierra Leone,Eastern,Kenema,Gaura,Eastern,Kenema,Gaura,7.686517,-11.
 SLE.1.2.4_1,Sierra Leone,Eastern,Kenema,Gorama Mende,Eastern,Kenema,GoramaMende,8.440156,-11.422348,centroid
 SLE.1.2.5_1,Sierra Leone,Eastern,Kenema,Kando Leppeama,Eastern,Kenema,KandoLeppeama,8.012478,-11.271971,centroid
 SLE.1.2.6_1,Sierra Leone,Eastern,Kenema,Koya,Eastern,Kenema,Koya,7.592083,-11.291229,centroid
-SLE.1.2.7_1,Sierra Leone,Eastern,Kenema,Langrama,Eastern,Kenema,Langrama,7.622741,-11.451154,centroid
+SLE.1.2.7_1,Sierra Leone,Eastern,Kenema,Langurama,Eastern,Kenema,Langrama,7.622741,-11.451154,centroid
 SLE.1.2.8_1,Sierra Leone,Eastern,Kenema,Lower Bambara,Eastern,Kenema,LowerBambara,8.197368,-11.037590,centroid
 SLE.1.2.9_1,Sierra Leone,Eastern,Kenema,Malegohun,Eastern,Kenema,Malegohun,8.161493,-10.928978,centroid
 SLE.1.2.10_1,Sierra Leone,Eastern,Kenema,Niawa,Eastern,Kenema,Niawa,7.722309,-11.360066,centroid
@@ -44,7 +44,7 @@ SLE.1.3.12_1,Sierra Leone,Eastern,Kono,Soa,Eastern,Kono,Soa,8.597375,-10.687228,
 SLE.1.3.13_1,Sierra Leone,Eastern,Kono,Tankoro,Eastern,Kono,Tankoro,8.550503,-10.962518,centroid
 SLE.1.3.14_1,Sierra Leone,Eastern,Kono,Toli,Eastern,Kono,Toli,8.980171,-10.646862,centroid
 SLE.2.1.1_1,Sierra Leone,Northern,Bombali,Biriwa,Northern,Bombali,Biriwa,9.244472,-11.916935,centroid
-SLE.2.1.2_1,Sierra Leone,Northern,Bombali,Bombali Sebora,Northern,Bombali,BombaliSebora,8.773304,-12.073288,centroid
+SLE.2.1.2_1,Sierra Leone,Northern,Bombali,Bombali Shebora,Northern,Bombali,BombaliSebora,8.773304,-12.073288,centroid
 SLE.2.1.3_1,Sierra Leone,Northern,Bombali,Gbanti Kamaranka,Northern,Bombali,GbantiKamaranka,9.276718,-12.302054,centroid
 SLE.2.1.4_1,Sierra Leone,Northern,Bombali,Gbendembu Ngowahun,Northern,Bombali,GbendembuNgowahun,9.055113,-12.160505,centroid
 SLE.2.1.5_1,Sierra Leone,Northern,Bombali,Libeisaygahun,Northern,Bombali,Libeisaygahun,8.998209,-12.398820,centroid
@@ -68,8 +68,8 @@ SLE.2.3.2_1,Sierra Leone,Northern,Koinadugu,Diang,Northern,Koinadugu,Diang,9.286
 SLE.2.3.3_1,Sierra Leone,Northern,Koinadugu,Follosaba Dembelia,Northern,Koinadugu,FollosabaDembelia,9.755361,-11.554622,centroid
 SLE.2.3.4_1,Sierra Leone,Northern,Koinadugu,Kassunko,Northern,Koinadugu,Kassunko,9.516035,-11.848166,centroid
 SLE.2.3.5_1,Sierra Leone,Northern,Koinadugu,Mongo,Northern,Koinadugu,Mongo,9.461690,-10.952665,centroid
-SLE.2.3.6_1,Sierra Leone,Northern,Koinadugu,Neini,Northern,Koinadugu,Neini,9.141625,-11.299951,centroid
 SLE.2.3.7_1,Sierra Leone,Northern,Koinadugu,Neya,Northern,Koinadugu,Neya,9.111379,-10.881735,centroid
+SLE.2.3.6_1,Sierra Leone,Northern,Koinadugu,Nieni,Northern,Koinadugu,Neini,9.141625,-11.299951,centroid
 SLE.2.3.8_1,Sierra Leone,Northern,Koinadugu,Sengbe,Northern,Koinadugu,Sengbe,9.536400,-11.285753,centroid
 SLE.2.3.9_1,Sierra Leone,Northern,Koinadugu,Sulima,Northern,Koinadugu,Sulima,9.828183,-11.254027,centroid
 SLE.2.3.10_1,Sierra Leone,Northern,Koinadugu,Wara Wara Bafodia,Northern,Koinadugu,WaraWaraBafodia,9.773908,-11.756940,centroid
@@ -86,12 +86,12 @@ SLE.2.4.9_1,Sierra Leone,Northern,Port Loko,Masimera,Northern,PortLoko,Masimera,
 SLE.2.4.10_1,Sierra Leone,Northern,Port Loko,Sanda Magbolontor,Northern,PortLoko,SandaMagbolontor,9.128941,-12.567891,centroid
 SLE.2.4.11_1,Sierra Leone,Northern,Port Loko,Tinkatupa Makama Safroko,Northern,PortLoko,TinkatupaMakamaSafroko,8.827873,-12.584654,centroid
 SLE.2.5.1_1,Sierra Leone,Northern,Tonkolili,Gbonkolenken,Northern,Tonkolili,Gbonkolenken,8.467034,-11.898971,centroid
-SLE.2.5.2_1,Sierra Leone,Northern,Tonkolili,Kafe Simira,Northern,Tonkolili,KafeSimira,8.854182,-11.742374,centroid
-SLE.2.5.3_1,Sierra Leone,Northern,Tonkolili,Kalansogoia,Northern,Tonkolili,Kalansogoia,9.073240,-11.731900,centroid
+SLE.2.5.2_1,Sierra Leone,Northern,Tonkolili,Kafe Simiria,Northern,Tonkolili,KafeSimira,8.854182,-11.742374,centroid
+SLE.2.5.3_1,Sierra Leone,Northern,Tonkolili,Kalansongoia,Northern,Tonkolili,Kalansogoia,9.073240,-11.731900,centroid
 SLE.2.5.4_1,Sierra Leone,Northern,Tonkolili,Kholifa Mabang,Northern,Tonkolili,KholifaMabang,8.568346,-12.130386,centroid
 SLE.2.5.5_1,Sierra Leone,Northern,Tonkolili,Kholifa Rowalla,Northern,Tonkolili,KholifaRowalla,8.684370,-11.953316,centroid
-SLE.2.5.6_1,Sierra Leone,Northern,Tonkolili,Konike Barina,Northern,Tonkolili,KonikeBarina,8.587242,-11.625319,centroid
 SLE.2.5.7_1,Sierra Leone,Northern,Tonkolili,Konike Sanda,Northern,Tonkolili,KonikeSanda,8.688041,-11.494688,centroid
+SLE.2.5.6_1,Sierra Leone,Northern,Tonkolili,Kunike Barina,Northern,Tonkolili,KonikeBarina,8.587242,-11.625319,centroid
 SLE.2.5.8_1,Sierra Leone,Northern,Tonkolili,Malal Mara,Northern,Tonkolili,MalalMara,8.659418,-12.264289,centroid
 SLE.2.5.9_1,Sierra Leone,Northern,Tonkolili,Sambaia Bendugu,Northern,Tonkolili,SambaiaBendugu,8.998012,-11.558980,centroid
 SLE.2.5.10_1,Sierra Leone,Northern,Tonkolili,Tane,Northern,Tonkolili,Tane,8.643829,-11.785418,centroid
@@ -99,7 +99,7 @@ SLE.2.5.11_1,Sierra Leone,Northern,Tonkolili,Yoni,Northern,Tonkolili,Yoni,8.4046
 SLE.3.1.1_1,Sierra Leone,Southern,Bo,Badjia,Southern,Bo,Badjia,8.099330,-11.407666,centroid
 SLE.3.1.2_1,Sierra Leone,Southern,Bo,Bagbe,Southern,Bo,Bagbe,8.081524,-11.511965,centroid
 SLE.3.1.3_1,Sierra Leone,Southern,Bo,Bagbo,Southern,Bo,Bagbo,7.587412,-11.861098,centroid
-SLE.3.1.4_1,Sierra Leone,Southern,Bo,Boama,Southern,Bo,Boama,7.939231,-11.479963,centroid
+SLE.3.1.4_1,Sierra Leone,Southern,Bo,Baoma,Southern,Bo,Boama,7.939231,-11.479963,centroid
 SLE.3.1.5_1,Sierra Leone,Southern,Bo,Bumpeh,Southern,Bo,Bumpeh,7.841436,-11.994129,centroid
 SLE.3.1.6_1,Sierra Leone,Southern,Bo,Gbo,Southern,Bo,Gbo,8.085928,-11.836168,centroid
 SLE.3.1.7_1,Sierra Leone,Southern,Bo,Jiama-Bongor,Southern,Bo,Jiama-Bongor,7.768966,-11.623480,centroid
@@ -110,7 +110,7 @@ SLE.3.1.11_1,Sierra Leone,Southern,Bo,Niawa Lenga,Southern,Bo,NiawaLenga,8.15093
 SLE.3.1.12_1,Sierra Leone,Southern,Bo,Selenga,Southern,Bo,Selenga,8.112999,-11.723992,centroid
 SLE.3.1.13_1,Sierra Leone,Southern,Bo,Tikonko,Southern,Bo,Tikonko,7.828211,-11.778307,centroid
 SLE.3.1.14_1,Sierra Leone,Southern,Bo,Valunia,Southern,Bo,Valunia,8.319795,-11.684737,centroid
-SLE.3.1.15_1,Sierra Leone,Southern,Bo,Wunde,Southern,Bo,Wunde,7.667789,-11.569657,centroid
+SLE.3.1.15_1,Sierra Leone,Southern,Bo,Wonde,Southern,Bo,Wunde,7.667789,-11.569657,centroid
 SLE.3.2.1_1,Sierra Leone,Southern,Bonthe,Bendu Cha,Southern,Bonthe,BenduCha,7.443556,-12.389493,centroid
 SLE.3.2.2_1,Sierra Leone,Southern,Bonthe,Bum,Southern,Bonthe,Bum,7.406405,-11.950965,centroid
 SLE.3.2.3_1,Sierra Leone,Southern,Bonthe,Dema,Southern,Bonthe,Dema,7.554889,-12.675447,centroid
@@ -151,4 +151,33 @@ SLE.4.1.1_1,Sierra Leone,Western,Western Rural,Freetown2,Western,WesternRural,Fr
 SLE.4.1.2_1,Sierra Leone,Western,Western Rural,Freetown3,Western,WesternRural,Freetown3,8.320823,-13.065369,centroid
 SLE.4.1.3_1,Sierra Leone,Western,Western Rural,Freetown4,Western,WesternRural,Freetown4,8.303140,-13.161298,centroid
 SLE.4.1.4_1,Sierra Leone,Western,Western Rural,Freetown5,Western,WesternRural,Freetown5,8.313226,-12.962043,centroid
-SLE.4.2.1_1,Sierra Leone,Western,Western Urban,Freetown1,Western,WesternUrban,Freetown1,8.453187,-13.244379,centroid
+SLE.4.2.1_1,Sierra Leone,Western,Western Urban,Freetown,Western,WesternUrban,Freetown1,8.453187,-13.244379,centroid
+,Côte d'Ivoire,,,,,,,8.000000,-5.500000,geonames
+,Guinea-Bissau,,,,,,,12.000000,-15.000000,geonames
+,Guinea,,,,,,,10.833330,-10.666670,geonames
+,Liberia,,,,,,,6.500000,-9.500000,geonames
+,Sierra Leone,,Bombali,Gbendembu,,,,9.334130,-12.107080,geonames
+,Sierra Leone,,Bombali,Makeni City,,,,8.886050,-12.044170,geodatas
+,Sierra Leone,,Falaba,Sulima,,,,9.626020,-11.134180,geonames_district
+,Sierra Leone,,Falaba,Nyedu,,,,9.626020,-11.134180,geonames_district
+,Sierra Leone,,Falaba,Dembelia,,,,9.626020,-11.134180,geonames_district
+,Sierra Leone,,Falaba,Dembelia Sikunia,,,,9.626020,-11.134180,geonames_district
+,Sierra Leone,,Falaba,Folasaba,,,,9.626020,-11.134180,geonames_district
+,Sierra Leone,,Falaba,Kamadu Yiraia,,,,9.626020,-11.134180,geonames_district
+,Sierra Leone,,Falaba,Kulor Saradu,,,,9.626020,-11.134180,geonames_district
+,Sierra Leone,,Falaba,Mongo,,,,9.626020,-11.134180,geonames_district
+,Sierra Leone,,Falaba,Neya,,,,9.626020,-11.134180,geonames_district
+,Sierra Leone,,Falaba,Wollay Barawa,,,,9.626020,-11.134180,geonames_district
+,Sierra Leone,,Karena,Sella Limba,,,,9.501270,-12.222710,geonames
+,Sierra Leone,,Karena,Debia,,,,8.943730,-12.612960,geonames
+,Sierra Leone,,Karena,Safroko,,,,8.980090,-11.928010,geonames
+,Sierra Leone,,Karena,Tambakha Yobangie,,,,9.663930,-12.221830,geonames_district
+,Sierra Leone,,Koinadugu,Wara-Wara Yagala,,,,9.549800,-11.597710,geonames
+,Sierra Leone,,Koinadugu,Kalian,,,,9.509910,-11.346010,geonames_district
+,Sierra Leone,,Koinadugu,Kasunko Ka Kellian,,,,9.484920,-11.807850,geonames
+,Sierra Leone,,Port Loko,Kamasondo,,,,8.863170,-12.512180,geonames
+,Sierra Leone,,Port Loko,Port Loko City,,,,8.766090,-12.786960,geonames
+,Sierra Leone,,Tonkolili,Sambaia,,,,8.618850,-11.841730,geonames_district
+,Sierra Leone,,Tonkolili,Kholifa,,,,8.618850,-11.841730,geonames_district
+,Sierra Leone,,Tonkolili,Kunike,,,,8.618850,-11.841730,geonames_district
+,Sierra Leone,,Western Rural,Waterloo,,,,8.338900,-13.070910,geonames
