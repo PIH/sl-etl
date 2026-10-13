@@ -19,6 +19,21 @@ jobs:
       notify_ci_dashboard: true
     secrets: inherit
 
+  # legacy kgh-test server, until kgh-ci.pih-emr.org replaces it (TASKS-555)
+  deploy-to-kgh-test:
+    if: github.repository_owner == 'PIH'
+    needs: build-and-publish
+    concurrency:
+      group: deploy-to-kgh-test-${{ github.ref }}
+      cancel-in-progress: true
+    uses: PIH/openmrs-contrib-distro-tools/.github/workflows/deploy-via-runner.yml@main
+    with:
+      runner-label: kgh-test
+      puppet-manifest: petl
+      run-etl: true
+      notify_ci_dashboard: true
+    secrets: inherit
+
   deploy-to-kgh-ci:
     if: github.repository_owner == 'PIH'
     needs: build-and-publish
