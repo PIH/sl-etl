@@ -19,16 +19,15 @@ jobs:
       notify_ci_dashboard: true
     secrets: inherit
 
-  deploy-to-kgh-test:
+  deploy-to-kgh-ci:
     if: github.repository_owner == 'PIH'
     needs: build-and-publish
     concurrency:
-      group: deploy-to-kgh-test-${{ github.ref }}
+      group: deploy-to-kgh-ci-${{ github.ref }}
       cancel-in-progress: true
-    uses: PIH/openmrs-contrib-distro-tools/.github/workflows/deploy-via-runner.yml@main
+    uses: PIH/openmrs-contrib-distro-tools/.github/workflows/run-petl-via-runner.yml@main
     with:
-      runner-label: kgh-test
-      puppet-manifest: petl
-      run-etl: true
+      runner-label: appclstr-01
+      instance: kgh-ci
       notify_ci_dashboard: true
     secrets: inherit

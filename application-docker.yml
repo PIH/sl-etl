@@ -14,7 +14,7 @@ logging:
 
 datasources:
   openmrs:
-    # The instance's own OpenMRS database (the CI server's site, as in the legacy application-sl-kgh-test config).
+    # The instance's own OpenMRS database (the CI server's site, as in the legacy kgh-test server's config).
     kgh:
       host: "${PETL_MYSQL_HOST}"
       port: "${PETL_MYSQL_PORT:3306}"

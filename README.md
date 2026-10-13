@@ -11,11 +11,11 @@ It builds on `partnersinhealth/petl:latest` (the `Dockerfile`'s `PETL_BASE_IMAGE
 layers on a locally built `partnersinhealth/petl:local`.
 
 It runs as [openmrs-contrib-distro-tools](https://github.com/PIH/openmrs-contrib-distro-tools)'
-`petl` service (see its `docs/services.md`), e.g. for the kgh-test CI server:
+`petl` service (see its `docs/services.md`), e.g. for the kgh-ci instance:
 
     PETL_IMAGE_NAME=partnersinhealth/sl-etl
     PETL_FULL_REFRESH_JOBS="create-partitions.yml refresh-ci-warehouse.yml"
-    PETL_SQLSERVER_DATABASE=openmrs_kgh_test
+    PETL_SQLSERVER_DATABASE=openmrs_kgh_ci
 
 `application-docker.yml` maps the `kgh` OpenMRS datasource and the `warehouse` SQL Server
 datasource onto distro-tools' `PETL_MYSQL_*` and `PETL_SQLSERVER_*` variables. The other sites'

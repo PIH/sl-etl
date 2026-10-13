@@ -1,8 +1,8 @@
 update ap
 set patient_url = 
 CASE
-	when patient_url like '%kgh-test%' then
-		concat('https://kgh-test.pih-emr.org/openmrs/coreapps/clinicianfacing/patient.page?patientId=', patient_uuid)
+	when patient_url like '%kgh-ci%' then
+		concat('https://kgh-ci.pih-emr.org/openmrs/coreapps/clinicianfacing/patient.page?patientId=', patient_uuid)
 	when site = 'kgh' then
 		concat('https://kgh.pih-emr.org/openmrs/coreapps/clinicianfacing/patient.page?patientId=', patient_uuid)
 	when site = 'wellbody' then
