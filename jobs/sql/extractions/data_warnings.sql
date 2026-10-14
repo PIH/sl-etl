@@ -26,6 +26,7 @@ select encounter_type_id into @discharge from encounter_type where uuid = 'b6631
 select encounter_type_id into @rad_order from encounter_type where uuid = '1b3d1e13-f0b1-4b83-86ea-b1b1e2fb4efa';
 select encounter_type_id into @test_order from encounter_type where uuid = 'b3a0e3ad-b80c-4f3f-9626-ace1ced7e2dd';
 select encounter_type_id into @transfer from encounter_type where uuid = '436cfe33-6b81-40ef-a455-f134a9f7e580';
+select encounter_type_id into @check_in from encounter_type where uuid = '55a0d3ea-a4d7-4e88-8f01-5aceb2d3c61b';
 drop temporary table if exists temp_warnings;
 create temporary table temp_warnings
 (
@@ -148,7 +149,7 @@ select 'encounters with no observations', et.name, e.encounter_id, e.encounter_d
 from visit v
 inner join encounter e on e.visit_id = v.visit_id and e.voided = 0
 inner join encounter_type et on et.encounter_type_id = e.encounter_type 
-	and et.encounter_type_id not in (@admission, @bed_assignment, @drug_order, @discharge, @rad_order, @test_order, @transfer)
+	and et.encounter_type_id not in (@admission, @bed_assignment, @drug_order, @discharge, @rad_order, @test_order, @transfer, @check_in)
 where v.voided = 0 
 and not exists
 	(select 1 from obs o
