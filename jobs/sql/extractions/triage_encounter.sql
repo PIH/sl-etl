@@ -207,6 +207,35 @@ SET t.Triage_queue_status = o.Triage_queue_status,
 	t.Glucose_Value = o.Glucose_Value,
 	t.Referral_Destination = o.Referral_Destination;
 
+-- SL-1436: show Referral_Destination with the labels the ED Triage app displays
+-- (edtriageapp messages.properties, keyed by answer uuid) instead of the dictionary concept names.
+-- Falls back to the concept name for any answer not listed here.
+update temp_ED_Triage t
+inner join temp_obs o on o.encounter_id = t.encounter_id and o.voided = 0 and o.concept_id = @destination
+inner join concept c on c.concept_id = o.value_coded
+set t.Referral_Destination =
+    case c.uuid
+        when '3cdc871e-26fe-102b-80cb-0017a47871b2' then 'General OPD'
+        when '9b812de9-1a80-4bc8-9c8a-861516051811' then 'Pediatric OPD'
+        when '868d99fd-f9d6-4367-b238-69f26ee60e26' then 'NCD clinic'
+        when '160473AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' then 'Adult ER'
+        when '1e7c8432-4158-4e9b-9916-1ea1f94056e1' then 'Pediatric ER'
+        when '79b58985-301d-4222-8154-455a0be76015' then 'TB/HIV unit'
+        when '9885de8c-6a5a-11e2-b6f9-aa00f871a3e1' then 'Medical ward'
+        when '3ce6ae60-26fe-102b-80cb-0017a47871b2' then 'Pediatrics ward'
+        when '430751c7-e8e2-4555-be66-ae085de3f5ed' then 'Isolation unit'
+        when '3ce1e268-26fe-102b-80cb-0017a47871b2' then 'ANC'
+        when '164834AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' then 'Minor theater'
+        when '988c3b9c-6a5a-11e2-b6f9-aa00f871a3e1' then 'Surgical ward'
+        when '3ce1e6e6-26fe-102b-80cb-0017a47871b2' then 'Maternity/Labor ward'
+        when '164164AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' then 'Surgical OPD'
+        when '3ced9a68-26fe-102b-80cb-0017a47871b2' then 'Mental health'
+        when '623ee5c5-e59c-41e9-b62e-bc13a2c142b6' then 'Eye clinic'
+        when 'f2948b7f-deac-4cdd-8968-4fc67ab95e05' then 'Rainbow clinic'
+        when '3cee7fb4-26fe-102b-80cb-0017a47871b2' then 'Other'
+        else t.Referral_Destination
+    end;
+
 update temp_ED_Triage t
 inner join temp_obs o on o.encounter_id = t.encounter_id and o.voided =0
   and o.concept_id = @triage_diagnosis
