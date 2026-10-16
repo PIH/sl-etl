@@ -215,6 +215,15 @@ inner join encounter_type et on et.encounter_type_id = e.encounter_type
 where p.voided = 0
 and p.gender = 'M';
 
+-- --------------------------------------------------------- exclude voided patients (LIB-427)
+-- all_patients only includes non-voided patients (patient.voided = 0), so remove any
+-- warning whose patient is voided or missing. Covers every warning type above.
+delete t from temp_warnings t
+where not exists
+	(select 1 from patient p
+	where p.patient_id = t.patient_id
+	and p.voided = 0);
+
 -- ------------------------ common fields
 -- emr_id
 set @primary_emr_id_type_uuid =  metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType');
