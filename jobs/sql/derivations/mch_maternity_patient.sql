@@ -29,10 +29,14 @@ cause_of_death varchar(255),
 site varchar(100)
 );
 
+-- Mothers only: newborns also go through maternity triage, so only include
+-- female patients aged 10 or older at the qualifying encounter / enrollment.
+-- Patients with no recorded age (no birthdate) are kept.
 insert into mch_maternity_patient_staging(emr_id, patient_id, site)
-select DISTINCT emr_id, patient_id, site
+select DISTINCT ae.emr_id, ae.patient_id, ae.site
 from all_encounters ae 
-where encounter_type in
+inner join all_patients p on p.patient_id = ae.patient_id
+where ae.encounter_type in
 ('Sierra Leone Maternal Check-in',
 'Maternal Discharge',
 'ANC Followup',
@@ -43,9 +47,14 @@ where encounter_type in
 'Sierra Leone MCH Triage',
 'Labour Progress',
 'Postpartum progress')
+and p.gender = 'F'
+and (ae.age_at_encounter is null or ae.age_at_encounter >= 10)
 union
-select DISTINCT emr_id, patient_id, site 
-from mch_pregnancy_program ;
+select DISTINCT pp.emr_id, pp.patient_id, pp.site 
+from mch_pregnancy_program pp
+inner join all_patients p on p.patient_id = pp.patient_id
+where p.gender = 'F'
+and (p.birthdate is null or pp.date_enrolled is null or DATEADD(YEAR, 10, p.birthdate) <= pp.date_enrolled);
 
 CREATE INDEX mch_maternity_patient_staging_pi ON mch_maternity_patient_staging(patient_id);
 
