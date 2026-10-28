@@ -324,7 +324,8 @@ SELECT
     d.age_restricted,
     d.oncology,
     d.date_created,
-    IF(TIME_TO_SEC(d.date_created) - TIME_TO_SEC(d.obs_datetime) > 1800, 1, 0) AS retrospective,
+    -- entered more than 30 minutes after the obs datetime (full datetime, so later-day entries count)
+    IF(TIMESTAMPDIFF(SECOND, d.obs_datetime, d.date_created) > 1800, 1, 0) AS retrospective,
     CONCAT(@partition, "-", d.visit_id) AS visit_id, 
     d.birthdate,
     d.birthdate_estimated,
