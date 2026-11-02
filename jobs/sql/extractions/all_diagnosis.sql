@@ -273,7 +273,8 @@ d.outpatient = t.outpatient,
 d.ncd = t.ncd,
 d.non_diagnosis = t.non_diagnosis,
 d.ed = t.ed,
-d.age_restricted = t.age_restricted;
+d.age_restricted = t.age_restricted,
+d.oncology = t.oncology;
 
 update all_diagnosis d
 set diagnosis_entered = concept_name(diagnosis_concept, @locale),
