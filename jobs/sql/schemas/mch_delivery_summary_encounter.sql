@@ -25,7 +25,9 @@ create table mch_delivery_summary_encounter
     apgar_5_min              int,
     apgar_10_min             int,
     fetal_presentation       varchar(255),
+    fetal_presentation_other varchar(255),
     delivery_method          varchar(255),
+    birth_order              int,
     index_asc                int,
     index_desc               int
 );
