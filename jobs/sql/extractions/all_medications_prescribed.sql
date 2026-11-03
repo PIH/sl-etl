@@ -187,15 +187,21 @@ insert into temp_mp_c_dur_units select * from temp_mp_concepts;
 
 -- dispensing per order: totals + latest non-voided dispense
 -- (latest = date_created desc, medication_dispense_id desc, as before)
+-- plus the latest time the order was paused (on hold) and the latest time it was dispensed (completed)
 drop temporary table if exists temp_dispense_qty;
 create temporary table temp_dispense_qty
 (drug_order_id      int(11) primary key,
  quantity_dispensed double,
  num_substitutions  double,
  latest_created     datetime,
- latest_id          int(11));
-insert into temp_dispense_qty (drug_order_id, quantity_dispensed, num_substitutions, latest_created)
-select drug_order_id, sum(quantity), sum(was_substituted), max(date_created)
+ latest_id          int(11),
+ latest_paused_datetime    datetime,
+ latest_dispensed_datetime datetime);
+insert into temp_dispense_qty (drug_order_id, quantity_dispensed, num_substitutions, latest_created,
+                               latest_paused_datetime, latest_dispensed_datetime)
+select drug_order_id, sum(quantity), sum(was_substituted), max(date_created),
+       max(case when status = @onHold    then date_created end),
+       max(case when status = @completed then coalesce(date_handed_over, date_created) end)
 from medication_dispense
 where voided = 0
   and drug_order_id is not null
@@ -268,6 +274,8 @@ order_comments              text,
 quantity_dispensed          int,
 dispensing_status           varchar(255),
 status_reason               varchar(255),
+latest_paused_datetime      datetime,
+latest_dispensed_datetime   datetime,
 refills_remaining           int,
 num_substitutions           int,
 index_asc                   int,
@@ -327,7 +335,8 @@ INSERT INTO all_medication_prescribed
  order_quantity, order_quantity_units, order_quantity_num_refills,
  order_dose, order_dose_unit, order_dosing_instructions, order_route,
  order_duration, order_frequency_id, order_frequency, order_duration_units,
- quantity_dispensed, num_substitutions, dispensing_status, status_reason)
+ quantity_dispensed, num_substitutions, dispensing_status, status_reason,
+ latest_paused_datetime, latest_dispensed_datetime)
 SELECT
  'New Orders',
  o.patient_id,
@@ -363,7 +372,9 @@ SELECT
  case when q.num_substitutions > 0 then null else q.quantity_dispensed end,
  q.num_substitutions,
  s.dispensing_status,
- s.status_reason
+ s.status_reason,
+ q.latest_paused_datetime,
+ q.latest_dispensed_datetime
 FROM orders o
 inner join encounter e                on e.encounter_id   = o.encounter_id
 left join location l                  on l.location_id    = e.location_id
@@ -446,6 +457,8 @@ SELECT
     quantity_dispensed,
     dispensing_status,
     status_reason,
+    latest_paused_datetime,
+    latest_dispensed_datetime,
     refills_remaining,
     num_substitutions,
     index_asc,
