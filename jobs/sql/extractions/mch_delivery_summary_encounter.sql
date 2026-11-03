@@ -26,6 +26,8 @@ set @c_apgar_10          = concept_from_mapping('PIH','14785');
 set @c_fetal_presentation= concept_from_mapping('PIH','13047');
 set @c_delivery_method   = concept_from_mapping('PIH','11663');
 set @c_baby_uuid         = concept_from_mapping('PIH','20150');
+set @c_presentation_other= concept_from_mapping('PIH','14414');
+set @c_birth_order       = concept_from_mapping('CIEL','163460');
 set @primary_emr_uuid    = metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType');
 
 -- ---------------------------------------------------------------
@@ -84,13 +86,14 @@ set t.pregnancy_program_id    = patient_program_id_from_encounter(t.patient_id, 
 DROP TEMPORARY TABLE IF EXISTS temp_obs;
 create temporary table temp_obs
 select o.obs_id, o.obs_group_id, o.encounter_id, o.person_id, o.concept_id, o.value_coded,
-       o.value_numeric, o.value_datetime, o.comments
+       o.value_numeric, o.value_datetime, o.value_text, o.comments
 from obs o
 inner join temp_encs t on t.encounter_id = o.encounter_id
 where o.voided = 0
   and o.concept_id in (@c_baby_construct, @c_birthdate, @c_outcome, @c_pre_delivery_fhr, @c_sex,
                        @c_birth_weight, @c_birth_length, @c_head_circ, @c_apgar_1, @c_apgar_5,
-                       @c_apgar_10, @c_fetal_presentation, @c_delivery_method, @c_baby_uuid);
+                       @c_apgar_10, @c_fetal_presentation, @c_delivery_method, @c_baby_uuid,
+                       @c_presentation_other, @c_birth_order);
 
 create index temp_obs_encs_ei on temp_obs(encounter_id);
 create index temp_obs_grp on temp_obs(obs_group_id, concept_id);
@@ -115,13 +118,15 @@ CREATE TEMPORARY TABLE temp_baby
  apgar_5_min              double,
  apgar_10_min             double,
  fetal_presentation       text,
+ fetal_presentation_other text,
  delivery_method          text,
  baby_uuid                text,
+ birth_order              int,
  baby_patient_id          int);
 INSERT INTO temp_baby
 (obs_group_id, birthdate, outcome, pre_delivery_fhr_id, sex, birth_weight, birth_length,
  birth_head_circumference, apgar_1_min, apgar_5_min, apgar_10_min, fetal_presentation,
- delivery_method, baby_uuid)
+ fetal_presentation_other, delivery_method, baby_uuid, birth_order)
 select o.obs_group_id,
        max(case when o.concept_id = @c_birthdate        then o.value_datetime end),
        group_concat(distinct case when o.concept_id = @c_outcome then concept_name(o.value_coded,'en') end separator ' | '),
@@ -134,8 +139,11 @@ select o.obs_group_id,
        max(case when o.concept_id = @c_apgar_5          then o.value_numeric end),
        max(case when o.concept_id = @c_apgar_10         then o.value_numeric end),
        group_concat(distinct case when o.concept_id = @c_fetal_presentation then concept_name(o.value_coded,'en') end separator ' | '),
+       max(case when o.concept_id = @c_presentation_other then o.value_text end),
        group_concat(distinct case when o.concept_id = @c_delivery_method    then concept_name(o.value_coded,'en') end separator ' | '),
-       max(case when o.concept_id = @c_baby_uuid        then o.comments end)
+       max(case when o.concept_id = @c_baby_uuid        then o.comments end),
+       -- hidden obs the form stores on each newborn group to keep birth order (1, 2, 3)
+       max(case when o.concept_id = @c_birth_order      then coalesce(o.value_numeric, o.value_text) end)
 from temp_obs o
 where o.obs_group_id is not null
   and o.concept_id <> @c_baby_construct
@@ -207,7 +215,9 @@ create temporary table temp_labor_encs
     apgar_5_min              int,
     apgar_10_min             int,
     fetal_presentation       varchar(255),
+    fetal_presentation_other varchar(255),
     delivery_method          varchar(255),
+    birth_order              int,
     index_asc                INT,
     index_desc               INT
 );
@@ -217,7 +227,7 @@ insert into temp_labor_encs
  obs_group_id, pregnancy_program_id, provider, emr_id_mother, encounter_location,
  birthdate, outcome, pre_delivery_fhr_id, pre_delivery_fhr, sex, birth_weight, birth_length,
  birth_head_circumference, apgar_1_min, apgar_5_min, apgar_10_min, fetal_presentation,
- delivery_method, baby_uuid, baby_patient_id, baby_emr_id, mother_age_at_encounter)
+ fetal_presentation_other, delivery_method, birth_order, baby_uuid, baby_patient_id, baby_emr_id, mother_age_at_encounter)
 SELECT e.patient_id, e.encounter_id, e.visit_id, e.encounter_datetime, e.datetime_entered, e.user_entered,
        o.obs_id, e.pregnancy_program_id, e.provider, me.emr_id, e.encounter_location,
        b.birthdate,
@@ -232,7 +242,9 @@ SELECT e.patient_id, e.encounter_id, e.visit_id, e.encounter_datetime, e.datetim
        b.apgar_5_min,
        b.apgar_10_min,
        b.fetal_presentation,
+       b.fetal_presentation_other,
        b.delivery_method,
+       b.birth_order,
        b.baby_uuid,
        b.baby_patient_id,
        be.emr_id,
@@ -273,7 +285,9 @@ apgar_1_min,
 apgar_5_min,
 apgar_10_min,
 fetal_presentation,
+fetal_presentation_other,
 delivery_method,
+birth_order,
 index_asc,
 index_desc
 FROM temp_labor_encs;

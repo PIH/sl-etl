@@ -22,6 +22,7 @@ create temporary table temp_labor_encs
     induced_labor                           boolean,
     induction_time                          datetime,
     method_of_induction                     varchar(255),
+    companion_present                       boolean,
     t_first_hour                            decimal(8, 3),
     t_first_minute                          decimal(8, 3),
     duration_first_stage                    decimal(8, 3),
@@ -39,10 +40,35 @@ create temporary table temp_labor_encs
     t_third_hour                            decimal(8, 3),
     t_third_minute                          decimal(8, 3),
     duration_third_stage                    decimal(8, 3),
-    total_duration_labor                    int,
+    t_total_hour                            decimal(8, 3),
+    t_total_minute                          decimal(8, 3),
+    total_duration_labor                    decimal(8, 3),
     partogram_uploaded                      bit,
     uterotonic_after_birth                  bit,
     uterotonic_datetime                     datetime,
+    blood_loss_before_delivery_ml           decimal(8, 2),
+    blood_loss_after_delivery_ml            decimal(8, 2),
+    placenta_weight_g                       decimal(8, 2),
+    placenta_abnormality                    boolean,
+    placenta_abnormality_specify            text,
+    cord_length_cm                          decimal(8, 2),
+    cord_abnormality                        text,
+    breastfeeding_initiated                 boolean,
+    skin_to_skin_initiated                  boolean,
+    birth_attendant_other                   varchar(255),
+    number_of_sutures                       int,
+    sutured_by                              varchar(255),
+    perineum_comments                       text,
+    hiv_rapid_test_obs_id                   int,
+    hiv_rapid_test_obs_group_id             int,
+    hiv_rapid_test_result                   varchar(255),
+    hiv_rapid_test_reason_not_performed     varchar(255),
+    syphilis_rapid_test_obs_id              int,
+    syphilis_rapid_test_obs_group_id        int,
+    syphilis_rapid_test_result              varchar(255),
+    syphilis_rapid_test_reason_not_performed varchar(255),
+    hep_b_test_result                       varchar(255),
+    phq2_score                              int,
     index_asc                               INT,
     index_desc                              INT
 );
@@ -85,7 +111,12 @@ UPDATE temp_labor_encs t SET second_stage_start = obs_value_datetime_from_temp(e
 UPDATE temp_labor_encs t SET t_second_hour = obs_value_numeric_from_temp(encounter_id, 'PIH','20116');
 UPDATE temp_labor_encs t SET t_second_minute = obs_value_numeric_from_temp(encounter_id, 'PIH','20117');
 UPDATE temp_labor_encs t SET duration_second_stage = t_second_hour+(t_second_minute/60);
-UPDATE temp_labor_encs t SET multiple_birth = answerEverExists_from_temp(patient_id, 'PIH','3064','PIH','7225',null);
+-- multiple birth is the "twins or triplets" diagnosis checkbox on this encounter, or more than one newborn recorded on it
+-- (previously used answerEverExists_from_temp, which flagged any multiple gestation diagnosis in the patient's history)
+UPDATE temp_labor_encs t SET multiple_birth = answer_exists_in_encounter_temp(encounter_id, 'PIH','3064','PIH','7225');
+set @newborn_details = concept_from_mapping('PIH','13555');
+UPDATE temp_labor_encs t SET multiple_birth = 1
+where (select count(*) from temp_obs o where o.encounter_id = t.encounter_id and o.concept_id = @newborn_details and o.obs_group_id is null) > 1;
 UPDATE temp_labor_encs t SET amtsl = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','13533');
 UPDATE temp_labor_encs t SET visual_inspection_placenta_completeness = obs_value_coded_list_from_temp(encounter_id, 'PIH','13537','en');
 UPDATE temp_labor_encs t SET birth_attendant = obs_value_coded_list_from_temp(encounter_id, 'PIH','20118','en');
@@ -93,12 +124,49 @@ UPDATE temp_labor_encs t SET perineal_tear = obs_value_coded_list_from_temp(enco
 UPDATE temp_labor_encs t SET t_third_hour = obs_value_numeric_from_temp(encounter_id, 'PIH','20124');
 UPDATE temp_labor_encs t SET t_third_minute = obs_value_numeric_from_temp(encounter_id, 'PIH','20125');
 UPDATE temp_labor_encs t SET duration_third_stage = t_third_hour+(t_third_minute/60);
-UPDATE temp_labor_encs t SET total_duration_labor = obs_value_numeric_from_temp(encounter_id, 'CIEL','159616');
+UPDATE temp_labor_encs t SET t_total_hour = obs_value_numeric_from_temp(encounter_id, 'PIH','20457');
+UPDATE temp_labor_encs t SET t_total_minute = obs_value_numeric_from_temp(encounter_id, 'PIH','20458');
+-- the form records total duration as hours + minutes (PIH:20457/20458); CIEL:159616 is the legacy single-value question
+UPDATE temp_labor_encs t SET total_duration_labor =
+    case when t_total_hour is null and t_total_minute is null
+         then obs_value_numeric_from_temp(encounter_id, 'CIEL','159616')
+         else ifnull(t_total_hour,0) + (ifnull(t_total_minute,0)/60)
+    end;
 UPDATE temp_labor_encs t SET breastfeeding_initiation_datetime = obs_value_datetime_from_temp(encounter_id, 'PIH',21116);
 UPDATE temp_labor_encs t SET partogram_uploaded = (select count(o.obs_id) > 0 from temp_obs o where o.encounter_id = t.encounter_id and o.concept_id = concept_from_mapping('PIH', '13756'));
 UPDATE temp_labor_encs t SET age_at_encounter = AGE_AT_ENC(patient_id, encounter_id);
 UPDATE temp_labor_encs t SET uterotonic_after_birth = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','14373');
 UPDATE temp_labor_encs t SET uterotonic_datetime = obs_value_datetime_from_temp(encounter_id, 'PIH','21403');
+UPDATE temp_labor_encs t SET companion_present = answer_exists_in_encounter_temp(encounter_id, 'PIH','6547','PIH','14646');
+UPDATE temp_labor_encs t SET blood_loss_before_delivery_ml = obs_value_numeric_from_temp(encounter_id, 'PIH','20130');
+UPDATE temp_labor_encs t SET blood_loss_after_delivery_ml = obs_value_numeric_from_temp(encounter_id, 'PIH','20131');
+UPDATE temp_labor_encs t SET placenta_weight_g = obs_value_numeric_from_temp(encounter_id, 'PIH','20122');
+UPDATE temp_labor_encs t SET placenta_abnormality = obs_value_coded_as_boolean_from_temp(encounter_id, 'CIEL','130109');
+UPDATE temp_labor_encs t SET placenta_abnormality_specify = obs_value_text_from_temp(encounter_id, 'PIH','20152');
+UPDATE temp_labor_encs t SET cord_length_cm = obs_value_numeric_from_temp(encounter_id, 'PIH','20129');
+UPDATE temp_labor_encs t SET cord_abnormality = obs_value_text_from_temp(encounter_id, 'CIEL','168722');
+UPDATE temp_labor_encs t SET breastfeeding_initiated = obs_value_coded_as_boolean_from_temp(encounter_id, 'CIEL','161543');
+-- skin-to-skin is stored under "Procedure performed" (CIEL:1651), the same question as episiotomy/suture, so filter on the answer
+UPDATE temp_labor_encs t SET skin_to_skin_initiated = answer_exists_in_encounter_temp(encounter_id, 'CIEL','1651','CIEL','164173');
+UPDATE temp_labor_encs t SET birth_attendant_other = obs_value_text_from_temp(encounter_id, 'PIH','20119');
+UPDATE temp_labor_encs t SET number_of_sutures = obs_value_numeric_from_temp(encounter_id, 'PIH','20121');
+UPDATE temp_labor_encs t SET sutured_by = obs_value_text_from_temp(encounter_id, 'PIH','20126');
+UPDATE temp_labor_encs t SET perineum_comments = obs_value_text_from_temp(encounter_id, 'PIH','20128');
+UPDATE temp_labor_encs t SET phq2_score = obs_value_numeric_from_temp(encounter_id, 'PIH','PHQ-2');
+
+-- rapid tests (lab results section); reason not performed shares a concept across tests, so read it from each test's obs group
+set @hiv_rapid_test_result = concept_from_mapping('CIEL','163722');
+set @syphilis_rapid_test_result = concept_from_mapping('CIEL','165303');
+set @rapid_test_reason_not_performed = concept_from_mapping('CIEL','165182');
+UPDATE temp_labor_encs t SET hiv_rapid_test_obs_id = obs_id_from_temp_using_concept_id(encounter_id, @hiv_rapid_test_result, 0);
+UPDATE temp_labor_encs t SET hiv_rapid_test_obs_group_id = obs_group_id_from_obs(hiv_rapid_test_obs_id);
+UPDATE temp_labor_encs t SET hiv_rapid_test_result = value_coded_name(hiv_rapid_test_obs_id, @locale);
+UPDATE temp_labor_encs t SET hiv_rapid_test_reason_not_performed = obs_from_group_id_value_coded_list_using_concept_id(hiv_rapid_test_obs_group_id, @rapid_test_reason_not_performed, @locale);
+UPDATE temp_labor_encs t SET syphilis_rapid_test_obs_id = obs_id_from_temp_using_concept_id(encounter_id, @syphilis_rapid_test_result, 0);
+UPDATE temp_labor_encs t SET syphilis_rapid_test_obs_group_id = obs_group_id_from_obs(syphilis_rapid_test_obs_id);
+UPDATE temp_labor_encs t SET syphilis_rapid_test_result = value_coded_name(syphilis_rapid_test_obs_id, @locale);
+UPDATE temp_labor_encs t SET syphilis_rapid_test_reason_not_performed = obs_from_group_id_value_coded_list_using_concept_id(syphilis_rapid_test_obs_group_id, @rapid_test_reason_not_performed, @locale);
+UPDATE temp_labor_encs t SET hep_b_test_result = obs_value_coded_list_from_temp(encounter_id, 'CIEL','159430', @locale);
 
 
 
@@ -130,6 +198,7 @@ SELECT
     induced_labor,
     induction_time,
     method_of_induction,
+    companion_present,
     duration_first_stage,
     second_stage_start,
     duration_second_stage,
@@ -145,6 +214,25 @@ SELECT
     partogram_uploaded,
     uterotonic_after_birth,
     uterotonic_datetime,
+    blood_loss_before_delivery_ml,
+    blood_loss_after_delivery_ml,
+    placenta_weight_g,
+    placenta_abnormality,
+    placenta_abnormality_specify,
+    cord_length_cm,
+    cord_abnormality,
+    breastfeeding_initiated,
+    skin_to_skin_initiated,
+    birth_attendant_other,
+    number_of_sutures,
+    sutured_by,
+    perineum_comments,
+    hiv_rapid_test_result,
+    hiv_rapid_test_reason_not_performed,
+    syphilis_rapid_test_result,
+    syphilis_rapid_test_reason_not_performed,
+    hep_b_test_result,
+    phq2_score,
     index_asc,
     index_desc
 FROM temp_labor_encs;
