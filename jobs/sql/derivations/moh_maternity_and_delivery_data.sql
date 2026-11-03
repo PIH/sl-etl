@@ -62,7 +62,6 @@ order by l2.encounter_datetime desc);
 
 update d 
 set d.gestational_age = l.gestational_age,
-	d.partogram_uploaded = l.partogram_uploaded,
 	d.labor_progress_form_entered = 1
 from moh_maternity_and_delivery_data_staging d 
 inner join mch_labor_progress_encounter l on l.encounter_id = 
@@ -71,6 +70,20 @@ from mch_labor_progress_encounter l2
 inner join dim_date dd on dd.Date = cast(l2.encounter_datetime as date)
 where l2.pregnancy_program_id = d.pregnancy_program_id and dd.LastDayOfMonth = d.reporting_date
 order by l2.encounter_datetime desc);
+
+-- partogram can be uploaded on either the Labor Progress or the Labor & Delivery Summary form,
+-- so count it if either form for this pregnancy has one
+update d
+set d.partogram_uploaded = 1
+from moh_maternity_and_delivery_data_staging d
+where exists
+	(select 1 from mch_labor_summary_encounter l
+	where l.pregnancy_program_id = d.pregnancy_program_id
+	and l.partogram_uploaded = 1)
+or exists
+	(select 1 from mch_labor_progress_encounter l
+	where l.pregnancy_program_id = d.pregnancy_program_id
+	and l.partogram_uploaded = 1);
 
 update d 
 set d.gestational_age = p.estimated_gestational_age
