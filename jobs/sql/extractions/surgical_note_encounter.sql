@@ -46,13 +46,13 @@ create temporary table temp_surgical_note
     -- Ins / Outs: IVF
     ivf_type                            varchar(255),
     -- Ins / Outs: Transfusion
-    transfusion_given                   varchar(255),
+    transfusion_given                   boolean,
     whole_blood_transfusion             boolean,
     prbc_transfusion                    boolean,
     plasma_transfusion                  boolean,
     platelet_transfusion                boolean,
     -- Antibiotics / VTE
-    pre_op_antibiotic_given             varchar(255),
+    pre_op_antibiotic_given             boolean,
     antibiotics_given                   text,
     vte_prophylaxis                     varchar(255),
     -- Plan / Findings
@@ -162,7 +162,7 @@ UPDATE temp_surgical_note t SET wound_classification    = obs_value_coded_list_f
 UPDATE temp_surgical_note t SET ivf_type      = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @ivf_administered, 'en');
 
 -- Transfusion header
-UPDATE temp_surgical_note t SET transfusion_given = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @transfusion_status, 'en');
+UPDATE temp_surgical_note t SET transfusion_given = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @transfusion_status);
 
 -- Transfusion subtypes: boolean presence + volume per product, joining sibling obs via shared obs_group_id
 UPDATE temp_surgical_note t
@@ -186,7 +186,7 @@ SET platelet_transfusion = IF(EXISTS(
       AND concept_id = @transfusion_of_fluid AND value_coded = @platelets), 1, 0);
 
 -- Antibiotics / VTE
-UPDATE temp_surgical_note t SET pre_op_antibiotic_given = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @pre_op_antibiotic, 'en');
+UPDATE temp_surgical_note t SET pre_op_antibiotic_given = obs_value_coded_as_boolean_from_temp_using_concept_id(encounter_id, @pre_op_antibiotic);
 UPDATE temp_surgical_note t SET antibiotics_given       = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @surgery_antibiotics, 'en');
 UPDATE temp_surgical_note t SET vte_prophylaxis         = obs_value_coded_list_from_temp_using_concept_id(encounter_id, @vte_prophylaxis, 'en');
 
