@@ -1,4 +1,5 @@
 set @partition = '${partitionNum}';
+SET SESSION group_concat_max_len = 100000;
 
 SELECT encounter_type_id INTO @newborn_progress_enc FROM encounter_type et WHERE uuid = '7e42e652-89e7-4559-80fd-41f42826c98c';
 SELECT encounter_type_id INTO @newborn_discharge_enc FROM encounter_type et WHERE uuid = '153d3182-c76f-4047-b7f2-d83cf967b206';
