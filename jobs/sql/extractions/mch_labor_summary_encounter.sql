@@ -137,7 +137,8 @@ UPDATE temp_labor_encs t SET partogram_uploaded = (select count(o.obs_id) > 0 fr
 UPDATE temp_labor_encs t SET age_at_encounter = AGE_AT_ENC(patient_id, encounter_id);
 UPDATE temp_labor_encs t SET uterotonic_after_birth = obs_value_coded_as_boolean_from_temp(encounter_id, 'PIH','14373');
 UPDATE temp_labor_encs t SET uterotonic_datetime = obs_value_datetime_from_temp(encounter_id, 'PIH','21403');
-UPDATE temp_labor_encs t SET companion_present = answer_exists_in_encounter_temp(encounter_id, 'PIH','6547','PIH','14646');
+-- checkboxes: an unticked box saves no obs, so load NULL rather than 0 (1 = ticked, NULL = not ticked / not recorded)
+UPDATE temp_labor_encs t SET companion_present = NULLIF(answer_exists_in_encounter_temp(encounter_id, 'PIH','6547','PIH','14646'), 0);
 UPDATE temp_labor_encs t SET blood_loss_before_delivery_ml = obs_value_numeric_from_temp(encounter_id, 'PIH','20130');
 UPDATE temp_labor_encs t SET blood_loss_after_delivery_ml = obs_value_numeric_from_temp(encounter_id, 'PIH','20131');
 UPDATE temp_labor_encs t SET placenta_weight_g = obs_value_numeric_from_temp(encounter_id, 'PIH','20122');
@@ -147,7 +148,7 @@ UPDATE temp_labor_encs t SET cord_length_cm = obs_value_numeric_from_temp(encoun
 UPDATE temp_labor_encs t SET cord_abnormality = obs_value_text_from_temp(encounter_id, 'CIEL','168722');
 UPDATE temp_labor_encs t SET breastfeeding_initiated = obs_value_coded_as_boolean_from_temp(encounter_id, 'CIEL','161543');
 -- skin-to-skin is stored under "Procedure performed" (CIEL:1651), the same question as episiotomy/suture, so filter on the answer
-UPDATE temp_labor_encs t SET skin_to_skin_initiated = answer_exists_in_encounter_temp(encounter_id, 'CIEL','1651','CIEL','164173');
+UPDATE temp_labor_encs t SET skin_to_skin_initiated = NULLIF(answer_exists_in_encounter_temp(encounter_id, 'CIEL','1651','CIEL','164173'), 0);
 UPDATE temp_labor_encs t SET birth_attendant_other = obs_value_text_from_temp(encounter_id, 'PIH','20119');
 UPDATE temp_labor_encs t SET number_of_sutures = obs_value_numeric_from_temp(encounter_id, 'PIH','20121');
 UPDATE temp_labor_encs t SET sutured_by = obs_value_text_from_temp(encounter_id, 'PIH','20126');
