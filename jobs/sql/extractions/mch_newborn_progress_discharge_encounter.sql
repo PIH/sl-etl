@@ -20,12 +20,12 @@ create temporary table temp_enc
     bp_diastolic                  int,
     respiratory_rate              int,
     o2_saturation                 int,
-    glucose                       decimal(8, 3),
+    glucose                       double,
     doctor_contacted              bit,
-    length_cm                     decimal(8, 3),
-    head_circumference_cm         decimal(8, 3),
-    muac_cm                       decimal(8, 3),
-    rbg                           decimal(8, 3),
+    length_cm                     double,
+    head_circumference_cm         double,
+    muac_cm                       double,
+    rbg                           double,
     umbilical_cord                varchar(255),
     eyes                          varchar(255),
     umbilical_eye_comments        text,
@@ -50,13 +50,13 @@ create temporary table temp_enc
     iv_site                       varchar(255),
     days_with_iv                  int,
     ivf_type                      varchar(1000),
-    ivf_volume                    decimal(8, 3),
+    ivf_volume                    double,
     air_supply                    varchar(255),
-    o2_flow_rate                  decimal(8, 3),
-    cpap_pressure                 decimal(8, 3),
-    fio2                          decimal(8, 3),
+    o2_flow_rate                  double,
+    cpap_pressure                 double,
+    fio2                          double,
     apnea                         bit,
-    apnea_duration                decimal(8, 3),
+    apnea_duration                double,
     neonatal_resuscitation        bit,
     resus_supplemental_oxygen     bit,
     resus_ventilation_bag         bit,
@@ -68,19 +68,19 @@ create temporary table temp_enc
     transfusion_given             bit,
     transfusion_type              varchar(255),
     whole_blood_transfusion       bit,
-    whole_blood_volume            decimal(8, 3),
+    whole_blood_volume            double,
     prbc_transfusion              bit,
-    prbc_volume                   decimal(8, 3),
+    prbc_volume                   double,
     plasma_transfusion            bit,
-    plasma_volume                 decimal(8, 3),
+    plasma_volume                 double,
     platelet_transfusion          bit,
-    platelet_volume               decimal(8, 3),
+    platelet_volume               double,
     transfusion_reaction          bit,
-    urine_output                  decimal(8, 3),
-    estimated_blood_loss          decimal(8, 3),
+    urine_output                  double,
+    estimated_blood_loss          double,
     surgery_recommended           bit,
-    weight                        decimal(8, 3),
-    temperature                   decimal(8, 3),
+    weight                        double,
+    temperature                   double,
     heart_rate                    int,
     eye_drops                     bit,
     umbilical_cord_care           bit,
@@ -203,7 +203,14 @@ set @platelets            = concept_from_mapping('PIH','Platelets');
 
 DROP TEMPORARY TABLE IF EXISTS temp_transfusion;
 create temporary table temp_transfusion
-select encounter_id, obs_group_id, value_coded as product, cast(null as decimal(8,3)) as volume
+(
+    encounter_id int,
+    obs_group_id int,
+    product      int,
+    volume       double
+);
+insert into temp_transfusion (encounter_id, obs_group_id, product)
+select encounter_id, obs_group_id, value_coded
 from temp_obs
 where concept_id = @transfusion_of_fluid;
 
