@@ -253,6 +253,25 @@ p.user_entered, p.site, p.partition_num, concat('other patient_id: ',p2.patient_
 from all_patients p
 inner join all_patients p2 on p2.emr_id = p.emr_id and p2.patient_id <> p.patient_id;
 
+-- -------------------------------------------------- blank program ID (SL-1479)
+-- MCH encounters that are not linked to a pregnancy program (e.g. ANC followup entered without an intake)
+-- one row per encounter; union de-duplicates encounters that appear in more than one MCH table
+drop table if exists #temp_blank_program_encounters;
+select encounter_id into #temp_blank_program_encounters from mch_anc_encounter where pregnancy_program_id is null
+union select encounter_id from mch_pnc_encounter where pregnancy_program_id is null
+union select encounter_id from mch_labor_progress_encounter where pregnancy_program_id is null
+union select encounter_id from mch_labor_summary_encounter where pregnancy_program_id is null
+union select encounter_id from mch_delivery_summary_encounter where pregnancy_program_id is null
+union select encounter_id from mch_delivery where pregnancy_program_id is null
+union select encounter_id from mch_postpartum_daily_encounter where pregnancy_program_id is null;
+
+insert into #temp_data_warnings (warning_type, event_type, patient_id, emr_id, visit_id, encounter_id,
+encounter_datetime, datetime_entered, user_entered, site, partition_num)
+select 'Blank program ID', e.encounter_type, e.patient_id, e.emr_id, e.visit_id, e.encounter_id,
+e.encounter_datetime, e.datetime_entered, e.user_entered, e.site, e.partition_num
+from all_encounters e
+inner join #temp_blank_program_encounters t on t.encounter_id = e.encounter_id;
+
 -- -------------------------------------------------- visit details
 update t
 set t.visit_date_started = v.visit_date_started,
