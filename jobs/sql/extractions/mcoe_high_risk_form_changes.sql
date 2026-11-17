@@ -19,6 +19,7 @@ set @death_cutoff_days = 7;  -- (b): death_date allowed up to N days after the v
 
 set @primary_identifier = metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType');
 set @disposition_concept_id = concept_from_mapping('PIH', '8620');
+set @death_concept_id       = concept_from_mapping('PIH', 'DEATH');   -- "Death" answer (also PIH:8619, CIEL:159)
 
 select location_id into @nicu_location from location where uuid = '0ce2f6fb-6850-11ee-ab8d-0242ac120002';
 
@@ -105,7 +106,7 @@ inner join temp_hrc_mcoe_locations l   on l.location_id = e.location_id
 where o.concept_id = @disposition_concept_id
   and o.voided = 0
   and e.visit_id is not null
-  and concept_name(o.value_coded, 'en') = 'Death';
+  and o.value_coded = @death_concept_id;
 
 -- (b) admitted at MCOE, patient marked dead, death_date from admission to visit end + cut-off.
 --     death_date is often stored without a time, so compare dates.
@@ -334,6 +335,12 @@ left join person_name pn on pn.person_id = u.person_id and pn.voided = 0
 left join provider p     on p.person_id = u.person_id and p.retired = 0
 group by u.user_id;
 
+-- MySQL cannot open the same temporary table twice in one statement (error 1137), and the output
+-- looks up both the form creator and the person who made the change, so keep a second copy.
+drop temporary table if exists temp_hrc_user_editor;
+create temporary table temp_hrc_user_editor (user_id int primary key, user_name varchar(255), provider_type varchar(255));
+insert into temp_hrc_user_editor select user_id, user_name, provider_type from temp_hrc_user;
+
 -- ---------------------------------------------------------------------
 -- output: one row per change
 -- ---------------------------------------------------------------------
@@ -401,4 +408,4 @@ left join  obs n                   on n.obs_id = c.new_obs_id
 left join  obs g                   on g.obs_id = coalesce(o.obs_group_id, n.obs_group_id)
 left join  person p                on p.person_id = e.patient_id
 left join  temp_hrc_user cu        on cu.user_id = e.creator
-left join  temp_hrc_user xu        on xu.user_id = c.user_id;
+left join  temp_hrc_user_editor xu on xu.user_id = c.user_id;
