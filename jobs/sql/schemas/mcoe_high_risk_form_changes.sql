@@ -1,0 +1,28 @@
+create table mcoe_high_risk_form_changes
+(
+patient_id              varchar(50),
+emr_id                  varchar(15),
+encounter_id            varchar(50),
+visit_id                varchar(50),
+inclusion_reason        varchar(50),
+encounter_type          varchar(255),
+encounter_location      varchar(255),
+encounter_datetime      datetime,
+datetime_entered        datetime,
+user_entered            varchar(255),
+change_type             varchar(30),
+question                varchar(255),
+question_group          varchar(255),
+old_value               text,
+new_value               text,
+changed_by_user         varchar(255),
+changed_by_role         varchar(255),
+editor_is_creator       int,
+changed_datetime        datetime,
+hours_after_entry       decimal(12,1),
+change_lag_group        varchar(30),
+change_lag_group_order  int,
+death_date              datetime,
+changed_after_death     int,
+void_reason             varchar(255)
+);
