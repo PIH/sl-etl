@@ -2,7 +2,7 @@
 -- Every change made to high-risk MCOE forms after they were first saved:
 --   which question, old answer, new answer, who changed it and when.
 -- Forms included (inclusion_reason, first match wins):
---   1. delivery form                      Labour & Delivery Summary, MCH Delivery, Maternity Delivery Register
+--   1. delivery form                      Labour and Delivery Summary, MCH Delivery, Maternity Delivery Register
 --   2. NICU form                          any form at the NICU location, plus the newborn / SCBU encounter types
 --   3. patient died (disposition)         MCOE form with disposition Death -> all MCOE forms in that visit
 --   4. patient died (admitted + dead)     MCOE admission + person.dead, death_date from admission to
@@ -19,7 +19,7 @@ set @death_cutoff_days = 7;  -- (b): death_date allowed up to N days after the v
 
 set @primary_identifier = metadata_uuid('org.openmrs.module.emrapi', 'emr.primaryIdentifierType');
 set @disposition_concept_id = concept_from_mapping('PIH', '8620');
-set @death_concept_id       = concept_from_mapping('PIH', 'DEATH');   -- "Death" answer (also PIH:8619, CIEL:159)
+set @death_concept_id       = concept_from_mapping('PIH', 'DEATH');   -- Death answer (also PIH:8619, CIEL:159)
 
 select location_id into @nicu_location from location where uuid = '0ce2f6fb-6850-11ee-ab8d-0242ac120002';
 
@@ -49,7 +49,7 @@ drop temporary table if exists temp_hrc_delivery_types;
 create temporary table temp_hrc_delivery_types (encounter_type_id int primary key);
 insert into temp_hrc_delivery_types
 select encounter_type_id from encounter_type where uuid in (
- 'fec2cc56-e35f-42e1-8ae3-017142c1ca59',   -- Labour & Delivery Summary
+ 'fec2cc56-e35f-42e1-8ae3-017142c1ca59',   -- Labour and Delivery Summary
  '00e5ebb2-90ec-11e8-9eb6-529269fb1459',   -- MCH Delivery
  '9cc89b83-e32f-410a-947d-aeb3bda37571');  -- Maternity Delivery Register
 
@@ -236,7 +236,7 @@ where o.previous_version is null
 -- 2b. fallback pairing for voided answers with no previous_version link:
 --     same encounter + same question, new obs created within @pair_seconds.
 --     Only one-to-one matches are paired; ambiguous ones (multi-select questions)
---     stay as "answer removed" + "answer added later".
+--     stay as answer removed + answer added later.
 drop temporary table if exists temp_hrc_fb;
 create temporary table temp_hrc_fb (old_obs_id int, new_obs_id int, index (old_obs_id), index (new_obs_id));
 insert into temp_hrc_fb
@@ -262,12 +262,12 @@ inner join temp_hrc_fb_old fo on fo.obs_id = f.old_obs_id and fo.n = 1
 inner join temp_hrc_fb_new fn on fn.obs_id = f.new_obs_id and fn.n = 1
 set v.successor_obs_id = f.new_obs_id;
 
--- new obs that are fallback replacements are not "added later"
+-- new obs that are fallback replacements are not added later
 update temp_hrc_late_obs n
 inner join temp_hrc_voided_obs v on v.successor_obs_id = n.obs_id
 set n.matched = 1;
 
--- drop "changes" where the value did not actually change (obs groups being re-created)
+-- drop changes where the value did not actually change (obs groups being re-created)
 delete v
 from temp_hrc_voided_obs v
 inner join obs o on o.obs_id = v.obs_id
@@ -364,22 +364,22 @@ select
                        cast(o.value_numeric as char),
                        o.value_text,
                        if(time(o.value_datetime) = '00:00:00',
-                          date_format(o.value_datetime, '%Y-%m-%d'),
-                          date_format(o.value_datetime, '%Y-%m-%d %H:%i'))) end   as old_value,
+                          cast(date(o.value_datetime) as char),
+                          left(cast(o.value_datetime as char), 16))) end   as old_value,
     case when n.obs_id is null then null
          else coalesce(concept_name(n.value_coded, 'en'),
                        (select d.name from drug d where d.drug_id = n.value_drug),
                        cast(n.value_numeric as char),
                        n.value_text,
                        if(time(n.value_datetime) = '00:00:00',
-                          date_format(n.value_datetime, '%Y-%m-%d'),
-                          date_format(n.value_datetime, '%Y-%m-%d %H:%i'))) end   as new_value,
+                          cast(date(n.value_datetime) as char),
+                          left(cast(n.value_datetime as char), 16))) end   as new_value,
     xu.user_name                                                 as changed_by_user,
     xu.provider_type                                             as changed_by_role,
     if(c.user_id = e.creator, 1, 0)                              as editor_is_creator,
     c.change_datetime                                            as changed_datetime,
     round(c.lag_seconds / 3600, 1)                               as hours_after_entry,
-    -- lag groups use elapsed time (not calendar days); "within 1 hour" only holds form deletions
+    -- lag groups use elapsed time (not calendar days); within 1 hour only holds form deletions
     case when c.lag_seconds <= 3600          then 'within 1 hour'
          when c.lag_seconds <= 4 * 3600      then '1-4 hours'
          when c.lag_seconds <= 24 * 3600     then '4-24 hours'
