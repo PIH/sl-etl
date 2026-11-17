@@ -87,8 +87,9 @@ insert ignore into temp_hrc_scope (encounter_id, inclusion_reason)
 select e.encounter_id, 'NICU form'
 from encounter e
 inner join temp_hrc_mcoe_locations l   on l.location_id = e.location_id
+left join  temp_hrc_newborn_types nt   on nt.encounter_type_id = e.encounter_type
 where e.location_id = @nicu_location
-   or e.encounter_type in (select encounter_type_id from temp_hrc_newborn_types);
+   or nt.encounter_type_id is not null;
 
 -- 3. patients who died: visits to include (first reason per visit wins)
 drop temporary table if exists temp_hrc_death_visits;
@@ -344,6 +345,8 @@ insert into temp_hrc_user_editor select user_id, user_name, provider_type from t
 -- ---------------------------------------------------------------------
 -- output: one row per change
 -- ---------------------------------------------------------------------
+drop temporary table if exists temp_hrc_output;
+create temporary table temp_hrc_output as
 select
     concat(@partition, '-', e.patient_id)                        as patient_id,
     patient_identifier(e.patient_id, @primary_identifier)        as emr_id,
@@ -360,18 +363,18 @@ select
     concept_name(g.concept_id, 'en')                             as question_group,
     case when o.obs_id is null then null
          else coalesce(concept_name(o.value_coded, 'en'),
-                       (select d.name from drug d where d.drug_id = o.value_drug),
+                       od.name,
                        cast(o.value_numeric as char),
                        o.value_text,
-                       if(time(o.value_datetime) = '00:00:00',
+                       if(o.value_datetime = date(o.value_datetime),
                           cast(date(o.value_datetime) as char),
                           left(cast(o.value_datetime as char), 16))) end   as old_value,
     case when n.obs_id is null then null
          else coalesce(concept_name(n.value_coded, 'en'),
-                       (select d.name from drug d where d.drug_id = n.value_drug),
+                       nd.name,
                        cast(n.value_numeric as char),
                        n.value_text,
-                       if(time(n.value_datetime) = '00:00:00',
+                       if(n.value_datetime = date(n.value_datetime),
                           cast(date(n.value_datetime) as char),
                           left(cast(n.value_datetime as char), 16))) end   as new_value,
     xu.user_name                                                 as changed_by_user,
@@ -396,7 +399,7 @@ select
     if(p.dead = 1, p.death_date, null)                           as death_date,
     -- death_date is often stored without a time: then only a later calendar day counts as after death
     case when p.dead <> 1 or p.death_date is null                then 0
-         when time(p.death_date) = '00:00:00'
+         when p.death_date = date(p.death_date)
               then if(date(c.change_datetime) > date(p.death_date), 1, 0)
          else if(c.change_datetime > p.death_date, 1, 0) end     as changed_after_death,
     c.void_reason
@@ -406,6 +409,10 @@ inner join encounter_type et       on et.encounter_type_id = e.encounter_type
 left join  obs o                   on o.obs_id = c.old_obs_id
 left join  obs n                   on n.obs_id = c.new_obs_id
 left join  obs g                   on g.obs_id = coalesce(o.obs_group_id, n.obs_group_id)
+left join  drug od                 on od.drug_id = o.value_drug
+left join  drug nd                 on nd.drug_id = n.value_drug
 left join  person p                on p.person_id = e.patient_id
 left join  temp_hrc_user cu        on cu.user_id = e.creator
 left join  temp_hrc_user_editor xu on xu.user_id = c.user_id;
+
+select * from temp_hrc_output;
