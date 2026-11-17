@@ -63,3 +63,4 @@ configuration:
           - tableName: "surgical_note_encounter"          
           - tableName: "data_warnings"
           - tableName: "encounter_change_summary"
+          - tableName: "mcoe_high_risk_form_changes"
