@@ -62,3 +62,4 @@ configuration:
           - tableName: "mch_triage_encounter"
           - tableName: "surgical_note_encounter"          
           - tableName: "data_warnings"
+          - tableName: "encounter_change_summary"
